@@ -1,5 +1,7 @@
 # Changelog
 
+Unreleased collects changes for the next version. Dated sections list user-visible changes, newest first. GitHub release notes reproduce the corresponding section.
+
 ## Unreleased
 
 ## 0.1.0 - 2026-10-25
