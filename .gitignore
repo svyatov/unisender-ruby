@@ -1,4 +1,7 @@
 /.bundle/
+/.env
+/.env.*
+!/.env.example
 /coverage/
 /lefthook-local.yml
 /pkg/
