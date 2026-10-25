@@ -13,6 +13,8 @@ bundle exec rake check
 
 `bin/setup` installs development dependencies and Lefthook hooks. The complete check runs offline tests, RuboCop, RBS validation, Steep for the library and consumer examples, the dependency vulnerability audit, and the gem build. The audit updates its advisory database and needs network access.
 
+CI runs `bundle exec rake ci` for lint, tests, types, and the build. Dependency review blocks newly introduced vulnerabilities. A separate advisory job reports vulnerabilities across the lockfile without blocking unrelated changes.
+
 ## Make a change
 
 Use a branch such as `fix/error-context` or `feat/new-operation`. Read the official UniSender method documentation before changing a wire contract. Add a regression test with a deterministic transport, keep signatures in `sig/` synchronized, update the relevant docs, and add an entry under Unreleased in [CHANGELOG.md](CHANGELOG.md).
