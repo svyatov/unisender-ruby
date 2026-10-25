@@ -4,6 +4,12 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+## 0.1.1 - 2026-10-25
+
+- Clarify installation, example destinations, contribution guidance, and maintainer policies.
+- Include security, conduct, and release verification documents in the gem.
+- Publish signed releases through an approval-gated workflow with an exact-file SPDX inventory and verifiable release assets.
+
 ## 0.1.0 - 2026-10-25
 
 - Publish as `unisender-ruby`; load with `require "unisender"` and use the `Unisender` namespace.

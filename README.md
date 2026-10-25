@@ -30,7 +30,7 @@ Run `ruby quickstart.rb`. It prints one title per list, or nothing if the accoun
 For a Bundler project, add the gem to your application's Gemfile:
 
 ```ruby
-gem "unisender-ruby", "~> 0.1.0", require: "unisender"
+gem "unisender-ruby", "~> 0.1.1", require: "unisender"
 ```
 
 Then run `bundle install`. The package is named `unisender-ruby`; load it with `require "unisender"`.
