@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://json.schemastore.org/lefthook.json
+
+assert_lefthook_installed: true
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: secrets
+      run: betterleaks git --pre-commit --staged --redact --verbose
+    - name: rubocop
+      glob: "{*.rb,*.rake,*.gemspec,Gemfile,Rakefile,bin/setup}"
+      run: bundle exec rubocop -a --force-exclusion {staged_files}
+      stage_fixed: true
+    - name: whitespace
+      run: git diff --cached --check
+
+pre-push:
+  jobs:
+    - name: check
+      run: bundle exec rake check
+
+commit-msg:
+  jobs:
+    - name: conventional
+      run: >-
+        ruby -e 'abort "Use Conventional Commits: chore(scope): description or docs(scope): description" unless File.open(ARGV.fetch(0), &:gets).to_s.chomp.match?(/\A(chore|docs)(\([^()\s]+\))?!?: \S.*\z/)' {1}

@@ -1,5 +1,6 @@
 /.bundle/
 /coverage/
+/lefthook-local.yml
 /pkg/
 /tmp/
 /vendor/

@@ -6,14 +6,16 @@ Requires Ruby 3.3 or newer. There are no runtime dependencies.
 
 ## Development
 
-Install the development dependencies and run all checks:
+Install [Betterleaks](https://github.com/betterleaks/betterleaks) separately and make the `betterleaks` command available on `PATH` (verified with version 1.9.0). Then install the development dependencies and Git hooks, and run all checks:
 
 ```sh
-bundle install
+bin/setup
 bundle exec rake check
 ```
 
 The default `bundle exec rake` command runs the same checks: tests, RuboCop, RBS validation, Steep, a dependency vulnerability audit, and the gem build. The audit updates its advisory database and requires network access. CI runs this command on Ruby 3.3, 3.4, and 4.0.
+
+Git hooks use Lefthook. Before each commit, Betterleaks scans staged changes for secrets, RuboCop safely corrects and stages matching Ruby files, and Git checks staged whitespace. Commit messages must use `chore: description` or `docs: description`, with an optional scope and breaking-change marker, matching the repository's current commit types. Before each push, the complete `bundle exec rake check` suite runs. Local hook overrides belong in the ignored `lefthook-local.yml` file.
 
 Individual commands:
 
