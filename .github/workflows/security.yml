@@ -65,3 +65,6 @@ jobs:
       - name: Report all known dependency vulnerabilities
         run: bundle exec rake audit
         continue-on-error: true
+      - name: Report publishing-tool vulnerabilities
+        run: bundle exec bundle-audit check .github/release --database tmp/ruby-advisory-db
+        continue-on-error: true
