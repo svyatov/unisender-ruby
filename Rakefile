@@ -45,4 +45,7 @@ end
 desc "Run tests, lint, type checks, security audit, and gem build"
 task check: %i[test lint typecheck audit build]
 
+desc "Run required CI checks; dependency advisories are reported separately"
+task ci: %i[lint test typecheck build]
+
 task default: :check
