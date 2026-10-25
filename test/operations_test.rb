@@ -23,7 +23,9 @@ class OperationsTest < Minitest::Test
     define_method("test_#{example.fetch('name')}_propagates_api_errors") do
       failure = { "error" => "Rejected", "code" => "invalid_arg" }
 
-      assert_raises(Unisender::APIError) { invoke_example(example, "args", failure) }
+      error = assert_raises(Unisender::APIError) { invoke_example(example, "args", failure) }
+
+      assert_equal example.fetch("wire"), error.operation
     end
   end
 

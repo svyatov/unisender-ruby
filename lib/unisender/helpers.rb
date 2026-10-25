@@ -22,7 +22,7 @@ module Unisender
     def wait_for_task(task_uuid:, interval: 1, timeout: 60, clock: nil, sleeper: nil)
       clock ||= -> { Process.clock_gettime(Process::CLOCK_MONOTONIC) }
       sleeper ||= ->(delay) { sleep(delay) }
-      TaskWaiter.new(self, clock:, sleeper:).call(task_uuid, interval, timeout)
+      TaskWaiter.new(self, clock:, sleeper:).call(task_uuid, interval, timeout) # : Response[task_completed]
     end
   end
 end

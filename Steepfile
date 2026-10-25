@@ -8,3 +8,13 @@ target :unisender do
 
   configure_code_diagnostics(Steep::Diagnostic::Ruby.strict)
 end
+
+target :consumer do
+  check "test/consumer", "examples"
+  signature "sig"
+  signature "test/consumer"
+
+  library "net-http", "json", "uri", "openssl", "time"
+
+  configure_code_diagnostics(Steep::Diagnostic::Ruby.strict)
+end

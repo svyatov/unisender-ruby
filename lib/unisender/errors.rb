@@ -3,6 +3,31 @@
 module Unisender
   # Base class for client and service failures.
   class Error < StandardError
+    OPERATIONS = %w[
+      createList deleteList exclude async/exportContacts getContactCount getLists getTotalContactsCount
+      importContacts subscribe updateList isContactInLists getContact unsubscribe cancelCampaign
+      checkEmail checkSms createCampaign createEmailMessage createSmsMessage deleteMessage
+      getActualMessageVersion getWebVersion sendEmail sendSms sendTestEmail updateEmailMessage
+      updateOptInEmail getSenderDomainList getCampaignCommonStats async/getCampaignDeliveryStats
+      getCampaignStatus getMessages getVisitedLinks listMessages getCampaigns getMessage async/getTaskResult
+      createEmailTemplate deleteTemplate getTemplate getTemplates listTemplates updateEmailTemplate
+      createField deleteField deleteTag getFields getTags updateField getContactFieldValues
+      createSubscriberNote updateSubscriberNote deleteSubscriberNote getSubscriberNote getSubscriberNotes
+      track_events
+    ].freeze
+    private_constant :OPERATIONS
+
+    attr_reader :operation
+
+    def with_operation(operation)
+      @operation = OPERATIONS.include?(operation) ? operation.dup.freeze : nil
+      self
+    end
+
+    def to_s
+      "UniSender #{@operation || 'request'} failed: #{super}"
+    end
+
     def inspect
       "#<#{self.class}>"
     end
@@ -10,13 +35,20 @@ module Unisender
 
   # Main API failure, including failures returned with HTTP 200.
   class APIError < Error
+    # https://www.unisender.com/ru/support/api/common/api-errors/
+    SAFE_CODES = %w[
+      unspecified invalid_api_key access_denied unknown_method invalid_arg not_enough_money retry_later
+      api_call_limit_exceeded_for_api_key api_call_limit_exceeded_for_ip
+    ].freeze
+    private_constant :SAFE_CODES
+
     attr_reader :response, :code, :details
 
     def initialize(response)
       @response = response
       @code = response.data["code"]
       @details = response.data["error"]
-      super("UniSender rejected the API request")
+      super(SAFE_CODES.include?(@code) ? @code.to_s : "API error")
     end
   end
 
@@ -26,7 +58,7 @@ module Unisender
 
     def initialize(response)
       @response = response
-      super("UniSender returned an unsuccessful HTTP status")
+      super("HTTP #{response.status}")
     end
   end
 

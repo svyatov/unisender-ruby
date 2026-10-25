@@ -1055,10 +1055,12 @@
     "args": {
       "id": 123
     },
-    "result": {
-      "id": 123,
-      "body": "<p>News</p>"
-    },
+    "result": [
+      {
+        "id": 123,
+        "body": "<p>News</p>"
+      }
+    ],
     "expected": {
       "id": "123"
     },
@@ -1427,7 +1429,9 @@
       "id": 123,
       "content": "Note"
     },
-    "result": [],
+    "result": {
+      "id": 23
+    },
     "expected": {
       "id": "123",
       "content": "Note"

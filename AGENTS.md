@@ -4,11 +4,11 @@
 
 `unisender` is a Ruby API client for the service described by the [official UniSender API documentation](https://www.unisender.com/ru/support/category/api/). Use that API family as the source of truth for endpoints, parameters, and responses.
 
-The repository currently contains a gem scaffold. `require "unisender"` exposes `Unisender::VERSION`; no API methods are implemented. Add only the behavior requested for the current task, and document implemented features without implying full API coverage.
+`require "unisender"` exposes the client, named marketing operations, Event Tracking, responses, errors, and optional helpers. Use `docs/api.md` for the implemented surface. Add only the behavior requested for the current task, and keep public examples, RBS signatures, and the Unreleased changelog synchronized with it.
 
 ## Working in the repository
 
-1. Read `README.md`, `unisender.gemspec`, `Gemfile`, and `Rakefile` before changing setup or tooling. The gemspec defines Ruby compatibility and packaged files; the Gemfile holds development dependencies.
+1. Read `README.md`, `CONTRIBUTING.md`, `unisender.gemspec`, `Gemfile`, and `Rakefile` before changing setup or tooling. The gemspec defines Ruby compatibility and packaged files; the Gemfile holds development dependencies.
 2. Before implementing or changing an API method, read its official method page and the relevant protocol references below. Confirm required parameters, optional parameters, response shape, and documented errors. Keep documentation links near tests or documentation where they explain non-obvious behavior.
 3. Prefer test-first changes using the existing Minitest setup. Keep production code under `lib/` and tests under `test/`. Use `Unisender` as the Ruby namespace and retain `require "unisender"` as the public entry point.
 4. Run the checks below, then update the README for any new public interface. Report which behavior was observed and which Ruby versions were tested.

@@ -20,7 +20,7 @@ end
 
 desc "Require 100% typed calls in every library file"
 task :type_coverage do
-  report, status = Open3.capture2("bundle", "exec", "steep", "stats", "--format=csv", "--jobs=2")
+  report, status = Open3.capture2("bundle", "exec", "steep", "stats", "--format=csv", "--jobs=2", "lib")
   abort "Steep statistics failed" unless status.success?
 
   files = Dir["lib/**/*.rb"]

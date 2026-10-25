@@ -25,8 +25,10 @@ module Unisender
       body = Form.encode(params.merge("api_key" => @api_key, "format" => "json"))
       @retry_policy.call(method) do
         response = @transport.post(uri, headers:, body:)
-        Protocol.parse(response)
+        Protocol.parse(response, method:)
       end
+    rescue Error => e
+      raise e.with_operation(method), cause: nil
     end
 
     def inspect
@@ -42,6 +44,8 @@ module Unisender
       raise ArgumentError, "api_key and format are managed by the client"
     end
 
+    # The wire response stays JSON; each named operation declares the documented result type.
+    # @type method invoke: (String, params, ?required: Array[String], ?comma: Array[String]) -> Response[json]
     def invoke(method, params, required: [], comma: [])
       Validation.required!(params, required)
       Validation.operation!(method, params)

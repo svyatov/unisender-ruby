@@ -15,7 +15,7 @@ module Unisender
     alias to_s inspect
   end
 
-  class Response
+  class Response[out Result = json]
     EMPTY_WARNINGS: Array[json]
     @data: Hash[String, json]
     @status: Integer
@@ -24,7 +24,7 @@ module Unisender
     attr_reader status: Integer
     attr_reader headers: Hash[String, String]
     def initialize: (data: Hash[String, json], status: Integer, headers: Hash[String, String]) -> void
-    def result: () -> json
+    def result: () -> Result
     def warnings: () -> json
     def inspect: () -> String
     private
@@ -33,9 +33,15 @@ module Unisender
   end
 
   class Error < StandardError
+    OPERATIONS: Array[String]
+    @operation: String?
+    attr_reader operation: String?
+    def with_operation: (String) -> self
+    def to_s: () -> String
     def inspect: () -> String
   end
   class APIError < Error
+    SAFE_CODES: Array[String]
     attr_reader response: Response
     attr_reader code: json
     attr_reader details: json
@@ -79,7 +85,7 @@ module Unisender
 
   module PaginatedOperations
     DEFINITIONS: Hash[String, [String, Array[Symbol], Array[Symbol], Integer?]]
-    def self.call: (Client, String | Symbol, params) -> Response
+    def self.call: (Client, String | Symbol, params) -> Response[objects]
     def self.page_limit: (String | Symbol) -> Integer?
     def self.definition: (String | Symbol) -> [String, Array[Symbol], Array[Symbol], Integer?]
   end
@@ -145,7 +151,8 @@ module Unisender
   end
 
   module Protocol
-    def self.parse: (HTTPResponse) -> Response
+    def self.parse: (HTTPResponse, ?method: String?) -> Response
+    def self.result?: (Hash[String, json], String?) -> bool
     def self.decode: (HTTPResponse) -> Hash[String, json]
   end
 
@@ -198,14 +205,14 @@ module Unisender
     @retry_policy: RetryPolicy
     def initialize: (api_key: String, ?transport: _Transport, ?language: String | Symbol, ?retry_policy: RetryPolicy) -> void
     def request: (String, ?params: params) -> Response
-    def track_events: (events: Array[params]) -> Response
+    def track_events: (events: Array[params]) -> Response[event_accepted]
     def each_page: (String | Symbol, ?page_size: Integer, ?max_pages: Integer, **parameter) -> Enumerator[Response, void]
     def import_contacts_in_batches: (field_names: Array[String], data: Enumerable[Array[parameter]], ?batch_size: Integer, ?overwrite_tags: flag?, ?overwrite_lists: flag?, ?telegram_bot_channel_id: String?) -> Enumerator[Response, void]
     def track_events_in_batches: (events: Enumerable[params], ?batch_size: Integer) -> Enumerator[Response, void]
-    def wait_for_task: (task_uuid: String, ?interval: duration, ?timeout: duration, ?clock: ( ^() -> Float)?, ?sleeper: ( ^(duration) -> void)?) -> Response
+    def wait_for_task: (task_uuid: String, ?interval: duration, ?timeout: duration, ?clock: ( ^() -> Float)?, ?sleeper: ( ^(duration) -> void)?) -> Response[task_completed]
     def inspect: () -> String
     private
-    def invoke: (String, params, ?required: Array[String], ?comma: Array[String]) -> Response
+    def invoke: [Result] (String, params, ?required: Array[String], ?comma: Array[String]) -> Response[Result]
     def validate_request: (String, params) -> void
   end
 end

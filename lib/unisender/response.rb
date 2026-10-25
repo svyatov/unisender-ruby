@@ -30,6 +30,8 @@ module Unisender
       freeze
     end
 
+    # The parser retains JSON; named operation signatures describe its upstream shape.
+    # @type method result: () -> json
     def result
       @data.fetch("result", @data)
     end

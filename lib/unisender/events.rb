@@ -9,11 +9,11 @@ module Unisender
       http = @transport.post(URI("https://event.unisender.com/v1/events/"), headers:, body:)
       response = Response.new(data: Protocol.decode(http), status: http.status, headers: http.headers)
       raise EventError, response, cause: nil unless (200..299).cover?(http.status)
-      unless response.data["success"] == true
-        raise InvalidResponseError, "Missing Event Tracking success status", cause: nil
-      end
+      raise InvalidResponseError, "Missing event success status", cause: nil unless response.data["success"] == true
 
-      response
+      response # : Response[event_accepted]
+    rescue Error => e
+      raise e.with_operation("track_events"), cause: nil
     end
   end
 end

@@ -1,0 +1,6 @@
+class FakeTransport
+  @requests: Array[{ uri: URI::Generic, headers: Hash[String, String], body: String }]
+  attr_reader requests: Array[{ uri: URI::Generic, headers: Hash[String, String], body: String }]
+  def initialize: () -> void
+  def post: (URI::Generic, headers: Hash[String, String], body: String) -> Unisender::HTTPResponse
+end

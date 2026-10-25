@@ -23,4 +23,4 @@ commit-msg:
   jobs:
     - name: conventional
       run: >-
-        ruby -e 'abort "Use Conventional Commits: chore(scope): description or docs(scope): description" unless File.open(ARGV.fetch(0), &:gets).to_s.chomp.match?(/\A(chore|docs)(\([^()\s]+\))?!?: \S.*\z/)' {1}
+        ruby -e 'abort "Use Conventional Commits: type(scope): description" unless File.open(ARGV.fetch(0), &:gets).to_s.chomp.match?(/\A(feat|fix|docs|test|refactor|perf|build|ci|chore|revert)(\([^()\s]+\))?!?: \S.*\z/)' {1}
