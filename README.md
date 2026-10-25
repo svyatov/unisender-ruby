@@ -1,18 +1,39 @@
 # Unisender
 
-A Ruby client for the [UniSender marketing API](https://www.unisender.com/ru/support/category/api/). Ruby 3.3 or newer, no runtime gem dependencies. This client targets `api.unisender.com`, not UniSender Go.
+A Ruby client for applications using the [UniSender marketing API](https://www.unisender.com/ru/support/category/api/).
+
+Ruby 3.3 or newer, no runtime gem dependencies. This client targets `api.unisender.com`, not UniSender Go.
 
 Explicit keyword methods cover contacts, lists, messages, campaigns, statistics, templates, fields, notes, and Event Tracking. Responses preserve upstream JSON, warnings, and HTTP metadata. See the [API reference](docs/api.md) for the operation index, argument types, and result shapes.
 
 ## Install
 
-Add the gem to your application's Gemfile:
+Install the gem:
+
+```sh
+gem install unisender-ruby
+```
+
+Save this read-only example as `quickstart.rb`. It uses the key in `UNISENDER_API_KEY`:
+
+<!-- example: examples/quickstart.rb -->
+```ruby
+require "unisender"
+
+client = Unisender::Client.new(api_key: ENV.fetch("UNISENDER_API_KEY"))
+client.get_lists.result.each { |list| puts list.fetch("title") }
+# Example output for a list named News: News
+```
+
+Run `ruby quickstart.rb`. It prints one title per list, or nothing if the account has no lists. See [Make your first request](#make-your-first-request) for key setup.
+
+For a Bundler project, add the gem to your application's Gemfile:
 
 ```ruby
 gem "unisender-ruby", "~> 0.1.0", require: "unisender"
 ```
 
-Then run `bundle install`. To install it directly, run `gem install unisender-ruby`. The package is named `unisender-ruby`; load it with `require "unisender"`.
+Then run `bundle install`. The package is named `unisender-ruby`; load it with `require "unisender"`.
 
 ### Install from a checkout
 
@@ -39,21 +60,13 @@ bundle exec ruby examples/check_connection.rb
 
 The check prints only the HTTP status and list count, including zero for an empty account. Failures exit with status 1. It does not print list names or IDs. The gem itself reads neither environment variables nor `.env`; application code passes the key explicitly.
 
-This example only reads your lists. It does not create contacts or send messages:
-
-<!-- example: examples/quickstart.rb -->
-```ruby
-require "unisender"
-
-client = Unisender::Client.new(api_key: ENV.fetch("UNISENDER_API_KEY"))
-client.get_lists.result.each { |list| puts list.fetch("title") }
-```
-
-Save it as `quickstart.rb` and run `bundle exec ruby quickstart.rb`. It prints one title per list, or nothing if the account has no lists. A missing environment variable raises `KeyError` before any request. To try the client without an account or network access, run `bundle exec ruby examples/offline.rb` from this checkout.
+The `quickstart.rb` example above only reads lists. It does not create contacts or send messages. In a Bundler project, run it with `bundle exec ruby quickstart.rb`. A missing environment variable raises `KeyError` before any request. To try the client without an account or network access, run `bundle exec ruby examples/offline.rb` from this checkout.
 
 ## Subscribe a contact
 
 This operation changes your account and normally **sends a confirmation email**. Use an existing list ID from `get_lists`, and an address you control for a manual trial. Set `UNISENDER_LIST_ID` and `UNISENDER_CONTACT_EMAIL` before running it.
+
+Save the following example as `subscribe.rb`:
 
 <!-- example: examples/subscribe.rb -->
 ```ruby
@@ -90,6 +103,8 @@ Every operation returns `Unisender::Response`: `result`, `warnings`, `data` (the
 
 Named methods use snake_case and reject unknown keywords. Optional `nil` values are omitted, preserving server defaults. API messages default to English; use `Client.new(api_key: ..., language: :ru)` for Russian. Message-level `lang:` is a separate setting.
 
+Use this error handler in your application's `request.rb`:
+
 ```ruby
 begin
   client.get_lists
@@ -112,6 +127,8 @@ Error messages identify known operations and HTTP statuses or documented API cod
 A successful envelope does not mean every recipient succeeded. Inspect `send_email(error_checking: 1, ...)` recipient errors and import counters. A `BatchError` provides `completed_responses`, the zero-based, end-exclusive `failed_range`, and the original `error`. Accepted changes remain applied; do not repeat the whole input automatically. The [batch example](examples/import.rb) shows how to inspect partial results.
 
 ## Timeouts, retries, and pagination
+
+In `quickstart.rb`, replace the client construction with:
 
 ```ruby
 client = Unisender::Client.new(
@@ -137,4 +154,6 @@ RBS signatures ship with the gem. `Response[Result]` describes a named operation
 - [Changes and compatibility policy](CHANGELOG.md)
 - [Source repository](https://github.com/svyatov/unisender-ruby) and [issue reports](https://github.com/svyatov/unisender-ruby/issues)
 
-The repository is currently private; its GitHub links require access. Tests use fake credentials and deterministic responses. They do not establish compatibility with a live account. Released under the [MIT License](LICENSE.txt).
+This project is maintained by Leonid Svyatov. Use the public [issue tracker](https://github.com/svyatov/unisender-ruby/issues) for questions and defect reports. Report vulnerabilities privately through [SECURITY.md](SECURITY.md).
+
+Tests use fake credentials and deterministic responses. They do not establish compatibility with a live account. Released under the [MIT License](LICENSE.txt).
