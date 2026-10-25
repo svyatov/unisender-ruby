@@ -6,12 +6,27 @@ Requires Ruby 3.3 or newer. There are no runtime dependencies.
 
 ## Development
 
-Install the development dependencies and run the tests:
+Install the development dependencies and run all checks:
 
 ```sh
 bundle install
-bundle exec rake
+bundle exec rake check
 ```
+
+The default `bundle exec rake` command runs the same checks: tests, RuboCop, RBS validation, Steep, a dependency vulnerability audit, and the gem build. The audit updates its advisory database and requires network access. CI runs this command on Ruby 3.3, 3.4, and 4.0.
+
+Individual commands:
+
+| Command | Purpose |
+| --- | --- |
+| `bundle exec rake test` | Run the Minitest suite. |
+| `bundle exec rake lint` | Check Ruby style, formatting, performance, tests, and gem packaging. |
+| `bundle exec rake format` | Apply safe RuboCop corrections. |
+| `bundle exec rake typecheck` | Validate RBS signatures and type-check `lib/` with Steep. |
+| `bundle exec rake audit` | Check locked dependencies against current security advisories. |
+| `bundle exec rake build` | Build the gem package. |
+
+Keep the signatures in `sig/` synchronized with the library. They are included in the gem for downstream type checking. Development dependencies are locked in `Gemfile.lock`; they are not runtime dependencies of the gem.
 
 Load the library from this checkout:
 

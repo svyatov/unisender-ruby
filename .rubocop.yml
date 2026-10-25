@@ -1,0 +1,17 @@
+plugins:
+  - rubocop-minitest
+  - rubocop-packaging
+  - rubocop-performance
+  - rubocop-rake
+
+AllCops:
+  TargetRubyVersion: 3.3
+  NewCops: enable
+  CacheRootDirectory: tmp/rubocop_cache
+  Exclude:
+    - "pkg/**/*"
+    - "tmp/**/*"
+    - "vendor/**/*"
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes

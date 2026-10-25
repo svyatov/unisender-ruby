@@ -34,7 +34,9 @@ Prefer a small dependency surface. Runtime dependencies belong in the gemspec; d
 
 ## Verification
 
-Install development dependencies with `bundle install`. Run the test suite with `bundle exec rake` and check whitespace with `git diff --check`.
+Install development dependencies with `bundle install`. Run the complete validation suite with `bundle exec rake check` and check whitespace with `git diff --check`. The default Rake task runs the same suite; use `bundle exec rake test` for tests alone. Keep `Gemfile.lock` committed when dependencies change.
+
+Use `bundle exec rake format` for safe RuboCop corrections. Maintain RBS signatures in `sig/` alongside changes to `lib/`; `bundle exec rake typecheck` validates signatures and runs Steep. Keep type errors and lint offenses visible rather than adding broad exclusions or untyped signatures to obtain a passing check. Individual tooling commands are listed in the README.
 
 Tests must work offline with fake credentials and deterministic HTTP responses. Cover the request method, URL, encoded body, successful responses, and failure behavior for each implemented operation. Live calls require explicit user authorization and a designated test account; sending messages or changing contacts is not part of routine verification.
 
