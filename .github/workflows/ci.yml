@@ -29,4 +29,6 @@ jobs:
           bundler-cache: true
       - run: bundle exec rake ci
       - run: git diff --check
+      - name: Check committed whitespace
+        run: git diff --check "$(git hash-object -t tree /dev/null)" HEAD
       - run: git diff --exit-code
