@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
-require_relative "lib/unisender/version"
+# Read the version without loading library code before test coverage starts.
+version = File.read(File.expand_path("lib/unisender/version.rb", __dir__))[/VERSION = "([^"]+)"/, 1]
 
 Gem::Specification.new do |spec|
   spec.name = "unisender"
-  spec.version = Unisender::VERSION
+  spec.version = version
   spec.authors = ["Leonid Svyatov"]
   spec.email = ["leonid@svyatov.com"]
 

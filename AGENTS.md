@@ -40,6 +40,8 @@ Use `bundle exec rake format` for safe RuboCop corrections. Maintain RBS signatu
 
 Tests must work offline with fake credentials and deterministic HTTP responses. Cover the request method, URL, encoded body, successful responses, and failure behavior for each implemented operation. Live calls require explicit user authorization and a designated test account; sending messages or changing contacts is not part of routine verification.
 
-After changes to packaging, dependencies, or the entry point, run `bundle exec rake build`. Install the resulting gem into a temporary gem directory and verify `require "unisender"` from outside the checkout without development dependencies. Keep temporary scripts and test artifacts outside the repository, and remove them when finished.
+The test suite requires 100% line and branch coverage across `lib/` and `scripts/`, including unloaded files. Start SimpleCov before loading project code. Preserve zero-miss thresholds and disabled result merging; cover missing behavior with tests rather than excluding source files or branches. Inspect `coverage/index.html` for failures.
+
+After changes to packaging, dependencies, or the entry point, run `bundle exec rake build`. Install the resulting gem into a temporary gem directory and verify `require "unisender"` from outside the checkout without development dependencies. Keep ad hoc verification scripts and artifacts outside the repository, and remove them when finished.
 
 Do not publish the gem or create a release unless the user requests it.

@@ -19,7 +19,7 @@ Individual commands:
 
 | Command | Purpose |
 | --- | --- |
-| `bundle exec rake test` | Run the Minitest suite. |
+| `bundle exec rake test` | Run Minitest and require 100% line and branch coverage. |
 | `bundle exec rake lint` | Check Ruby style, formatting, performance, tests, and gem packaging. |
 | `bundle exec rake format` | Apply safe RuboCop corrections. |
 | `bundle exec rake typecheck` | Validate RBS signatures, type-check `lib/`, and require 100% typed calls. |
@@ -30,6 +30,8 @@ Individual commands:
 Keep the signatures in `sig/` synchronized with the library. They are included in the gem for downstream type checking. Development dependencies are locked in `Gemfile.lock`; they are not runtime dependencies of the gem.
 
 Type coverage is enforced for every Ruby file under `lib/`, including files with no method calls. Missing or failed analysis also fails the check. This measures Steep's typed-call coverage; it is separate from test coverage.
+
+Test coverage includes every Ruby file in `lib/` and `scripts/`, including files the tests never load. Both line and branch coverage must be 100%, with zero uncovered lines or branches. Results from previous runs are not merged. Open `coverage/index.html` to inspect the latest report.
 
 Load the library from this checkout:
 
