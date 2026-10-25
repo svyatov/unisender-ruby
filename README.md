@@ -4,9 +4,17 @@ A Ruby client for the [UniSender marketing API](https://www.unisender.com/ru/sup
 
 Explicit keyword methods cover contacts, lists, messages, campaigns, statistics, templates, fields, notes, and Event Tracking. Responses preserve upstream JSON, warnings, and HTTP metadata. See the [API reference](docs/api.md) for the operation index, argument types, and result shapes.
 
-**Status: unreleased.** The package is not available from RubyGems yet. Use a local checkout; a plain `gem "unisender"` declaration will not install this version.
+## Install
 
-## Install from a checkout
+Add the gem to your application's Gemfile:
+
+```ruby
+gem "unisender", "~> 0.1.0"
+```
+
+Then run `bundle install`. To install it directly, run `gem install unisender`.
+
+### Install from a checkout
 
 In your application's Gemfile, point to this repository:
 

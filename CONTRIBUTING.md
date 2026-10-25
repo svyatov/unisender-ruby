@@ -1,6 +1,6 @@
 # Contributing
 
-This repository is private and unreleased. Collaborators can use the [issue tracker](https://github.com/svyatov/unisender-ruby/issues). Include the Ruby and gem versions, a minimal example with fake values, expected behavior, and a redacted exception message. Do not post API keys, contact data, export links, or raw request/response bodies.
+This repository is private. Collaborators can use the [issue tracker](https://github.com/svyatov/unisender-ruby/issues). Include the Ruby and gem versions, a minimal example with fake values, expected behavior, and a redacted exception message. Do not post API keys, contact data, export links, or raw request/response bodies.
 
 ## Set up
 
