@@ -45,3 +45,21 @@ The test suite requires 100% line and branch coverage across `lib/` and `scripts
 After changes to packaging, dependencies, or the entry point, run `bundle exec rake build`. Install the resulting gem into a temporary gem directory and verify `require "unisender"` from outside the checkout without development dependencies. Keep ad hoc verification scripts and artifacts outside the repository, and remove them when finished.
 
 Do not publish the gem or create a release unless the user requests it.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live in local Markdown files under `.scratch/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use the seven default canonical triage labels. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Use a single-context layout with `GLOSSARY.md` and `docs/adr/`. See `docs/agents/domain.md`.
+
+### External peers
+
+Reviews use host-only mode without external peer processes. See `docs/agents/cross-model.json`.
