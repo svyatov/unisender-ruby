@@ -1,0 +1,1516 @@
+[
+  {
+    "name": "create_list",
+    "wire": "createList",
+    "url": "https://www.unisender.com/ru/support/api/contacts/createlist/",
+    "args": {
+      "title": "News"
+    },
+    "result": {
+      "id": 353358
+    },
+    "expected": {
+      "title": "News"
+    },
+    "options": {
+      "title": "News",
+      "before_subscribe_url": "https://example.test/before",
+      "after_subscribe_url": "https://example.test/after",
+      "sub_user_rights": {
+        "1": {
+          "send_email": false
+        }
+      }
+    },
+    "options_expected": {
+      "title": "News",
+      "before_subscribe_url": "https://example.test/before",
+      "after_subscribe_url": "https://example.test/after",
+      "sub_user_rights[1][send_email]": "0"
+    }
+  },
+  {
+    "name": "delete_list",
+    "wire": "deleteList",
+    "url": "https://www.unisender.com/ru/support/api/contacts/deletelist/",
+    "args": {
+      "list_id": 123
+    },
+    "result": [],
+    "expected": {
+      "list_id": "123"
+    },
+    "options": {
+      "list_id": 123
+    },
+    "options_expected": {
+      "list_id": "123"
+    }
+  },
+  {
+    "name": "exclude",
+    "wire": "exclude",
+    "url": "https://www.unisender.com/ru/support/api/contacts/exclude/",
+    "args": {
+      "contact_type": "email",
+      "contact": "user@example.test"
+    },
+    "result": [],
+    "expected": {
+      "contact_type": "email",
+      "contact": "user@example.test"
+    },
+    "options": {
+      "contact_type": "email",
+      "contact": "user@example.test",
+      "list_ids": [
+        1,
+        2
+      ]
+    },
+    "options_expected": {
+      "contact_type": "email",
+      "contact": "user@example.test",
+      "list_ids": "1,2"
+    }
+  },
+  {
+    "name": "export_contacts",
+    "wire": "async/exportContacts",
+    "url": "https://www.unisender.com/ru/support/api/contacts/exportcontacts/",
+    "args": {},
+    "result": {
+      "task_uuid": "test-task",
+      "status": "new"
+    },
+    "expected": {},
+    "options": {
+      "notify_url": "https://example.test/notify",
+      "list_id": 123,
+      "field_names": [
+        "email"
+      ],
+      "email": "user@example.test",
+      "phone": "+12025550123",
+      "tag": "news",
+      "email_status": "active",
+      "phone_status": "active",
+      "contact_status": "active"
+    },
+    "options_expected": {
+      "notify_url": "https://example.test/notify",
+      "list_id": "123",
+      "field_names[0]": "email",
+      "email": "user@example.test",
+      "phone": "+12025550123",
+      "tag": "news",
+      "email_status": "active",
+      "phone_status": "active",
+      "contact_status": "active"
+    }
+  },
+  {
+    "name": "get_contact_count",
+    "wire": "getContactCount",
+    "url": "https://www.unisender.com/ru/support/api/contacts/getcontactcount/",
+    "args": {
+      "list_id": 123,
+      "params": {
+        "type": "address"
+      }
+    },
+    "result": {
+      "count": "500"
+    },
+    "expected": {
+      "list_id": "123",
+      "params[type]": "address"
+    },
+    "options": {
+      "list_id": 123,
+      "params": {
+        "type": "address"
+      }
+    },
+    "options_expected": {
+      "list_id": "123",
+      "params[type]": "address"
+    }
+  },
+  {
+    "name": "get_lists",
+    "wire": "getLists",
+    "url": "https://www.unisender.com/ru/support/api/contacts/getlists/",
+    "args": {},
+    "result": [
+      {
+        "id": 353358,
+        "title": "News"
+      }
+    ],
+    "expected": {},
+    "options": {},
+    "options_expected": {}
+  },
+  {
+    "name": "get_total_contacts_count",
+    "wire": "getTotalContactsCount",
+    "url": "https://www.unisender.com/ru/support/api/contacts/gettotalcontactscount/",
+    "args": {
+      "login": "ID1234567"
+    },
+    "result": {
+      "total": 3
+    },
+    "expected": {
+      "login": "ID1234567"
+    },
+    "options": {
+      "login": "ID1234567"
+    },
+    "options_expected": {
+      "login": "ID1234567"
+    }
+  },
+  {
+    "name": "import_contacts",
+    "wire": "importContacts",
+    "url": "https://www.unisender.com/ru/support/api/contacts/importcontacts/",
+    "args": {
+      "field_names": [
+        "email"
+      ],
+      "data": [
+        [
+          "user@example.test"
+        ]
+      ]
+    },
+    "result": {
+      "total": 1,
+      "inserted": 1,
+      "updated": 0,
+      "deleted": 0,
+      "invalid": 0
+    },
+    "expected": {
+      "field_names[0]": "email",
+      "data[0][0]": "user@example.test"
+    },
+    "options": {
+      "field_names": [
+        "email"
+      ],
+      "data": [
+        [
+          "user@example.test"
+        ]
+      ],
+      "overwrite_tags": false,
+      "overwrite_lists": true,
+      "telegram_bot_channel_id": "test-channel"
+    },
+    "options_expected": {
+      "field_names[0]": "email",
+      "data[0][0]": "user@example.test",
+      "overwrite_tags": "0",
+      "overwrite_lists": "1",
+      "telegram_bot_channel_id": "test-channel"
+    }
+  },
+  {
+    "name": "subscribe",
+    "wire": "subscribe",
+    "url": "https://www.unisender.com/ru/support/api/contacts/subscribe/",
+    "args": {
+      "list_ids": 123,
+      "fields": {
+        "email": "user@example.test"
+      }
+    },
+    "result": {
+      "person_id": 2500767342
+    },
+    "expected": {
+      "list_ids": "123",
+      "fields[email]": "user@example.test"
+    },
+    "options": {
+      "list_ids": 123,
+      "fields": {
+        "email": "user@example.test"
+      },
+      "tags": [
+        "news",
+        "updates"
+      ],
+      "double_optin": 3,
+      "overwrite": 0
+    },
+    "options_expected": {
+      "list_ids": "123",
+      "fields[email]": "user@example.test",
+      "tags": "news,updates",
+      "double_optin": "3",
+      "overwrite": "0"
+    }
+  },
+  {
+    "name": "update_list",
+    "wire": "updateList",
+    "url": "https://www.unisender.com/ru/support/api/contacts/updatelist/",
+    "args": {
+      "list_id": 123,
+      "title": "News"
+    },
+    "result": [],
+    "expected": {
+      "list_id": "123",
+      "title": "News"
+    },
+    "options": {
+      "list_id": 123,
+      "title": "News",
+      "before_subscribe_url": "https://example.test/before",
+      "after_subscribe_url": "https://example.test/after",
+      "sub_user_rights": {
+        "1": {
+          "send_email": false
+        }
+      }
+    },
+    "options_expected": {
+      "list_id": "123",
+      "title": "News",
+      "before_subscribe_url": "https://example.test/before",
+      "after_subscribe_url": "https://example.test/after",
+      "sub_user_rights[1][send_email]": "0"
+    }
+  },
+  {
+    "name": "is_contact_in_lists",
+    "wire": "isContactInLists",
+    "url": "https://www.unisender.com/ru/support/api/contacts/iscontactinlists/",
+    "args": {
+      "email": "user@example.test",
+      "list_ids": 123,
+      "condition": "and"
+    },
+    "result": false,
+    "expected": {
+      "email": "user@example.test",
+      "list_ids": "123",
+      "condition": "and"
+    },
+    "options": {
+      "email": "user@example.test",
+      "list_ids": 123,
+      "condition": "and"
+    },
+    "options_expected": {
+      "email": "user@example.test",
+      "list_ids": "123",
+      "condition": "and"
+    }
+  },
+  {
+    "name": "get_contact",
+    "wire": "getContact",
+    "url": "https://www.unisender.com/ru/support/api/contacts/getcontact/",
+    "args": {
+      "email": "user@example.test"
+    },
+    "result": {
+      "email": "user@example.test"
+    },
+    "expected": {
+      "email": "user@example.test"
+    },
+    "options": {
+      "email": "user@example.test",
+      "include_lists": true,
+      "include_fields": false,
+      "include_details": true
+    },
+    "options_expected": {
+      "email": "user@example.test",
+      "include_lists": "1",
+      "include_fields": "0",
+      "include_details": "1"
+    }
+  },
+  {
+    "name": "unsubscribe",
+    "wire": "unsubscribe",
+    "url": "https://www.unisender.com/ru/support/api/contacts/unsubscribe/",
+    "args": {
+      "contact_type": "email",
+      "contact": "user@example.test"
+    },
+    "result": [],
+    "expected": {
+      "contact_type": "email",
+      "contact": "user@example.test"
+    },
+    "options": {
+      "contact_type": "email",
+      "contact": "user@example.test",
+      "list_ids": [
+        1,
+        2
+      ]
+    },
+    "options_expected": {
+      "contact_type": "email",
+      "contact": "user@example.test",
+      "list_ids": "1,2"
+    }
+  },
+  {
+    "name": "cancel_campaign",
+    "wire": "cancelCampaign",
+    "url": "https://www.unisender.com/ru/support/api/messages/cancel-campaign/",
+    "args": {
+      "campaign_id": 123
+    },
+    "result": [],
+    "expected": {
+      "campaign_id": "123"
+    },
+    "options": {
+      "campaign_id": 123
+    },
+    "options_expected": {
+      "campaign_id": "123"
+    }
+  },
+  {
+    "name": "check_email",
+    "wire": "checkEmail",
+    "url": "https://www.unisender.com/ru/support/api/messages/check-email/",
+    "args": {
+      "email_id": "test-id"
+    },
+    "result": [
+      {
+        "id": "test-id",
+        "status": "ok_delivered"
+      }
+    ],
+    "expected": {
+      "email_id": "test-id"
+    },
+    "options": {
+      "email_id": "test-id"
+    },
+    "options_expected": {
+      "email_id": "test-id"
+    }
+  },
+  {
+    "name": "check_sms",
+    "wire": "checkSms",
+    "url": "https://www.unisender.com/ru/support/api/messages/check-sms/",
+    "args": {
+      "sms_id": 123
+    },
+    "result": {
+      "status": "ok_delivered"
+    },
+    "expected": {
+      "sms_id": "123"
+    },
+    "options": {
+      "sms_id": 123
+    },
+    "options_expected": {
+      "sms_id": "123"
+    }
+  },
+  {
+    "name": "create_campaign",
+    "wire": "createCampaign",
+    "url": "https://www.unisender.com/ru/support/api/messages/createcampaign/",
+    "args": {
+      "message_id": 123
+    },
+    "result": {
+      "campaign_id": 932188,
+      "status": "scheduled",
+      "count": 0
+    },
+    "expected": {
+      "message_id": "123"
+    },
+    "options": {
+      "message_id": 123,
+      "start_time": "2026-01-01 00:00",
+      "timezone": "UTC",
+      "track_read": true,
+      "track_links": false,
+      "contacts": [
+        "user@example.test"
+      ],
+      "track_ga": false,
+      "payment_limit": 12.5,
+      "payment_currency": "USD",
+      "ga_medium": "email",
+      "ga_source": "news",
+      "ga_campaign": "launch",
+      "ga_content": "body",
+      "ga_term": "news"
+    },
+    "options_expected": {
+      "message_id": "123",
+      "start_time": "2026-01-01 00:00",
+      "timezone": "UTC",
+      "track_read": "1",
+      "track_links": "0",
+      "contacts": "user@example.test",
+      "track_ga": "0",
+      "payment_limit": "12.5",
+      "payment_currency": "USD",
+      "ga_medium": "email",
+      "ga_source": "news",
+      "ga_campaign": "launch",
+      "ga_content": "body",
+      "ga_term": "news"
+    }
+  },
+  {
+    "name": "create_email_message",
+    "wire": "createEmailMessage",
+    "url": "https://www.unisender.com/ru/support/api/messages/createemailmessage/",
+    "args": {
+      "sender_name": "Sender",
+      "sender_email": "sender@example.test",
+      "list_id": 123,
+      "subject": "News",
+      "body": "<p>News</p>"
+    },
+    "result": {
+      "message_id": 357088
+    },
+    "expected": {
+      "sender_name": "Sender",
+      "sender_email": "sender@example.test",
+      "list_id": "123",
+      "subject": "News",
+      "body": "<p>News</p>"
+    },
+    "options": {
+      "sender_name": "Sender",
+      "sender_email": "sender@example.test",
+      "list_id": 123,
+      "subject": "News",
+      "body": "<p>News</p>",
+      "text_body": "News",
+      "generate_text": true,
+      "tag": "news",
+      "attachments": {
+        "a.txt": "bytes"
+      },
+      "lang": "en",
+      "template_id": 123,
+      "system_template_id": 123,
+      "wrap_type": "skip",
+      "categories": [
+        "one",
+        "two"
+      ]
+    },
+    "options_expected": {
+      "sender_name": "Sender",
+      "sender_email": "sender@example.test",
+      "list_id": "123",
+      "subject": "News",
+      "body": "<p>News</p>",
+      "text_body": "News",
+      "generate_text": "1",
+      "tag": "news",
+      "attachments[a.txt]": "bytes",
+      "lang": "en",
+      "template_id": "123",
+      "system_template_id": "123",
+      "wrap_type": "skip",
+      "categories": "one,two"
+    }
+  },
+  {
+    "name": "create_sms_message",
+    "wire": "createSmsMessage",
+    "url": "https://www.unisender.com/ru/support/api/messages/createsmsmessage/",
+    "args": {
+      "sender": "SENDER",
+      "body": "<p>News</p>",
+      "list_id": 123
+    },
+    "result": {
+      "message_id": 123
+    },
+    "expected": {
+      "sender": "SENDER",
+      "body": "<p>News</p>",
+      "list_id": "123"
+    },
+    "options": {
+      "sender": "SENDER",
+      "body": "<p>News</p>",
+      "list_id": 123,
+      "tag": "news"
+    },
+    "options_expected": {
+      "sender": "SENDER",
+      "body": "<p>News</p>",
+      "list_id": "123",
+      "tag": "news"
+    }
+  },
+  {
+    "name": "delete_message",
+    "wire": "deleteMessage",
+    "url": "https://www.unisender.com/ru/support/api/messages/deletemessage/",
+    "args": {
+      "message_id": 123
+    },
+    "result": [],
+    "expected": {
+      "message_id": "123"
+    },
+    "options": {
+      "message_id": 123
+    },
+    "options_expected": {
+      "message_id": "123"
+    }
+  },
+  {
+    "name": "get_actual_message_version",
+    "wire": "getActualMessageVersion",
+    "url": "https://www.unisender.com/ru/support/api/messages/get-actual-message-version/",
+    "args": {
+      "message_id": 123
+    },
+    "result": {
+      "message_id": 123,
+      "actual_version_id": 124
+    },
+    "expected": {
+      "message_id": "123"
+    },
+    "options": {
+      "message_id": 123
+    },
+    "options_expected": {
+      "message_id": "123"
+    }
+  },
+  {
+    "name": "get_web_version",
+    "wire": "getWebVersion",
+    "url": "https://www.unisender.com/ru/support/api/messages/getwebversion/",
+    "args": {
+      "campaign_id": 123
+    },
+    "result": {
+      "letter_id": 123,
+      "web_letter_link": "https://example.test/letter"
+    },
+    "expected": {
+      "campaign_id": "123"
+    },
+    "options": {
+      "campaign_id": 123
+    },
+    "options_expected": {
+      "campaign_id": "123"
+    }
+  },
+  {
+    "name": "send_email",
+    "wire": "sendEmail",
+    "url": "https://www.unisender.com/ru/support/api/messages/sendemail/",
+    "args": {
+      "email": "user@example.test",
+      "sender_name": "Sender",
+      "sender_email": "sender@example.test",
+      "subject": "News",
+      "body": "<p>News</p>",
+      "list_id": 123
+    },
+    "result": [
+      {
+        "index": 0,
+        "email": "user@example.test",
+        "id": "test-id"
+      }
+    ],
+    "expected": {
+      "email": "user@example.test",
+      "sender_name": "Sender",
+      "sender_email": "sender@example.test",
+      "subject": "News",
+      "body": "<p>News</p>",
+      "list_id": "123"
+    },
+    "options": {
+      "email": "user@example.test",
+      "sender_name": "Sender",
+      "sender_email": "sender@example.test",
+      "subject": "News",
+      "body": "<p>News</p>",
+      "list_id": 123,
+      "attachments": {
+        "a.txt": "bytes"
+      },
+      "lang": "en",
+      "track_read": true,
+      "track_links": false,
+      "cc": "copy@example.test",
+      "headers": "Reply-To: sender@example.test",
+      "images_as": "attachments",
+      "ref_key": "test-reference",
+      "error_checking": 1,
+      "metadata": {
+        "tag": "example"
+      }
+    },
+    "options_expected": {
+      "email": "user@example.test",
+      "sender_name": "Sender",
+      "sender_email": "sender@example.test",
+      "subject": "News",
+      "body": "<p>News</p>",
+      "list_id": "123",
+      "attachments[a.txt]": "bytes",
+      "lang": "en",
+      "track_read": "1",
+      "track_links": "0",
+      "cc": "copy@example.test",
+      "headers": "Reply-To: sender@example.test",
+      "images_as": "attachments",
+      "ref_key": "test-reference",
+      "error_checking": "1",
+      "metadata[tag]": "example"
+    }
+  },
+  {
+    "name": "send_sms",
+    "wire": "sendSms",
+    "url": "https://www.unisender.com/ru/support/api/messages/sendsms/",
+    "args": {
+      "phone": "+12025550123",
+      "sender": "SENDER",
+      "text": "News"
+    },
+    "result": {
+      "currency": "RUB",
+      "price": 1.5,
+      "sms_id": 123
+    },
+    "expected": {
+      "phone": "+12025550123",
+      "sender": "SENDER",
+      "text": "News"
+    },
+    "options": {
+      "phone": "+12025550123",
+      "sender": "SENDER",
+      "text": "News"
+    },
+    "options_expected": {
+      "phone": "+12025550123",
+      "sender": "SENDER",
+      "text": "News"
+    }
+  },
+  {
+    "name": "send_test_email",
+    "wire": "sendTestEmail",
+    "url": "https://www.unisender.com/ru/support/api/messages/sendtestemail/",
+    "args": {
+      "email": "user@example.test",
+      "id": 123
+    },
+    "result": [],
+    "expected": {
+      "email": "user@example.test",
+      "id": "123"
+    },
+    "options": {
+      "email": "user@example.test",
+      "id": 123
+    },
+    "options_expected": {
+      "email": "user@example.test",
+      "id": "123"
+    }
+  },
+  {
+    "name": "update_email_message",
+    "wire": "updateEmailMessage",
+    "url": "https://www.unisender.com/ru/support/api/messages/updateemailmessage/",
+    "args": {
+      "id": 123
+    },
+    "result": {
+      "message_id": 123
+    },
+    "expected": {
+      "id": "123"
+    },
+    "options": {
+      "id": 123,
+      "sender_name": 123,
+      "sender_email": 123,
+      "subject": "News",
+      "body": "<p>News</p>",
+      "list_id": 123,
+      "text_body": "News",
+      "lang": "en",
+      "categories": [
+        "one",
+        "two"
+      ]
+    },
+    "options_expected": {
+      "id": "123",
+      "sender_name": "123",
+      "sender_email": "123",
+      "subject": "News",
+      "body": "<p>News</p>",
+      "list_id": "123",
+      "text_body": "News",
+      "lang": "en",
+      "categories": "one,two"
+    }
+  },
+  {
+    "name": "update_opt_in_email",
+    "wire": "updateOptInEmail",
+    "url": "https://www.unisender.com/ru/support/api/messages/updateoptinemail/",
+    "args": {
+      "sender_name": "Sender",
+      "sender_email": "sender@example.test",
+      "subject": "News",
+      "body": "<p>News</p>",
+      "list_id": 123
+    },
+    "result": [],
+    "expected": {
+      "sender_name": "Sender",
+      "sender_email": "sender@example.test",
+      "subject": "News",
+      "body": "<p>News</p>",
+      "list_id": "123"
+    },
+    "options": {
+      "sender_name": "Sender",
+      "sender_email": "sender@example.test",
+      "subject": "News",
+      "body": "<p>News</p>",
+      "list_id": 123
+    },
+    "options_expected": {
+      "sender_name": "Sender",
+      "sender_email": "sender@example.test",
+      "subject": "News",
+      "body": "<p>News</p>",
+      "list_id": "123"
+    }
+  },
+  {
+    "name": "get_sender_domain_list",
+    "wire": "getSenderDomainList",
+    "url": "https://www.unisender.com/ru/support/api/messages/getsenderdomainlist/",
+    "args": {
+      "username": "ID1234567"
+    },
+    "result": [
+      {
+        "status": "success",
+        "domains": [
+          {
+            "Domain": "example.test",
+            "Status": "active",
+            "key": null
+          }
+        ]
+      }
+    ],
+    "expected": {
+      "username": "ID1234567"
+    },
+    "options": {
+      "username": "ID1234567",
+      "domain": "example.test",
+      "limit": 2,
+      "offset": 0
+    },
+    "options_expected": {
+      "username": "ID1234567",
+      "domain": "example.test",
+      "limit": "2",
+      "offset": "0"
+    }
+  },
+  {
+    "name": "get_campaign_common_stats",
+    "wire": "getCampaignCommonStats",
+    "url": "https://www.unisender.com/ru/support/api/statistics/get-campaign-common-stats/",
+    "args": {
+      "campaign_id": 123
+    },
+    "result": {
+      "total": 10,
+      "sent": 10
+    },
+    "expected": {
+      "campaign_id": "123"
+    },
+    "options": {
+      "campaign_id": 123
+    },
+    "options_expected": {
+      "campaign_id": "123"
+    }
+  },
+  {
+    "name": "get_campaign_delivery_stats",
+    "wire": "async/getCampaignDeliveryStats",
+    "url": "https://www.unisender.com/ru/support/api/statistics/getcampaigndeliverystats/",
+    "args": {
+      "campaign_id": 123
+    },
+    "result": {
+      "task_uuid": "test-task",
+      "status": "new"
+    },
+    "expected": {
+      "campaign_id": "123"
+    },
+    "options": {
+      "campaign_id": 123,
+      "notify_url": "https://example.test/notify",
+      "changed_since": "2026-01-01 00:00:00",
+      "field_ids": [
+        1,
+        2
+      ]
+    },
+    "options_expected": {
+      "campaign_id": "123",
+      "notify_url": "https://example.test/notify",
+      "changed_since": "2026-01-01 00:00:00",
+      "field_ids[0]": "1",
+      "field_ids[1]": "2"
+    }
+  },
+  {
+    "name": "get_campaign_status",
+    "wire": "getCampaignStatus",
+    "url": "https://www.unisender.com/ru/support/api/statistics/getcampaignstatus/",
+    "args": {
+      "campaign_id": 123
+    },
+    "result": {
+      "status": "completed"
+    },
+    "expected": {
+      "campaign_id": "123"
+    },
+    "options": {
+      "campaign_id": 123
+    },
+    "options_expected": {
+      "campaign_id": "123"
+    }
+  },
+  {
+    "name": "get_messages",
+    "wire": "getMessages",
+    "url": "https://www.unisender.com/ru/support/api/statistics/getmessages/",
+    "args": {
+      "date_from": "2026-01-01 00:00",
+      "date_to": "2026-01-31 23:59"
+    },
+    "result": [
+      {
+        "id": 123,
+        "body": "<p>News</p>"
+      }
+    ],
+    "expected": {
+      "date_from": "2026-01-01 00:00",
+      "date_to": "2026-01-31 23:59"
+    },
+    "options": {
+      "date_from": "2026-01-01 00:00",
+      "date_to": "2026-01-31 23:59",
+      "limit": 2,
+      "offset": 0
+    },
+    "options_expected": {
+      "date_from": "2026-01-01 00:00",
+      "date_to": "2026-01-31 23:59",
+      "limit": "2",
+      "offset": "0"
+    }
+  },
+  {
+    "name": "get_visited_links",
+    "wire": "getVisitedLinks",
+    "url": "https://www.unisender.com/ru/support/api/statistics/getvisitedlinks/",
+    "args": {
+      "campaign_id": 123
+    },
+    "result": {
+      "fields": [
+        "email",
+        "url"
+      ],
+      "data": [
+        [
+          "user@example.test",
+          "https://example.test"
+        ]
+      ]
+    },
+    "expected": {
+      "campaign_id": "123"
+    },
+    "options": {
+      "campaign_id": 123,
+      "group": true
+    },
+    "options_expected": {
+      "campaign_id": "123",
+      "group": "1"
+    }
+  },
+  {
+    "name": "list_messages",
+    "wire": "listMessages",
+    "url": "https://www.unisender.com/ru/support/api/statistics/listmessages/",
+    "args": {
+      "date_from": "2026-01-01 00:00",
+      "date_to": "2026-01-31 23:59"
+    },
+    "result": [
+      {
+        "id": 123,
+        "subject": "News"
+      }
+    ],
+    "expected": {
+      "date_from": "2026-01-01 00:00",
+      "date_to": "2026-01-31 23:59"
+    },
+    "options": {
+      "date_from": "2026-01-01 00:00",
+      "date_to": "2026-01-31 23:59",
+      "limit": 2,
+      "offset": 0
+    },
+    "options_expected": {
+      "date_from": "2026-01-01 00:00",
+      "date_to": "2026-01-31 23:59",
+      "limit": "2",
+      "offset": "0"
+    }
+  },
+  {
+    "name": "get_campaigns",
+    "wire": "getCampaigns",
+    "url": "https://www.unisender.com/ru/support/api/statistics/getcampaigns/",
+    "args": {
+      "from": "2026-01-01 00:00:00"
+    },
+    "result": [
+      {
+        "id": 123,
+        "status": "completed"
+      }
+    ],
+    "expected": {
+      "from": "2026-01-01 00:00:00"
+    },
+    "options": {
+      "from": "2026-01-01 00:00:00",
+      "to": "2026-01-31 23:59:59",
+      "limit": 2,
+      "offset": 0
+    },
+    "options_expected": {
+      "from": "2026-01-01 00:00:00",
+      "to": "2026-01-31 23:59:59",
+      "limit": "2",
+      "offset": "0"
+    }
+  },
+  {
+    "name": "get_message",
+    "wire": "getMessage",
+    "url": "https://www.unisender.com/ru/support/api/statistics/getmessage/",
+    "args": {
+      "id": 123
+    },
+    "result": {
+      "id": 123,
+      "body": "<p>News</p>"
+    },
+    "expected": {
+      "id": "123"
+    },
+    "options": {
+      "id": 123
+    },
+    "options_expected": {
+      "id": "123"
+    }
+  },
+  {
+    "name": "get_task_result",
+    "wire": "async/getTaskResult",
+    "url": "https://www.unisender.com/ru/support/api/statistics/../contacts/exportcontacts/",
+    "args": {
+      "task_uuid": "test-task"
+    },
+    "result": {
+      "task_uuid": "test-task",
+      "status": "completed",
+      "file_to_download": "https://example.test/export"
+    },
+    "expected": {
+      "task_uuid": "test-task"
+    },
+    "options": {
+      "task_uuid": "test-task"
+    },
+    "options_expected": {
+      "task_uuid": "test-task"
+    }
+  },
+  {
+    "name": "create_email_template",
+    "wire": "createEmailTemplate",
+    "url": "https://www.unisender.com/ru/support/api/templates/createemailtemplate/",
+    "args": {
+      "title": "News",
+      "subject": "News",
+      "body": "<p>News</p>"
+    },
+    "result": {
+      "id": 123
+    },
+    "expected": {
+      "title": "News",
+      "subject": "News",
+      "body": "<p>News</p>"
+    },
+    "options": {
+      "title": "News",
+      "subject": "News",
+      "body": "<p>News</p>",
+      "description": "Example",
+      "text_body": "News",
+      "lang": "en"
+    },
+    "options_expected": {
+      "title": "News",
+      "subject": "News",
+      "body": "<p>News</p>",
+      "description": "Example",
+      "text_body": "News",
+      "lang": "en"
+    }
+  },
+  {
+    "name": "delete_template",
+    "wire": "deleteTemplate",
+    "url": "https://www.unisender.com/ru/support/api/templates/deletetemplate/",
+    "args": {
+      "template_id": 123
+    },
+    "result": [],
+    "expected": {
+      "template_id": "123"
+    },
+    "options": {
+      "template_id": 123
+    },
+    "options_expected": {
+      "template_id": "123"
+    }
+  },
+  {
+    "name": "get_template",
+    "wire": "getTemplate",
+    "url": "https://www.unisender.com/ru/support/api/templates/gettemplate/",
+    "args": {
+      "template_id": 123
+    },
+    "result": {
+      "id": "123",
+      "body": "<p>News</p>"
+    },
+    "expected": {
+      "template_id": "123"
+    },
+    "options": {
+      "template_id": 123,
+      "system_template_id": 123
+    },
+    "options_expected": {
+      "template_id": "123",
+      "system_template_id": "123"
+    }
+  },
+  {
+    "name": "get_templates",
+    "wire": "getTemplates",
+    "url": "https://www.unisender.com/ru/support/api/templates/gettemplates/",
+    "args": {},
+    "result": [
+      {
+        "id": "123",
+        "body": "<p>News</p>"
+      }
+    ],
+    "expected": {},
+    "options": {
+      "type": "user",
+      "date_from": "2026-01-01 00:00",
+      "date_to": "2026-01-31 23:59",
+      "limit": 2,
+      "offset": 0
+    },
+    "options_expected": {
+      "type": "user",
+      "date_from": "2026-01-01 00:00",
+      "date_to": "2026-01-31 23:59",
+      "limit": "2",
+      "offset": "0"
+    }
+  },
+  {
+    "name": "list_templates",
+    "wire": "listTemplates",
+    "url": "https://www.unisender.com/ru/support/api/templates/listtemplates/",
+    "args": {},
+    "result": [
+      {
+        "id": "123",
+        "title": "News"
+      }
+    ],
+    "expected": {},
+    "options": {
+      "type": "user",
+      "date_from": "2026-01-01 00:00",
+      "date_to": "2026-01-31 23:59",
+      "limit": 2,
+      "offset": 0
+    },
+    "options_expected": {
+      "type": "user",
+      "date_from": "2026-01-01 00:00",
+      "date_to": "2026-01-31 23:59",
+      "limit": "2",
+      "offset": "0"
+    }
+  },
+  {
+    "name": "update_email_template",
+    "wire": "updateEmailTemplate",
+    "url": "https://www.unisender.com/ru/support/api/templates/updateemailtemplate/",
+    "args": {
+      "template_id": 123
+    },
+    "result": {
+      "id": 123
+    },
+    "expected": {
+      "template_id": "123"
+    },
+    "options": {
+      "template_id": 123,
+      "title": 123,
+      "description": "Example",
+      "subject": "News",
+      "body": "<p>News</p>",
+      "text_body": "News",
+      "lang": "en"
+    },
+    "options_expected": {
+      "template_id": "123",
+      "title": "123",
+      "description": "Example",
+      "subject": "News",
+      "body": "<p>News</p>",
+      "text_body": "News",
+      "lang": "en"
+    }
+  },
+  {
+    "name": "create_field",
+    "wire": "createField",
+    "url": "https://www.unisender.com/ru/support/api/inputs/createfield/",
+    "args": {
+      "name": "Name",
+      "type": "string"
+    },
+    "result": {
+      "id": 1092208
+    },
+    "expected": {
+      "name": "Name",
+      "type": "string"
+    },
+    "options": {
+      "name": "Name",
+      "type": "string",
+      "public_name": "Name"
+    },
+    "options_expected": {
+      "name": "Name",
+      "type": "string",
+      "public_name": "Name"
+    }
+  },
+  {
+    "name": "delete_field",
+    "wire": "deleteField",
+    "url": "https://www.unisender.com/ru/support/api/inputs/deletefield/",
+    "args": {
+      "id": 123
+    },
+    "result": [],
+    "expected": {
+      "id": "123"
+    },
+    "options": {
+      "id": 123
+    },
+    "options_expected": {
+      "id": "123"
+    }
+  },
+  {
+    "name": "delete_tag",
+    "wire": "deleteTag",
+    "url": "https://www.unisender.com/ru/support/api/inputs/deletetag/",
+    "args": {
+      "id": 123
+    },
+    "result": [],
+    "expected": {
+      "id": "123"
+    },
+    "options": {
+      "id": 123
+    },
+    "options_expected": {
+      "id": "123"
+    }
+  },
+  {
+    "name": "get_fields",
+    "wire": "getFields",
+    "url": "https://www.unisender.com/ru/support/api/inputs/getfields/",
+    "args": {},
+    "result": [
+      {
+        "id": 123,
+        "name": "Name",
+        "type": "string"
+      }
+    ],
+    "expected": {},
+    "options": {},
+    "options_expected": {}
+  },
+  {
+    "name": "get_tags",
+    "wire": "getTags",
+    "url": "https://www.unisender.com/ru/support/api/inputs/gettags/",
+    "args": {},
+    "result": [
+      {
+        "id": 123,
+        "name": "News"
+      }
+    ],
+    "expected": {},
+    "options": {},
+    "options_expected": {}
+  },
+  {
+    "name": "update_field",
+    "wire": "updateField",
+    "url": "https://www.unisender.com/ru/support/api/inputs/updatefield/",
+    "args": {
+      "id": 123,
+      "name": "Name"
+    },
+    "result": [],
+    "expected": {
+      "id": "123",
+      "name": "Name"
+    },
+    "options": {
+      "id": 123,
+      "name": "Name",
+      "public_name": "Name"
+    },
+    "options_expected": {
+      "id": "123",
+      "name": "Name",
+      "public_name": "Name"
+    }
+  },
+  {
+    "name": "get_contact_field_values",
+    "wire": "getContactFieldValues",
+    "url": "https://www.unisender.com/ru/support/api/inputs/getcontactfieldvalues/",
+    "args": {
+      "email": "user@example.test",
+      "field_ids": 123
+    },
+    "result": {
+      "fieldValues": {
+        "1": "Name"
+      }
+    },
+    "expected": {
+      "email": "user@example.test",
+      "field_ids": "123"
+    },
+    "options": {
+      "email": "user@example.test",
+      "field_ids": 123
+    },
+    "options_expected": {
+      "email": "user@example.test",
+      "field_ids": "123"
+    }
+  },
+  {
+    "name": "create_subscriber_note",
+    "wire": "createSubscriberNote",
+    "url": "https://www.unisender.com/ru/support/api/notes/createsubscibernote/",
+    "args": {
+      "subscriber_id": 123,
+      "content": "Note"
+    },
+    "result": {
+      "id": 31
+    },
+    "expected": {
+      "subscriber_id": "123",
+      "content": "Note"
+    },
+    "options": {
+      "subscriber_id": 123,
+      "content": "Note"
+    },
+    "options_expected": {
+      "subscriber_id": "123",
+      "content": "Note"
+    }
+  },
+  {
+    "name": "update_subscriber_note",
+    "wire": "updateSubscriberNote",
+    "url": "https://www.unisender.com/ru/support/api/notes/updatesubcribernote/",
+    "args": {
+      "id": 123,
+      "content": "Note"
+    },
+    "result": [],
+    "expected": {
+      "id": "123",
+      "content": "Note"
+    },
+    "options": {
+      "id": 123,
+      "content": "Note"
+    },
+    "options_expected": {
+      "id": "123",
+      "content": "Note"
+    }
+  },
+  {
+    "name": "delete_subscriber_note",
+    "wire": "deleteSubscriberNote",
+    "url": "https://www.unisender.com/ru/support/api/notes/deletesubscribernote/",
+    "args": {
+      "id": 123
+    },
+    "result": [],
+    "expected": {
+      "id": "123"
+    },
+    "options": {
+      "id": 123
+    },
+    "options_expected": {
+      "id": "123"
+    }
+  },
+  {
+    "name": "get_subscriber_note",
+    "wire": "getSubscriberNote",
+    "url": "https://www.unisender.com/ru/support/api/notes/getsubscribernote/",
+    "args": {
+      "id": 123
+    },
+    "result": {
+      "id": 24,
+      "content": "Note"
+    },
+    "expected": {
+      "id": "123"
+    },
+    "options": {
+      "id": 123
+    },
+    "options_expected": {
+      "id": "123"
+    }
+  },
+  {
+    "name": "get_subscriber_notes",
+    "wire": "getSubscriberNotes",
+    "url": "https://www.unisender.com/ru/support/api/notes/getsubscribernotes/",
+    "args": {
+      "subscriber_id": 123
+    },
+    "result": [
+      {
+        "id": 24,
+        "content": "Note"
+      }
+    ],
+    "expected": {
+      "subscriber_id": "123"
+    },
+    "options": {
+      "subscriber_id": 123,
+      "limit": 2,
+      "offset": 0,
+      "order_type": "ASC",
+      "order_by": "created_at",
+      "is_pinned": false
+    },
+    "options_expected": {
+      "subscriber_id": "123",
+      "limit": "2",
+      "offset": "0",
+      "order_type": "ASC",
+      "order_by": "created_at",
+      "is_pinned": "0"
+    }
+  }
+]

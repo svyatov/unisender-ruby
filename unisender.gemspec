@@ -15,6 +15,6 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 3.3"
   spec.metadata["rubygems_mfa_required"] = "true"
 
-  spec.files = Dir["lib/**/*.rb", "sig/**/*.rbs", "LICENSE.txt", "README.md"]
+  spec.files = Dir["lib/**/*.rb", "sig/**/*.rbs", "docs/**/*.md", "LICENSE.txt", "README.md"]
   spec.require_paths = ["lib"]
 end

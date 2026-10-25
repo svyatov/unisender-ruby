@@ -1,0 +1,62 @@
+module Unisender
+  type id = String | Integer
+  type flag = bool | 0 | 1
+
+  class Client
+    def create_list: (title: String, ?before_subscribe_url: String | nil, ?after_subscribe_url: String | nil, ?sub_user_rights: params | nil) -> Response
+    def delete_list: (list_id: id) -> Response
+    def exclude: (contact_type: String, contact: String, ?list_ids: String | Array[id] | nil) -> Response
+    def export_contacts: (?notify_url: String | nil, ?list_id: id | nil, ?field_names: Array[String] | nil, ?email: String | nil, ?phone: String | nil, ?tag: String | nil, ?email_status: String | nil, ?phone_status: String | nil, ?contact_status: String | nil) -> Response
+    def get_contact_count: (list_id: id, params: params) -> Response
+    def get_lists: () -> Response
+    def get_total_contacts_count: (login: String) -> Response
+    def import_contacts: (field_names: Array[String], data: Array[Array[parameter]], ?overwrite_tags: flag | nil, ?overwrite_lists: flag | nil, ?telegram_bot_channel_id: String | nil) -> Response
+    def subscribe: (list_ids: String | Array[id], fields: params, ?tags: String | Array[id] | nil, ?double_optin: Integer | nil, ?overwrite: Integer | nil) -> Response
+    def update_list: (list_id: id, title: String, ?before_subscribe_url: String | nil, ?after_subscribe_url: String | nil, ?sub_user_rights: params | nil) -> Response
+    def is_contact_in_lists: (email: String, list_ids: String | Array[id], condition: String) -> Response
+    def get_contact: (email: String, ?include_lists: flag | nil, ?include_fields: flag | nil, ?include_details: flag | nil) -> Response
+    def unsubscribe: (contact_type: String, contact: String, ?list_ids: String | Array[id] | nil) -> Response
+    def cancel_campaign: (campaign_id: id) -> Response
+    def check_email: (email_id: String | Array[id]) -> Response
+    def check_sms: (sms_id: id) -> Response
+    def create_campaign: (message_id: id, ?start_time: String | nil, ?timezone: String | nil, ?track_read: flag | nil, ?track_links: flag | nil, ?contacts: String | Array[id] | nil, ?contacts_url: String | nil, ?track_ga: flag | nil, ?payment_limit: Integer | Float | nil, ?payment_currency: String | nil, ?ga_medium: String | nil, ?ga_source: String | nil, ?ga_campaign: String | nil, ?ga_content: String | nil, ?ga_term: String | nil) -> Response
+    def create_email_message: (sender_name: String, sender_email: String, list_id: id, ?subject: String | nil, ?body: String | nil, ?text_body: String | nil, ?generate_text: flag | nil, ?tag: String | nil, ?attachments: Hash[String, String] | nil, ?lang: String | nil, ?template_id: id | nil, ?system_template_id: id | nil, ?wrap_type: String | nil, ?categories: String | Array[id] | nil) -> Response
+    def create_sms_message: (sender: String, body: String, list_id: id, ?tag: String | nil) -> Response
+    def delete_message: (message_id: id) -> Response
+    def get_actual_message_version: (message_id: id) -> Response
+    def get_web_version: (campaign_id: id) -> Response
+    def send_email: (email: String, sender_name: String, sender_email: String, subject: String, body: String, list_id: id, ?attachments: Hash[String, String] | nil, ?lang: String | nil, ?track_read: flag | nil, ?track_links: flag | nil, ?cc: String | nil, ?headers: String | params | nil, ?images_as: String | nil, ?ref_key: String | nil, ?error_checking: flag | nil, ?metadata: params | nil) -> Response
+    def send_sms: (phone: String, sender: String, text: String) -> Response
+    def send_test_email: (email: String | Array[id], id: id) -> Response
+    def update_email_message: (id: id, ?sender_name: String | nil, ?sender_email: String | nil, ?subject: String | nil, ?body: String | nil, ?list_id: id | nil, ?text_body: String | nil, ?lang: String | nil, ?categories: String | Array[id] | nil) -> Response
+    def update_opt_in_email: (sender_name: String, sender_email: String, subject: String, body: String, list_id: id) -> Response
+    def get_sender_domain_list: (username: String, ?domain: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> Response
+    def get_campaign_common_stats: (campaign_id: id) -> Response
+    def get_campaign_delivery_stats: (campaign_id: id, ?notify_url: String | nil, ?changed_since: String | nil, ?field_ids: Array[id] | nil) -> Response
+    def get_campaign_status: (campaign_id: id) -> Response
+    def get_messages: (date_from: String, date_to: String, ?limit: Integer | nil, ?offset: Integer | nil) -> Response
+    def get_visited_links: (campaign_id: id, ?group: flag | nil) -> Response
+    def list_messages: (date_from: String, date_to: String, ?limit: Integer | nil, ?offset: Integer | nil) -> Response
+    def get_campaigns: (from: String, ?to: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> Response
+    def get_message: (id: id) -> Response
+    def get_task_result: (task_uuid: String) -> Response
+    def create_email_template: (title: String, subject: String, body: String, ?description: String | nil, ?text_body: String | nil, ?lang: String | nil) -> Response
+    def delete_template: (template_id: id) -> Response
+    def get_template: (?template_id: id | nil, ?system_template_id: id | nil) -> Response
+    def get_templates: (?type: String | nil, ?date_from: String | nil, ?date_to: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> Response
+    def list_templates: (?type: String | nil, ?date_from: String | nil, ?date_to: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> Response
+    def update_email_template: (template_id: id, ?title: String | nil, ?description: String | nil, ?subject: String | nil, ?body: String | nil, ?text_body: String | nil, ?lang: String | nil) -> Response
+    def create_field: (name: String, type: String, ?public_name: String | nil) -> Response
+    def delete_field: (id: id) -> Response
+    def delete_tag: (id: id) -> Response
+    def get_fields: () -> Response
+    def get_tags: () -> Response
+    def update_field: (id: id, name: String, ?public_name: String | nil) -> Response
+    def get_contact_field_values: (email: String, field_ids: String | Array[id]) -> Response
+    def create_subscriber_note: (subscriber_id: id, content: String) -> Response
+    def update_subscriber_note: (id: id, content: String) -> Response
+    def delete_subscriber_note: (id: id) -> Response
+    def get_subscriber_note: (id: id) -> Response
+    def get_subscriber_notes: (subscriber_id: id, ?limit: Integer | nil, ?offset: Integer | nil, ?order_type: String | nil, ?order_by: String | nil, ?is_pinned: flag | nil) -> Response
+  end
+end

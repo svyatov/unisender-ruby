@@ -1,3 +1,211 @@
 module Unisender
   VERSION: String
+
+  type json = nil | bool | Integer | Float | String | Array[json] | Hash[String, json]
+  type parameter = nil | bool | Integer | Float | String | Array[parameter] | Hash[String | Symbol | Integer, parameter]
+  type params = Hash[String | Symbol | Integer, parameter]
+  type duration = Integer | Float
+
+  class HTTPResponse < Data
+    attr_reader status: Integer
+    attr_reader headers: Hash[String, String]
+    attr_reader body: String
+    def self.new: (status: Integer, headers: Hash[String, String], body: String) -> HTTPResponse
+    def inspect: () -> String
+    alias to_s inspect
+  end
+
+  class Response
+    EMPTY_WARNINGS: Array[json]
+    @data: Hash[String, json]
+    @status: Integer
+    @headers: Hash[String, String]
+    attr_reader data: Hash[String, json]
+    attr_reader status: Integer
+    attr_reader headers: Hash[String, String]
+    def initialize: (data: Hash[String, json], status: Integer, headers: Hash[String, String]) -> void
+    def result: () -> json
+    def warnings: () -> json
+    def inspect: () -> String
+    private
+    def immutable: (json) -> json
+    def immutable_hash: (Hash[String, json]) -> Hash[String, json]
+  end
+
+  class Error < StandardError
+    def inspect: () -> String
+  end
+  class APIError < Error
+    attr_reader response: Response
+    attr_reader code: json
+    attr_reader details: json
+    def initialize: (Response) -> void
+  end
+  class HTTPError < Error
+    attr_reader response: Response
+    def initialize: (Response) -> void
+  end
+  class InvalidResponseError < Error
+  end
+  class TransportError < Error
+    @retryable: bool
+    def initialize: (String, ?retryable: bool) -> void
+    def retryable?: () -> bool
+  end
+  class TimeoutError < TransportError
+  end
+  class EventError < HTTPError
+    def code: () -> json
+    def details: () -> json
+    def possibly_partially_accepted?: () -> bool
+  end
+
+  class BatchError < Error
+    attr_reader completed_responses: Array[Response]
+    attr_reader failed_range: Range[Integer]
+    attr_reader error: StandardError
+    def initialize: (completed_responses: Array[Response], failed_range: Range[Integer], error: StandardError) -> void
+  end
+  class PaginationError < Error
+  end
+  class PartialFailure < Error
+    attr_reader response: Response
+    def initialize: (Response) -> void
+  end
+  class TaskError < Error
+    attr_reader response: Response
+    def initialize: (Response) -> void
+  end
+
+  module PaginatedOperations
+    DEFINITIONS: Hash[String, [String, Array[Symbol], Array[Symbol], Integer?]]
+    def self.call: (Client, String | Symbol, params) -> Response
+    def self.page_limit: (String | Symbol) -> Integer?
+    def self.definition: (String | Symbol) -> [String, Array[Symbol], Array[Symbol], Integer?]
+  end
+
+  class Pagination
+    @client: Client
+    @method: String
+    @page_size: Integer
+    @max_pages: Integer
+    @params: params
+    def initialize: (Client, String | Symbol, Integer, Integer, params) -> void
+    def each: () -> Enumerator[Response, void]
+    private
+    def validate!: (Integer?) -> void
+    def validate_limit!: (Integer?) -> void
+    def page_length: (Response) -> Integer
+    def initial_offset: () -> Integer
+    def fetch_pages: (_ResponseSink, Integer) -> void
+  end
+
+  module Batches
+    def self.each: [T] (Enumerable[T], Integer, Integer) { (Array[T]) -> Response } -> Enumerator[Response, void]
+    def self.execute: [T] (Array[T], Integer, Array[Response]) { (Array[T]) -> Response } -> Response
+  end
+
+  class TaskWaiter
+    PENDING: Array[String]
+    @client: Client
+    @clock: ^() -> Float
+    @sleeper: ^(duration) -> void
+    def initialize: (Client, clock: ^() -> Float, sleeper: ^(duration) -> void) -> void
+    def call: (String, duration, duration) -> Response
+    private
+    def validate!: (duration, duration) -> void
+    def complete?: (Response) -> bool
+    def wait: (duration, Float) -> void
+  end
+
+  module EventPayload
+    def self.encode: (Array[params]) -> String
+    def self.validate: (json) -> Hash[String, json]
+    def self.validate_name: (json) -> void
+    def self.validate_email: (json) -> void
+    def self.normalize: (parameter, Integer) -> json
+    def self.normalize_hash: (params, Integer) -> Hash[String, json]
+  end
+
+  class RetryPolicy
+    READ_ONLY: Array[String]
+    TRANSIENT_CODES: Array[String]
+    @max_retries: Integer
+    @max_elapsed: duration
+    @clock: ^() -> Float
+    @sleeper: ^(Float) -> void
+    @random: ^() -> Float
+    def initialize: (?max_retries: Integer, ?max_elapsed: duration, ?clock: ( ^() -> Float)?, ?sleeper: ( ^(Float) -> void)?, ?random: ( ^() -> Float)?) -> void
+    def call: [T] (String) { () -> T } -> T
+    private
+    def transient?: (Error) -> bool
+    def retry_after: (Error) -> Float
+    def validate!: (Integer, duration) -> void
+    def wait?: (Error, Integer, Float) -> bool
+  end
+
+  module Protocol
+    def self.parse: (HTTPResponse) -> Response
+    def self.decode: (HTTPResponse) -> Hash[String, json]
+  end
+
+  module Form
+    def self.encode: (params) -> String
+    def self.pairs: (parameter, String?, Integer) -> Array[[String, String]]
+    def self.hash_pairs: (params, String?, Integer) -> Array[[String, String]]
+    def self.scalar: (parameter, String) -> String
+    def self.numeric: (parameter) -> String
+    def self.text: (String) -> String
+  end
+
+  module Validation
+    def self.operation!: (String, params) -> void
+    def self.template!: (params) -> void
+    def self.import!: (params) -> void
+    def self.email_message!: (params) -> void
+    def self.campaign!: (params) -> void
+    def self.rows!: (parameter, Integer) -> void
+    def self.required!: (params, Array[String]) -> void
+    def self.missing?: (parameter) -> bool
+    def self.comma_list: (Array[parameter]) -> String
+  end
+
+  interface _Transport
+    def post: (URI::Generic, headers: Hash[String, String], body: String) -> HTTPResponse
+  end
+
+  interface _ResponseSink
+    def <<: (Response) -> void
+  end
+
+  class Transport
+    @open_timeout: duration
+    @read_timeout: duration
+    @write_timeout: duration
+    @http_factory: ^(URI::Generic) -> Net::HTTP
+    def initialize: (?open_timeout: duration, ?read_timeout: duration, ?write_timeout: duration, ?http_factory: (^(URI::Generic) -> Net::HTTP)?) -> void
+    def post: (URI::Generic, headers: Hash[String, String], body: String) -> HTTPResponse
+    private
+    def configured_http: (URI::Generic) -> Net::HTTP
+    def exchange: (URI::Generic, headers: Hash[String, String], body: String) -> HTTPResponse
+  end
+
+  class Client
+    RESERVED_PARAMETERS: Array[String]
+    @api_key: String
+    @language: String
+    @transport: _Transport
+    @retry_policy: RetryPolicy
+    def initialize: (api_key: String, ?transport: _Transport, ?language: String | Symbol, ?retry_policy: RetryPolicy) -> void
+    def request: (String, ?params: params) -> Response
+    def track_events: (events: Array[params]) -> Response
+    def each_page: (String | Symbol, ?page_size: Integer, ?max_pages: Integer, **parameter) -> Enumerator[Response, void]
+    def import_contacts_in_batches: (field_names: Array[String], data: Enumerable[Array[parameter]], ?batch_size: Integer, ?overwrite_tags: flag?, ?overwrite_lists: flag?, ?telegram_bot_channel_id: String?) -> Enumerator[Response, void]
+    def track_events_in_batches: (events: Enumerable[params], ?batch_size: Integer) -> Enumerator[Response, void]
+    def wait_for_task: (task_uuid: String, ?interval: duration, ?timeout: duration, ?clock: ( ^() -> Float)?, ?sleeper: ( ^(duration) -> void)?) -> Response
+    def inspect: () -> String
+    private
+    def invoke: (String, params, ?required: Array[String], ?comma: Array[String]) -> Response
+    def validate_request: (String, params) -> void
+  end
 end
