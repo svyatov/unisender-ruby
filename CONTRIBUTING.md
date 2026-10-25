@@ -1,6 +1,6 @@
 # Contributing
 
-This repository is private. Collaborators can use the [issue tracker](https://github.com/svyatov/unisender-ruby/issues). Include the Ruby and gem versions, a minimal example with fake values, expected behavior, and a redacted exception message. Do not post API keys, contact data, export links, or raw request/response bodies.
+Contributions and questions are welcome through the [issue tracker](https://github.com/svyatov/unisender-ruby/issues). Include the Ruby and gem versions, a minimal example with fake values, expected behavior, and a redacted exception message. Do not post API keys, contact data, export links, or raw request/response bodies.
 
 ## Set up
 
@@ -16,6 +16,10 @@ bundle exec rake check
 ## Make a change
 
 Use a branch such as `fix/error-context` or `feat/new-operation`. Read the official UniSender method documentation before changing a wire contract. Add a regression test with a deterministic transport, keep signatures in `sig/` synchronized, update the relevant docs, and add an entry under Unreleased in [CHANGELOG.md](CHANGELOG.md).
+
+Follow the repository requirements in [AGENTS.md](AGENTS.md) and the [code of conduct](CODE_OF_CONDUCT.md). New functionality must include tests.
+
+Fork the repository and create your branch from `main`. Push the branch to your fork, then open a pull request against `svyatov/unisender-ruby:main`. Describe the affected public interface and include the evidence needed to assess the change. Keep unrelated changes in separate pull requests. Maintainers use squash merges.
 
 | Command | Purpose |
 | --- | --- |
@@ -41,3 +45,9 @@ gem install --local ./pkg/unisender-ruby-0.1.0.gem
 From outside the checkout, run `ruby -runisender -e 'puts Unisender::VERSION'`. For an isolated check, use a temporary `GEM_HOME` and `GEM_PATH`, and run the examples with a fake transport. The gem includes examples and RBS signatures; development dependencies are not runtime dependencies.
 
 Routine verification must not call a live account, send messages, or change contacts. Live checks require explicit authorization and a designated test account. Publishing and releases are separate maintainer actions.
+
+## Maintainer decisions
+
+Leonid Svyatov is the sole maintainer and decides which changes merge and which versions are released. No successor is arranged if he stops maintaining the project.
+
+Report vulnerabilities privately using [SECURITY.md](SECURITY.md).

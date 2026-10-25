@@ -1,0 +1,36 @@
+name: Bug report
+description: Report incorrect behavior in the Ruby client.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Use fake credentials and contact data. Report vulnerabilities privately through SECURITY.md."
+  - type: input
+    id: versions
+    attributes:
+      label: Ruby and gem versions
+      description: Include the operating system if the failure involves installation or networking.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Include the operation, fake parameters, and any deterministic response that reproduces the failure.
+      render: ruby
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: Link the relevant API documentation when the wire contract is involved.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Observed behavior
+      description: Include a redacted exception message and error code. Remove credentials, contact data, and export links.
+    validations:
+      required: true
