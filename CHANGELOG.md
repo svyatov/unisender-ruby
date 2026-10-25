@@ -4,6 +4,7 @@
 
 ## 0.1.0 - 2026-10-25
 
+- Publish as `unisender-ruby`; load with `require "unisender"` and use the `Unisender` namespace.
 - Initial release of the UniSender marketing API client for Ruby 3.3 and newer, with no runtime gem dependencies.
 - Add contacts, lists, messages, campaigns, statistics, templates, fields, notes, and Event Tracking operations.
 - Add immutable responses, distinct API and transport errors, opt-in read-only retries, pagination, polling, and batch helpers.

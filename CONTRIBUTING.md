@@ -35,7 +35,7 @@ Pre-commit hooks scan staged changes for secrets, apply and stage safe Ruby form
 
 ```sh
 bundle exec rake build
-gem install --local ./pkg/unisender-0.1.0.gem
+gem install --local ./pkg/unisender-ruby-0.1.0.gem
 ```
 
 From outside the checkout, run `ruby -runisender -e 'puts Unisender::VERSION'`. For an isolated check, use a temporary `GEM_HOME` and `GEM_PATH`, and run the examples with a fake transport. The gem includes examples and RBS signatures; development dependencies are not runtime dependencies.

@@ -4,7 +4,7 @@
 version = File.read(File.expand_path("lib/unisender/version.rb", __dir__))[/VERSION = "([^"]+)"/, 1]
 
 Gem::Specification.new do |spec|
-  spec.name = "unisender"
+  spec.name = "unisender-ruby"
   spec.version = version
   spec.authors = ["Leonid Svyatov"]
   spec.email = ["leonid@svyatov.com"]

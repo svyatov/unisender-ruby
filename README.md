@@ -9,17 +9,17 @@ Explicit keyword methods cover contacts, lists, messages, campaigns, statistics,
 Add the gem to your application's Gemfile:
 
 ```ruby
-gem "unisender", "~> 0.1.0"
+gem "unisender-ruby", "~> 0.1.0", require: "unisender"
 ```
 
-Then run `bundle install`. To install it directly, run `gem install unisender`.
+Then run `bundle install`. To install it directly, run `gem install unisender-ruby`. The package is named `unisender-ruby`; load it with `require "unisender"`.
 
 ### Install from a checkout
 
 In your application's Gemfile, point to this repository:
 
 ```ruby
-gem "unisender", path: "../unisender-ruby"
+gem "unisender-ruby", path: "../unisender-ruby", require: "unisender"
 ```
 
 Adjust the path, then run `bundle install`. Alternatively, build and install the local package as described in [CONTRIBUTING.md](CONTRIBUTING.md#build-and-test-the-package).
