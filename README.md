@@ -152,6 +152,7 @@ RBS signatures ship with the gem. `Response[Result]` describes a named operation
 
 - [Contributing, local checks, and package verification](CONTRIBUTING.md)
 - [Changes and compatibility policy](CHANGELOG.md)
+- [Release verification](docs/releases.md)
 - [Source repository](https://github.com/svyatov/unisender-ruby) and [issue reports](https://github.com/svyatov/unisender-ruby/issues)
 
 This project is maintained by Leonid Svyatov. Use the public [issue tracker](https://github.com/svyatov/unisender-ruby/issues) for questions and defect reports. Report vulnerabilities privately through [SECURITY.md](SECURITY.md).

@@ -21,6 +21,7 @@ Gem::Specification.new do |spec|
   spec.metadata["changelog_uri"] = "#{spec.homepage}/blob/main/CHANGELOG.md"
 
   spec.files = Dir["lib/**/*.rb", "sig/**/*.rbs", "examples/*.rb",
-                   "docs/api.md", "LICENSE.txt", "README.md", "CONTRIBUTING.md", "CHANGELOG.md"]
+                   "docs/{api,releases}.md", "LICENSE.txt", "README.md", "CONTRIBUTING.md", "CHANGELOG.md",
+                   "CODE_OF_CONDUCT.md", "SECURITY.md"]
   spec.require_paths = ["lib"]
 end
