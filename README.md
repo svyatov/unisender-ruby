@@ -20,6 +20,17 @@ Adjust the path, then run `bundle install`. Alternatively, build and install the
 
 Get your key from [UniSender's API settings](https://www.unisender.com/ru/support/api/common/api-key/) and put it in the `UNISENDER_API_KEY` environment variable through your shell or application's secret store. Keep it out of source control and logs.
 
+For a local checkout, you can store `UNISENDER_API_KEY=your-key` in `.env`, which Git ignores. Ruby does not load this file automatically. Load your own `.env` into the current shell, then run the read-only connection check:
+
+```sh
+set -a
+. ./.env
+set +a
+bundle exec ruby examples/check_connection.rb
+```
+
+The check prints only the HTTP status and list count, including zero for an empty account. Failures exit with status 1. It does not print list names or IDs. The gem itself reads neither environment variables nor `.env`; application code passes the key explicitly.
+
 This example only reads your lists. It does not create contacts or send messages:
 
 <!-- example: examples/quickstart.rb -->
@@ -57,6 +68,7 @@ Each example is a standalone Ruby file. Its header lists required environment va
 | Task | Example | Effect |
 | --- | --- | --- |
 | Read lists | [quickstart.rb](examples/quickstart.rb) | Read only |
+| Check credentials without printing account data | [check_connection.rb](examples/check_connection.rb) | Read only |
 | Test without credentials | [offline.rb](examples/offline.rb) | No network |
 | Subscribe a contact | [subscribe.rb](examples/subscribe.rb) | Changes contacts; sends confirmation |
 | Create and send a campaign | [campaign.rb](examples/campaign.rb) | Sends to the selected list |

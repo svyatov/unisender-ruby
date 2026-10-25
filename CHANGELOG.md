@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Document local `.env` loading and add a read-only connection check that prints no account data.
+- Ignore local `.env` files and clarify the required UTC timestamp format for campaign reads.
 - Document checkout installation, read-only onboarding, complete task examples, API argument types, and response contracts.
 - Add typed response contracts and consumer example checks.
 - Accept the documented top-level success objects from `sendTestEmail` and `updateField`.

@@ -700,7 +700,7 @@ Date filters use UTC `YYYY-MM-DD HH:MM:SS`. `limit` is 1 to 100 (default 50), an
 
 **Result:** Array of campaign objects with identifiers and campaign metadata. Supports offset pagination.
 
-`from` is required even when paginating. `limit` is at most 10,000; `offset` starts at zero. See the upstream page for the date format and time zone.
+`from` is required even when paginating. Supply `from` and `to` in UTC as `YYYY-MM-DD HH:MM:SS`, including seconds, for example `"2026-10-01 00:00:00"`. Omitting seconds can produce an `unspecified` API error. `limit` is at most 10,000; `offset` starts at zero.
 
 </details>
 
