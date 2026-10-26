@@ -46,13 +46,21 @@ module Unisender
     DATES = %i[date_from date_to from to start_time changed_since].freeze
 
     def self.normalize(method, params)
-      result = NamedInputs.normalize(method, attachment_parameters(params))
-      schedule_timezone!(result) if method == "createCampaign"
-      MODES.each { |key, modes| result[key] = mode(result[key], modes, key) } if method == "subscribe"
+      result = operation_values(method, NamedInputs.normalize(method, attachment_parameters(params)))
       format = timestamp_format(method)
       return result unless format
 
       DATES.each { |key| result[key] = timestamp(result[key], format, key) if result.key?(key) }
+      result
+    end
+
+    def self.operation_values(method, result)
+      case method
+      when "sendSms" then result[:phone] = SmsInputs.phone(result[:phone])
+      when "sendEmail" then result = MailInputs.normalize(result)
+      when "createCampaign" then schedule_timezone!(result)
+      when "subscribe" then MODES.each { |key, modes| result[key] = mode(result[key], modes, key) }
+      end
       result
     end
 
@@ -147,6 +155,23 @@ module Unisender
       return if address.is_a?(String) && !address.empty?
 
       raise ValidationError.new(field: "fields.email", code: :required, operation: "subscribe")
+    end
+  end
+
+  # SMS numbers remain strings and share one bounded recipient list.
+  module SmsInputs
+    def self.phone(value)
+      text = case value
+             when Array then Validation.comma_list(value)
+             when String then value
+             else raise ValidationError.new(field: "phone", code: :invalid_type)
+             end
+      phones = text.split(",", -1)
+      unless (1..150).cover?(phones.size) && phones.none? { |phone| phone.strip.empty? }
+        raise ValidationError.new(field: "phone", code: :invalid_count)
+      end
+
+      text
     end
   end
 

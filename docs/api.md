@@ -52,7 +52,7 @@ The offline contract cases are in `test/fixtures/operations.json` and run throug
 | [`get_actual_message_version`](#get_actual_message_version) | [`getActualMessageVersion`](https://www.unisender.com/ru/support/api/messages/get-actual-message-version/) | `message_id` | None | `MessageVersionResponse` |
 | [`get_web_version`](#get_web_version) | [`getWebVersion`](https://www.unisender.com/ru/support/api/messages/getwebversion/) | `campaign_id` | None | `WebVersionResponse` |
 | [`send_email`](#send_email) | [`sendEmail`](https://www.unisender.com/ru/support/api/messages/sendemail/) | `email`, `subject`, `body`, `list_id`; sender defaults | `sender_name`, `sender_email`, `attachments`, `lang`, `track_read`, `track_links`, `cc`, `headers`, `images_as`, `ref_key`, `error_checking`, `metadata` | `SendResponse` |
-| [`send_sms`](#send_sms) | [`sendSms`](https://www.unisender.com/ru/support/api/messages/sendsms/) | `phone`, `sender`, `text` | None | `SmsReceiptResponse \| CollectionResponse[SmsReceipt]` |
+| [`send_sms`](#send_sms) | [`sendSms`](https://www.unisender.com/ru/support/api/messages/sendsms/) | `phone`, `sender`, `text` | None | `CollectionResponse[SmsReceipt]` |
 | [`send_test_email`](#send_test_email) | [`sendTestEmail`](https://www.unisender.com/ru/support/api/messages/sendtestemail/) | `email`, `id` | None | `MessageNoticeResponse` |
 | [`update_email_message`](#update_email_message) | [`updateEmailMessage`](https://www.unisender.com/ru/support/api/messages/updateemailmessage/) | `id` | `sender_name`, `sender_email`, `subject`, `body`, `list_id`, `text_body`, `lang`, `categories` | `MessageCreatedResponse` |
 | [`update_opt_in_email`](#update_opt_in_email) | [`updateOptInEmail`](https://www.unisender.com/ru/support/api/messages/updateoptinemail/) | `sender_name`, `sender_email`, `subject`, `body`, `list_id` | None | `ObjectResponse[Record]` |
@@ -534,7 +534,7 @@ Use a verified sender and consenting recipients. `attachments` maps filenames to
 
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
-| `phone` | `String` | Required |
+| `phone` | `String \| Array[String]` | Required |
 | `sender` | `String` | Required |
 | `text` | `String` | Required |
 

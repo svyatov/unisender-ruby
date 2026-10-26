@@ -88,11 +88,6 @@ module Unisender
     def currency: () -> String?
     def normalize: () -> void
   end
-  class SmsReceiptResponse < ObjectResponse[SmsReceipt]
-    def sms_id: () -> id
-    def price: () -> (Integer | Float)?
-    def currency: () -> String?
-  end
   class EmailDelivery < Record
     def id: () -> id?
     def status: () -> String?

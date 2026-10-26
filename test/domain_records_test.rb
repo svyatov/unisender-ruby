@@ -35,9 +35,8 @@ class DomainRecordsTest < Minitest::Test
 
   def test_sms_receipt_exposes_price_and_identifier
     result = Unisender::SmsReceipt.new({ "sms_id" => 1, "price" => 1.5, "currency" => "RUB" })
-    response = Unisender::SmsReceiptResponse.new(data: {}, status: 200, headers: {}, result:)
 
-    assert_equal [1, 1.5, "RUB"], [response.sms_id, response.price, response.currency]
+    assert_equal [1, 1.5, "RUB"], [result.sms_id, result.price, result.currency]
     assert_nil Unisender::SmsReceipt.new({ "sms_id" => 1 }).price
     assert_raises(Unisender::InvalidResponseError) { Unisender::SmsReceipt.new({ "sms_id" => 1, "price" => "bad" }) }
   end

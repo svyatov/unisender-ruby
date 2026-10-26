@@ -105,6 +105,7 @@ Each example is a standalone Ruby file. Its header lists required environment va
 Named operations return typed responses. Collections support `each`, `map`, and other `Enumerable` methods. Object results expose documented fields directly. `result` contains the typed value; `data` preserves the full upstream JSON object. `http_status`, `headers`, and `warnings` retain response metadata. Values are deeply immutable; use `result.to_h` for a mutable object copy. See [the 0.2 migration guide](docs/migration-0.2.md).
 
 Collections also support `length`, `at`, slices, and `fetch` with a default or block.
+`send_sms(phone: [...], sender:, text:)` accepts phone arrays and always returns a receipt collection, including for one phone.
 Records provide `key?`, `keys`, `values`, and `fetch` with the same missing-value behavior as a Ruby Hash.
 Object responses forward these lookups. Record equality is class-sensitive; use `to_h` to compare with a Hash.
 Object responses expose `to_h`. `as_json` and `to_json` serialize the result payload, without HTTP metadata or the response envelope.

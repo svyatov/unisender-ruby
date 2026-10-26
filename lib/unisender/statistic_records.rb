@@ -109,21 +109,6 @@ module Unisender
     end
   end
 
-  # Transport metadata and SmsReceipt readers.
-  class SmsReceiptResponse < ObjectResponse
-    def sms_id
-      result.sms_id
-    end
-
-    def price
-      result.price
-    end
-
-    def currency
-      result.currency
-    end
-  end
-
   # Documented email delivery values.
   class EmailDelivery < Record
     def id

@@ -19,8 +19,6 @@ module Unisender
     end
 
     def self.validate_container(method, value)
-      return if method == "sendSms"
-
       collection = COLLECTION_OPERATIONS.include?(method)
       return if collection == value.is_a?(Array)
 
@@ -28,12 +26,18 @@ module Unisender
     end
 
     def self.normalize(method, value)
-      return { "recipients" => value } if method == "sendEmail" && value.is_a?(Array)
+      return normalize_send(method, value) if %w[sendSms sendEmail].include?(method)
       return single_message(value) if method == "getMessage"
       return rows(value) if method == "getVisitedLinks"
       return {} if EMPTY_OPERATIONS.include?(method) && value == []
 
       value
+    end
+
+    def self.normalize_send(method, value)
+      return value.is_a?(Hash) ? [value] : value if method == "sendSms"
+
+      value.is_a?(Array) ? { "recipients" => value } : value
     end
 
     def self.single_message(value)

@@ -61,6 +61,7 @@ module Unisender
     def self.validate_container: (String, json) -> void
     def self.object: (singleton(Record), json) -> Record
     def self.normalize: (String, json) -> json
+    def self.normalize_send: (String, json) -> json
     def self.single_message: (json) -> json
     def self.wrap: (json, singleton(Record), singleton(ObjectResponse), Response[json]) -> Response
     def self.rows: (json) -> Array[Hash[String, json]]

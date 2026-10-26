@@ -21,6 +21,7 @@ module Unisender
   end
 
   module Inputs
+    def self.operation_values: (String, params) -> params
     def self.schedule_timezone!: (params) -> void
     MODES: Hash[Symbol, Hash[Symbol, Integer]]
     MINUTES: Array[String]
@@ -45,6 +46,10 @@ module Unisender
     def self.count_filters: (parameter, parameter, parameter, parameter) -> params
     def self.count_contact_type: (parameter) -> String?
     def self.validate_filters: (parameter, parameter) -> void
+  end
+
+  module SmsInputs
+    def self.phone: (parameter) -> String
   end
 
   class RecordRows

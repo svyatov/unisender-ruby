@@ -6,6 +6,9 @@ Named operations return typed records and collections. `request` retains raw JSO
 
 ## Result access
 
+`send_sms` always returns a collection. Replace `response.sms_id` with `response.fetch(0).sms_id` for a single recipient.
+Phone arrays are accepted; the raw upstream object or array remains available through `response.data`.
+
 `JSON.generate(response)` serializes the typed payload. Use `response.data` when you need the upstream envelope.
 Collections support slices and fetch defaults; object responses provide `to_h`.
 `as_json` and `to_json` honor top-level `only:` and `except:` filters and reject unsupported options.

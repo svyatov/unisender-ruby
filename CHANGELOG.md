@@ -4,6 +4,8 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Accept SMS phone arrays and always return a typed receipt collection.
+
 - Give records class-sensitive value equality, forward object lookup, and avoid polling failed task handles.
 
 - Honor top-level `only` and `except` JSON filters and reject unsupported serialization options.
