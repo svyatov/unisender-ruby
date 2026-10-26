@@ -39,6 +39,15 @@ Pre-commit hooks scan staged changes for secrets, apply and stage safe Ruby form
 
 ## Build and test the package
 
+API reference tables come from shipped RBS signatures and `docs/api_annotations.yml`.
+After changing either, regenerate the tables:
+
+```sh
+bundle exec ruby -r ./scripts/api_reference -e 'File.write("docs/api.md", APIReference.new(Dir.pwd).render)'
+```
+
+The regular test suite checks that generated tables match the public Ruby keywords.
+
 ```sh
 bundle exec rake build
 gem install --local ./pkg/unisender-ruby-0.1.1.gem

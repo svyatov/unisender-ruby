@@ -17,8 +17,8 @@ Gem::Specification.new do |spec|
   spec.metadata["rubygems_mfa_required"] = "true"
   spec.metadata["source_code_uri"] = spec.homepage
   spec.metadata["bug_tracker_uri"] = "#{spec.homepage}/issues"
-  spec.metadata["documentation_uri"] = "#{spec.homepage}/blob/main/README.md"
-  spec.metadata["changelog_uri"] = "#{spec.homepage}/blob/main/CHANGELOG.md"
+  spec.metadata["documentation_uri"] = "#{spec.homepage}/blob/v#{version}/README.md"
+  spec.metadata["changelog_uri"] = "#{spec.homepage}/blob/v#{version}/CHANGELOG.md"
 
   spec.files = Dir["lib/**/*.rb", "sig/**/*.{rbs,yaml}", "examples/*.rb",
                    "docs/{api,releases,migration-0.2,testing,rails}.md", "LICENSE.txt", "README.md",

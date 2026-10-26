@@ -1,0 +1,29 @@
+import_contacts:
+  requires: "`records` or `field_names` with `data`"
+  records: Alternative to field_names and data
+  field_names: Required with data
+  data: Required with field_names
+subscribe:
+  requires: "`list_ids` and (`email` or `fields`)"
+  email: Required unless supplied in fields
+  fields: Required unless email is supplied
+create_email_message:
+  requires: "`list_id`; sender defaults; content or a template"
+  sender_name: Required unless configured as a default
+  sender_email: Required unless configured as a default
+  subject: Required without a template
+  body: Required without a template
+send_email:
+  requires: "`email`, `subject`, `body`, `list_id`; sender defaults"
+  sender_name: Required unless configured as a default
+  sender_email: Required unless configured as a default
+get_template:
+  requires: "`template_id` or `system_template_id`"
+get_messages: &page
+  limit: Optional, defaults to 100
+list_messages: *page
+get_campaigns: *page
+get_templates: *page
+list_templates: *page
+get_sender_domain_list: *page
+get_subscriber_notes: *page

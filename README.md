@@ -1,5 +1,7 @@
 # Unisender
 
+This branch documents unreleased 0.2 development. For the published gem, use the [0.1.1 instructions](https://github.com/svyatov/unisender-ruby/blob/v0.1.1/README.md).
+
 A Ruby client for applications using the [UniSender marketing API](https://www.unisender.com/ru/support/category/api/).
 
 Ruby 3.3 or newer, no runtime gem dependencies. This client targets `api.unisender.com`, not UniSender Go.
@@ -8,12 +10,13 @@ Explicit keyword methods cover contacts, lists, messages, campaigns, statistics,
 
 ## Install
 
-Install the gem:
+The following command installs the published 0.1.1 interface. Its usage is documented in the versioned instructions above:
 
 ```sh
 gem install unisender-ruby
 ```
 
+For the development interface below, first install from a checkout using the instructions in this section.
 Save this read-only example as `quickstart.rb`. It uses the key in `UNISENDER_API_KEY`:
 
 <!-- example: examples/quickstart.rb -->
@@ -27,7 +30,7 @@ client.get_lists.each { |list| puts list.title }
 
 Run `ruby quickstart.rb`. It prints one title per list, or nothing if the account has no lists. See [Make your first request](#make-your-first-request) for key setup.
 
-For a Bundler project, add the gem to your application's Gemfile:
+After 0.2 is published, a Bundler project can use:
 
 ```ruby
 gem "unisender-ruby", "~> 0.2.0", require: "unisender"

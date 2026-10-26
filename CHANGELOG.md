@@ -4,6 +4,9 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Separate development installation from published usage and link gem documentation to its version tag.
+- Generate API argument and result tables from RBS, with agreement checks for the Ruby interface.
+
 - Expose all documented import counters directly and normalize string-keyed default overrides.
 - Validate campaign encoding before creating a message.
 
