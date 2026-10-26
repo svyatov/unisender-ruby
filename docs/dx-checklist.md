@@ -36,3 +36,23 @@ Publishing and live account operations require separate authorization. Offline e
 The staging harness is implemented but has not been run against a live account. DX32's live service validation remains unverified.
 
 Final local validation: 592 tests pass on Ruby 3.3.11, 3.4.9, and 4.0.9. `rake check` passes with 100% line, branch, and typed-call coverage. The built gem loads outside the checkout without development dependencies. Independent QA and host-only review covered the new public behavior; the review's default-documentation and extension-compatibility findings were corrected and rechecked. Mutation probes confirmed that cancellation and authentication tests fail when their checks are disabled.
+
+## Second follow-up implementation
+
+The [second audit](dx-audit-follow-up-2026-10-26.md) is implemented for unreleased 0.2.
+
+| Scope | Items | Evidence |
+| --- | --- | --- |
+| Input contracts and diagnostics | N01, N02, N03, N11, N12 | UTC scheduling, type validation, bounded input, and preparation-equivalence tests |
+| Results and mail | N04, N05, N06, N07, N08, N09, N10 | Serialization, terminal-task, equality, SMS, header, and recipient tests |
+| Production integration | N15, N16, N17, N18, N19 | Durable checkpoint example, separate event pacing, safe diagnostics, acceptance accounting, ownership guide |
+| Consumer support | N14, N21, N22, N23, N25, N26, N27 | Campaign lifecycle, executable reference calls, exact-package install, Rails and Cursor verification, fixture expectations |
+
+The Rails guide's code ran in a temporary Rails 8.1.4 application with SQLite 2.9.5 and the installed gem.
+Five scenarios covered completed/duplicate imports, partial/uncertain recovery, Active Job wiring, and authenticated/repeated/out-of-order delivery events.
+Cursor 3.27.14 displayed completion, return types, required keywords, and invalid-call diagnostics using the installed gem and Steep.
+See [editor setup](testing.md#cursor-setup) for tested versions and the canonical-path requirement.
+
+N24 remains a separate [authorized live-account gate](live-contracts.md#follow-up-evidence-gates).
+N29 remains a separate [three-developer usability gate](usability-checks.md).
+Neither has been run. No "best developer experience" claim is established by the engineering tests.

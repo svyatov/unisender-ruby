@@ -50,7 +50,7 @@ The regular test suite checks that generated tables match the public Ruby keywor
 
 ```sh
 bundle exec rake build
-gem install --local ./pkg/unisender-ruby-0.1.1.gem
+ruby -e 'spec = Gem::Specification.load("unisender.gemspec"); system("gem", "install", "--local", "pkg/#{spec.file_name}") || abort("Install failed")'
 ```
 
 From outside the checkout, run `ruby -runisender -e 'puts Unisender::VERSION'`. For an isolated check, use a temporary `GEM_HOME` and `GEM_PATH`, and run the examples with a fake transport. The gem includes examples and RBS signatures; development dependencies are not runtime dependencies.

@@ -4,3 +4,16 @@ class FakeTransport
   def initialize: () -> void
   def post: (URI::Generic, headers: Hash[String, String], body: String) -> Unisender::HTTPResponse
 end
+
+class RecoverableImport
+  type row = { "id" => String, "fields" => Hash[String, Unisender::parameter] }
+  @client: Unisender::Client
+  @state_path: String
+  def initialize: (Unisender::Client, String) -> void
+  def run: (Array[row], ?batch_size: Integer) -> Integer
+  private
+  def resume_index: (Hash[String, Unisender::json], Integer) -> Integer
+  def import_batch: (Array[row], Hash[String, Unisender::json], Integer) -> Integer
+  def read_state: (Array[row]) -> Hash[String, Unisender::json]
+  def save: (Hash[String, Unisender::json]) -> void
+end

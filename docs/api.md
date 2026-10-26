@@ -23,6 +23,57 @@ Named reads make one request. A fetched page's `each` remains local.
 `each_page`, `auto_each`, and named iterators explicitly traverse further pages.
 Batch commands execute immediately. Their `each_*` equivalents accept a block or return a lazy Enumerator.
 
+### Effects and recovery
+
+| Interface | Work performed | Recovery rule |
+| --- | --- | --- |
+| `validate!`, record readers, serializers | Local only | Correct the reported input path. |
+| Named reads | One HTTP request | Opt-in retries cover only the explicit read allowlist. |
+| `each_*`, `each_page`, `auto_each` | Requests as consumed | Save `next_offset` after processing; repeated enumeration starts another sequence. |
+| `subscribe`, create/update/delete operations | Account mutation | Reconcile an uncertain result before repeating. |
+| `send_email`, `send_sms`, `send_test_email` | Sends messages | Acceptance does not prove delivery; never automatically replay. |
+| `create_campaign`, `send_campaign` | Schedules or starts a send | Save the returned campaign ID and observe that same campaign. |
+| Imports and Event Tracking | Mutations, possibly partial | Keep source IDs and checkpoints; [reconcile failed ranges](import-recovery.md). |
+| `export_contacts`, report tasks | Starts a remote job | Save `task_uuid`; resume it with `get_task_result`. |
+| `wait`, `download_to` | Explicit polling or download | Terminal waits are local; downloads retain confirmed partial bytes on failure. |
+
+### Identifier map
+
+| Identifier | Obtain from | Pass to |
+| --- | --- | --- |
+| List ID | `get_lists` record `id`, `create_list.id` | `list_id:` or `list_ids:` |
+| Message ID | `create_email_message.message_id`, message record `id` | `get_message(id:)`, `send_test_email(id:)`, `create_campaign(message_id:)` |
+| Campaign ID | `create_campaign.campaign_id` | `get_campaign_status(campaign_id:)`, campaign statistics |
+| Accepted direct-email ID | `send_email.accepted_ids` | `check_email(email_id:)` |
+| SMS ID | `send_sms` receipt `sms_id` | `check_sms(sms_id:)` |
+| Template ID | Template record `id` | `get_template(template_id:)`, template update/delete |
+| Task UUID | `export_contacts.task_uuid`, report task | `get_task_result(task_uuid:)` |
+| Field, tag, or note ID | Corresponding record `id` | The operation's explicit `id:` or `field_ids:` keyword |
+
+Identifiers refer to different resources even when their values happen to match.
+`get_messages` returns detailed message records. `list_messages` returns message summaries.
+Both fetch one page; use `each_message` or `each_message_summary` for explicit traversal.
+
+### Common Ruby calls
+
+Use these calls with an application-owned `client`. Mutations below change an account or send messages.
+
+```ruby
+client.get_lists.map(&:title)
+client.get_contact(email: "person@example.test").email_address
+client.validate!(:subscribe, email: "person@example.test", list_ids: [42])
+client.subscribe(email: "person@example.test", list_ids: [42]) # Sends confirmation by default.
+client.import_contacts(records: [{ email: "person@example.test" }]).complete?
+client.send_sms(phone: ["79000000000"], sender: "Shop", text: "Hello").map(&:sms_id)
+client.get_message(id: 12).subject
+client.get_campaign_status(campaign_id: 34).status
+client.get_task_result(task_uuid: "saved-task").wait
+```
+
+See the executable [campaign lifecycle](../examples/campaign_lifecycle.rb), [import recovery](import-recovery.md), and [export](../examples/export.rb) examples for multi-step workflows.
+Object responses forward result readers and Hash-style lookups. Collections yield records and expose Array-style access.
+Use `result` for the typed value, `data` for the raw envelope, and `http_status` for HTTP metadata.
+
 ## Implemented operations
 
 The offline contract cases are in `test/fixtures/operations.json` and run through `test/operations_test.rb` in the source checkout. Every entry verifies the path, authentication body, required arguments, a successful result, and API failure propagation.

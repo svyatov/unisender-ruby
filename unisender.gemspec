@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir["lib/**/*.rb", "sig/**/*.{rbs,yaml}", "examples/*.rb",
                    "docs/{api,releases,migration-0.2,testing,rails,execution,webhooks,live-contracts}.md",
+                   "docs/{usage,import-recovery}.md",
                    "LICENSE.txt", "README.md",
                    "CONTRIBUTING.md", "CHANGELOG.md",
                    "CODE_OF_CONDUCT.md", "SECURITY.md"]

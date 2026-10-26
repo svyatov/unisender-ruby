@@ -15,3 +15,20 @@ UNISENDER_LIVE=1 UNISENDER_LIVE_MODE=mutation bundle exec ruby -r ./scripts/live
 ```
 
 Record the date, Ruby version, phase, service environment, and observed contract failures. Keep response bodies private. An interrupted process can leave its created list behind; reconcile that list before rerunning. The harness does not send messages, change contacts, register webhooks, or validate webhook delivery. Those need a separately approved account scenario and receiver.
+
+## Follow-up evidence gates
+
+These scenarios remain pending explicit authorization and a designated test account.
+Approve the exact sender, recipients, lists, and receiver before any send or contact mutation.
+
+| Case | Approved action needed | Evidence to retain |
+| --- | --- | --- |
+| L1 | Run the read-only harness | Successful typed results, HTTP status, tested account environment |
+| L2 | Create and delete one empty test list | Exact created ID and confirmed cleanup |
+| L3 | Schedule one message with an offset Time | Stored UTC minute, campaign ID, account timezone, final cancellation or completion |
+| L4 | Send SMS to one and multiple owned test numbers | Object/array wire cardinality and receipt IDs |
+| L5 | Submit a controlled partially invalid email/import batch | Accepted/rejected/unknown counts, warning paths, zero automatic replay |
+| L6 | Register a temporary HTTPS receiver and trigger an owned test delivery | Authentication, duplicate handling, status projection, registration cleanup |
+
+Record timestamps and library/Ruby versions. Retain only sanitized findings in this repository.
+Keep raw provider responses in private test storage. A green offline suite does not close these gates.
