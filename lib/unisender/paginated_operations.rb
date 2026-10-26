@@ -22,7 +22,8 @@ module Unisender
     private_constant :DEFINITIONS
 
     def self.call(client, method, params)
-      params = params.compact.merge(limit: params.fetch(:limit, nil) || 100)
+      params = params.compact
+      params = params.merge(limit: params.fetch(:limit, 100))
       wire = validate(method, params)
       params = Inputs.normalize(wire, params)
       validate_controls(method, params)

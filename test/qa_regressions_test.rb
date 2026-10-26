@@ -68,7 +68,7 @@ class QaRegressionsTest < Minitest::Test
     transport = Unisender::Testing::Transport.new
     client = Unisender::Client.new(api_key: "test-key", transport:)
 
-    [{ limit: 0 }, { limit: 101 }, { limit: -1 }, { offset: -1 }, { offset: 0.5 }].each do |options|
+    [{ limit: 0 }, { limit: false }, { limit: 101 }, { limit: -1 }, { offset: -1 }, { offset: 0.5 }].each do |options|
       assert_raises(ArgumentError) { client.get_templates(**options) }
     end
 
