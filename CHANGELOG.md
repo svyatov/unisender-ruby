@@ -4,6 +4,8 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+## 0.2.0 - 2026-10-26
+
 - Parse diagnostic bracket fields without regex substitution while preserving index paths and redaction.
 
 - Add campaign lifecycle and durable import examples, a complete Rails integration, verified Cursor setup, and shorter task-oriented documentation.
