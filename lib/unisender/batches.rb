@@ -30,7 +30,7 @@ module Unisender
       chunks.next
     rescue StopIteration
       nil
-    rescue Error, ArgumentError => e
+    rescue StandardError => e
       position = e.is_a?(ValidationError) ? e.index : nil
       endpoint = position ? position + 1 : offset
       raise BatchError.new(completed_responses: completed, failed_range: offset...endpoint, error: e), cause: nil

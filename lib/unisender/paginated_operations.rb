@@ -25,7 +25,8 @@ module Unisender
       params = params.compact.merge(limit: params.fetch(:limit, nil) || 100)
       wire = validate(method, params)
       params = Inputs.normalize(wire, params)
-      response = Results.build(wire, client.request(wire, params:)) # : CollectionResponse[Record]
+      validate_controls(method, params)
+      response = client.invoke(wire, params) # : CollectionResponse[Record]
       PageResponse.new(response, client:, method: method.to_s, params:)
     end
 
@@ -40,6 +41,17 @@ module Unisender
 
     def self.page_limit(method)
       definition(method).last
+    end
+
+    def self.validate_controls(method, params)
+      limit = params.fetch(:limit, 100)
+      maximum = page_limit(method)
+      unless limit.is_a?(Integer) && limit.positive? && (!maximum || limit <= maximum)
+        raise ArgumentError, "Invalid pagination limit"
+      end
+
+      offset = params.fetch(:offset, 0)
+      raise ArgumentError, "offset must be nonnegative" unless offset.is_a?(Integer) && offset >= 0
     end
 
     def self.definition(method)

@@ -41,7 +41,7 @@ Named paginated reads request 100 items unless you supply `limit`.
 Use a fetched page's `each_page` or `auto_each` to continue from that page without refetching it.
 Named iterators such as `each_message` yield typed items across pages and accept a block.
 Invalid pagination arguments raise when constructing the iterator. HTTP requests remain lazy.
-Pagination errors expose `next_offset` and `completed_pages` for recovery.
+Pagination errors expose `next_offset` and `completed_pages` for recovery. Direct paginated reads now reject invalid limits and offsets before making requests.
 
 ## Inputs and tasks
 
@@ -57,7 +57,7 @@ Timestamp arguments accept `Time` and convert it to the operation's UTC format. 
 `ValidationError` provides `field`, `code`, and optional `operation` without including private values.
 
 Export and delivery-report responses are task handles. Call `job.wait` explicitly to poll.
-A block passed to `wait` receives each observed state. Polling deadlines retain the last response and task UUID.
+A block passed to `wait` receives each observed state. Polling deadlines retain the last response and task UUID. Request failures during polling preserve their original exception class and add `task_uuid` and `last_response`.
 
 ## Partial success
 

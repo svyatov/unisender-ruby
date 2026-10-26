@@ -17,7 +17,17 @@ module Unisender
     ].freeze
     private_constant :OPERATIONS
 
-    attr_reader :operation, :next_offset, :completed_pages
+    attr_reader :operation, :next_offset, :completed_pages, :last_response
+
+    def task_uuid
+      @polling_task_uuid
+    end
+
+    def with_task(task_uuid:, last_response:)
+      @polling_task_uuid = task_uuid.dup.freeze
+      @last_response = last_response
+      self
+    end
 
     def with_pagination(next_offset:, completed_pages:)
       @next_offset = next_offset

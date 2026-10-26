@@ -220,15 +220,16 @@ No operation arguments.
 
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
-| `field_names` | `Array[String]` | Required |
-| `data` | `Array[Array[parameter]]` | Required |
+| `field_names` | `Array[String]` | Required with `data` |
+| `data` | `Array[Array[parameter]]` | Required with `field_names` |
+| `records` | `Enumerable[params]` | Alternative to `field_names` and `data` |
 | `overwrite_tags` | `flag` | Optional, omitted |
 | `overwrite_lists` | `flag` | Optional, omitted |
 | `telegram_bot_channel_id` | `String` | Optional, omitted |
 
 **Result:** Object with Integer counters `total`, `inserted`, `updated`, `deleted`, `new_emails`, and `invalid`; `log` contains per-row `index`, `code`, and `message`. A successful response can include rejected rows. Inspect `invalid` and `log`.
 
-`field_names` must be unique and include `"email"`. Supply 1 to 500 rows with exactly one cell per column. `overwrite_tags` and `overwrite_lists` default to 0; setting them to 1 replaces existing associations. `email_list_ids` is a comma-separated cell, not an Array. `telegram_bot_channel_id` is required upstream when a row contains `telegram_user_id`.
+`records:` is mutually exclusive with `field_names:` and `data:`. Record keys must be consistent and include email; the first record determines column order. Arrays validate before sending, while streams validate as consumed. `field_names` must be unique and include `"email"`. Supply 1 to 500 rows with exactly one cell per column. `overwrite_tags` and `overwrite_lists` default to 0; setting them to 1 replaces existing associations. `email_list_ids` is a comma-separated cell, not an Array. `telegram_bot_channel_id` is required upstream when a row contains `telegram_user_id`.
 
 </details>
 
@@ -241,14 +242,15 @@ No operation arguments.
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
 | `list_ids` | `String \| Array[id]` | Required |
-| `fields` | `params` | Required |
+| `fields` | `params` | Required unless `email` is supplied |
+| `email` | `String` | Alternative to `fields[:email]` |
 | `tags` | `String \| Array[id]` | Optional, omitted |
-| `double_optin` | `Integer` | Optional, omitted |
-| `overwrite` | `Integer` | Optional, omitted |
+| `double_optin` | `Integer \| Symbol` | Optional, omitted |
+| `overwrite` | `Integer \| Symbol` | Optional, omitted |
 
 **Result:** Object with `person_id`, the contact identifier. Success does not mean the contact has confirmed subscription.
 
-`fields` must include `email`; custom names are case-sensitive. `double_optin` accepts 0 (confirmation email), 3 (prior consent, no confirmation email), or 4 (reuse an already-confirmed contact, otherwise send confirmation). `overwrite` accepts 0 (preserve existing), 1 (replace fields, tags, and list membership), or 2 (update supplied fields). Up to ten tags are allowed.
+Supply `email:` directly or include email in `fields:`; custom names are case-sensitive. Conflicting email values raise before sending. Named consent modes are `:request_confirmation` (0), `:already_confirmed` (3), and `:confirm_if_needed` (4). Named overwrite modes are `:preserve` (0), `:replace` (1), and `:update` (2). `double_optin` accepts 0 (confirmation email), 3 (prior consent, no confirmation email), or 4 (reuse an already-confirmed contact, otherwise send confirmation). `overwrite` accepts 0 (preserve existing), 1 (replace fields, tags, and list membership), or 2 (update supplied fields). Up to ten tags are allowed.
 
 </details>
 
@@ -1093,7 +1095,7 @@ Object responses expose their result readers directly. Collection elements expos
 Report responses also expose `raise_for_partial_failure!`.
 A `BatchReport` exposes `responses`, `completed_batches`, `total`, `invalid`, `failures`, `complete?`, `partial?`, and `uncertain?`.
 Its totals return `nil` when the outcome does not provide reliable import counts.
-Task handles expose `task_uuid`, `wait`, and `download_to`; their result retains the original task fields.
+Task handles expose `task_uuid`, `wait`, and `download_to`; their result retains the original task fields. Polling request errors keep their original error class and expose `task_uuid` plus `last_response` (nil before any observed task state).
 
 ## Documentation decisions
 
@@ -1113,7 +1115,7 @@ Successful `sendTestEmail` and `updateField` examples omit the `result` envelope
 | Helper | Behavior |
 | --- | --- |
 | `each_page(method, page_size: 100, max_pages: 1000, **params)` | Lazy Enumerator of responses for `get_campaigns`, `get_messages`, `list_messages`, `get_templates`, `list_templates`, `get_sender_domain_list`, and `get_subscriber_notes`. An optional `offset` starts iteration. Stops at a short or empty page; raises at the page bound. Offset pagination is not a server snapshot. |
-| `import_contacts_in_batches(field_names:, data:, batch_size: 500, ...)` | Immediate sequential import returning a `BatchReport`; `each_import_batch` is the lazy equivalent. Accepts `overwrite_tags`, `overwrite_lists`, and `telegram_bot_channel_id`. Stops on request failures or a nonzero `invalid` count. |
+| `import_contacts_in_batches(records: ..., batch_size: 500, ...)` | Immediate sequential import returning a `BatchReport`; `each_import_batch` is the lazy equivalent. Also accepts legacy `field_names:` plus `data:`, and `overwrite_tags`, `overwrite_lists`, and `telegram_bot_channel_id`. Stops on request failures or a nonzero `invalid` count. |
 | `track_events_in_batches(events:, batch_size: 25)` | Immediate sequential event batches returning a `BatchReport`; `each_event_batch` is the lazy equivalent. Each request must also meet the 130 KiB payload limit. Batches also split automatically when the next event would exceed the byte limit. |
 | `wait_for_task(task_uuid:, interval: 1, timeout: 60)` | Polls existing tasks until completion, with a monotonic deadline. Raises on an unknown task state. Deadlines are checked between requests; an in-flight request remains bounded by transport timeouts. |
 
@@ -1121,7 +1123,7 @@ Successful `sendTestEmail` and `updateField` examples omit the `result` envelope
 
 Pagination additionally requires a positive integer page size within the method's documented limit, a positive integer `max_pages`, and a nonnegative integer `offset`. Named paginated reads use the same local validation for `limit` and `offset`. Each yielded response preserves its warnings and metadata.
 
-Batch helper failures raise `BatchError`. Its `completed_responses` contains earlier successful batches, `failed_range` is the zero-based, end-exclusive input range with an uncertain or failed outcome, and `error` contains the original failure. A failed batch can still contain accepted records. Helpers do not replay batches or roll back earlier changes.
+Batch helper failures raise `BatchError`. Its `completed_responses` contains earlier successful batches, `failed_range` is the zero-based, end-exclusive input range with an uncertain or failed outcome, and `error` contains the original failure. A failed batch can still contain accepted records. Helpers do not replay batches or roll back earlier changes. Source exceptions also retain completed responses; an unknown unsent source range can be empty at the next offset.
 
 ## Optional workflow helpers
 
@@ -1137,3 +1139,5 @@ Batch helper failures raise `BatchError`. Its `completed_responses` contains ear
 | `Downloader.new(open_timeout: 5, read_timeout: 60, write_timeout: 30)` | Separate credential-free HTTPS GET, no redirects or retries. Resolves once, rejects private or mixed public/private answers, and pins the chosen address while retaining hostname certificate verification. Downloads stream within the caller's byte limit; timeout values bound connection and IO operations, not the total transfer duration. |
 
 `DownloadError` exposes `reason`, `bytes_written`, and optional `http_status`. Reasons include `invalid_url`, `blocked_destination`, `http_error`, `too_large`, `incomplete`, `write_failed`, and `transport`. Signed URLs do not appear in error messages. Failed downloads can leave partial data in the caller's IO. The caller decides whether to discard or keep it. Custom downloader `resolver:` and `http_factory:` callbacks are trusted test seams and must preserve destination validation and TLS verification in production.
+
+Downloads conservatively reject special-use, translation, and tunneling address ranges, including NAT64 and 6to4. Ordinary global-unicast IPv6 addresses are accepted; a special-purpose prefix is not accepted merely because a local router can forward it. Address policy follows the [IANA IPv6](https://www.iana.org/assignments/iana-ipv6-special-registry/) and [IPv4](https://www.iana.org/assignments/iana-ipv4-special-registry/) registries.

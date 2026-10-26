@@ -42,6 +42,10 @@ module Unisender
     @completed_pages: Integer?
     attr_reader next_offset: Integer?
     attr_reader completed_pages: Integer?
+    @polling_task_uuid: String?
+    attr_reader last_response: TaskResponse?
+    def task_uuid: () -> String?
+    def with_task: (task_uuid: String, last_response: TaskResponse?) -> self
     def with_pagination: (next_offset: Integer, completed_pages: Integer) -> self
     def with_operation: (String) -> self
     def self.safe_operation: (String) -> String?
@@ -112,6 +116,7 @@ module Unisender
     def self.call: (Client, String | Symbol, params) -> PageResponse[Record]
     def self.validate: (String | Symbol, params) -> String
     def self.page_limit: (String | Symbol) -> Integer?
+    def self.validate_controls: (String | Symbol, params) -> void
     def self.definition: (String | Symbol) -> [String, Array[Symbol], Array[Symbol], Integer?]
   end
 
@@ -153,6 +158,8 @@ module Unisender
     def call: (String, duration, duration) -> TaskResponse
     private
     def validate!: (duration, duration) -> void
+    def deadline_for: (duration, duration) -> Float
+    def poll: (String, duration, Float) -> TaskResponse
     def complete?: (TaskResponse) -> bool
     def wait: (duration, Float, TaskResponse) -> void
   end
@@ -261,13 +268,17 @@ module Unisender
     private
     def message_defaults: (params) -> params
     def request_values: (String, params) -> [URI::Generic, Hash[String, String], String]
+    def perform_request: (String, params, named: bool) -> Response
+    def decode_response: (HTTPResponse, String, params, bool) -> Response
     def observe: (String, Integer, Float, HTTPResponse?, Exception?) -> void
     def exchange: [Result] (String, URI::Generic, headers: Hash[String, String], body: String, ?attempt: Integer) { (HTTPResponse) -> Result } -> Result
     def bind_task: (String, Response, params) -> Response
     def import_source: (Array[String]?, Enumerable[Array[parameter]]?, Enumerable[params]?) -> (RecordRows | Enumerable[Array[parameter]])
     def parse_event_response: (HTTPResponse) -> EventResponse
     def prepare: (String, params, ?required: Array[String], ?comma: Array[String]) -> params
+    public
     def invoke: [Result] (String, params, ?required: Array[String], ?comma: Array[String]) -> Result
+    private
     def validate_request: (String, params) -> void
   end
 end

@@ -14,6 +14,7 @@ module Unisender
     def initialize: (reason: Symbol, ?bytes_written: Integer, ?http_status: Integer?) -> void
   end
   class DownloadTarget
+    GLOBAL_V6: IPAddr
     BLOCKED: Array[IPAddr]
     @timeout: duration
     @resolver: ^(String) -> Array[String]

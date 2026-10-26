@@ -13,18 +13,30 @@ module Unisender
     end
 
     def call(task_uuid, interval, timeout)
-      validate!(interval, timeout)
-      deadline = @clock.call + timeout
+      poll(task_uuid, interval, deadline_for(interval, timeout))
+    end
+
+    private
+
+    def poll(task_uuid, interval, deadline)
+      # @type var last_response: TaskResponse?
+      last_response = nil
       loop do
         response = @client.get_task_result(task_uuid:)
+        last_response = response
         @progress&.call(response)
         return response if complete?(response)
 
         wait(interval, deadline, response)
       end
+    rescue Error => e
+      raise e.with_task(task_uuid:, last_response:), cause: nil
     end
 
-    private
+    def deadline_for(interval, timeout)
+      validate!(interval, timeout)
+      @clock.call + timeout
+    end
 
     def validate!(interval, timeout)
       [interval, timeout].each do |value|
