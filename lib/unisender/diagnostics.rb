@@ -26,7 +26,8 @@ module Unisender
       suffix = segment.delete_prefix(name)
       return "#{name}[*]" unless suffix.match?(/\A(?:\[[^\]]*\])*\z/)
 
-      name + suffix.gsub(/\[[^\]]*\]/) { |part| part.match?(/\A\[\d+\]\z/) ? part : "[*]" }
+      indices = suffix.split("]").map { |part| part.match?(/\A\[\d+\z/) ? "#{part}]" : "[*]" }
+      name + indices.join
     end
 
     def self.type_name(value)

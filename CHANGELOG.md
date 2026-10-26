@@ -4,6 +4,8 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Parse diagnostic bracket fields without regex substitution while preserving index paths and redaction.
+
 - Add campaign lifecycle and durable import examples, a complete Rails integration, verified Cursor setup, and shorter task-oriented documentation.
 
 - Keep offline pagination validation aligned with execution and report indexed event and response-shape errors.

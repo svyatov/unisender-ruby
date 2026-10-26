@@ -32,6 +32,18 @@ class StructuredDiagnosticsTest < Minitest::Test
     assert_equal "parameters", Unisender::Diagnostics.input_path("private-name")
   end
 
+  def test_bracket_paths_preserve_indices_and_redact_arbitrary_contents
+    { "fields[001][private.name][4]" => "fields[001][*][4]",
+      "fields[]" => "fields[*]",
+      "fields[0][" => "fields[*]",
+      "fields[0]suffix" => "fields[*]",
+      "fields[#{'[' * 32_000}]" => "fields[*]" }.each do |path, expected|
+      error = Unisender::ValidationError.new(field: path, code: :invalid_type)
+
+      assert_equal expected, error.path
+    end
+  end
+
   def test_wrappers_preserve_known_progress_and_underlying_diagnostics
     response = Unisender::Response.new(data: { "code" => "invalid_arg", "error" => "private-value" },
                                        status: 200, headers: { "x-request-id" => "request-1" })
