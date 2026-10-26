@@ -20,7 +20,7 @@ class IteratorContractsTest < Minitest::Test
       arguments = fixture.fetch("args").transform_keys(&:to_sym)
       result = client.public_send(iterator, **arguments).to_a
 
-      assert_equal fixture.fetch("result"), result
+      assert_equal fixture.fetch("result"), result.map(&:to_h)
       assert_equal 1, transport.requests.size
     end
   end

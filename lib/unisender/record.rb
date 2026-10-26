@@ -74,9 +74,7 @@ module Unisender
       end
     end
 
-    def hash
-      [self.class, to_h].hash
-    end
+    def hash = [self.class, to_h].hash
 
     def inspect
       "#<#{self.class}>"

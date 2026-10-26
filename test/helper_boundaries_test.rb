@@ -25,16 +25,16 @@ class HelperBoundariesTest < Minitest::Test
   end
 
   def test_empty_pages_and_early_stopping
-    assert_equal [[]], client_for([]).each_page(:get_templates).map(&:result)
+    assert_equal [[]], client_for([]).each_page(:get_templates).map(&:as_json)
     assert_equal [[{ "id" => 1 }]],
-                 client_for([{ "id" => 1 }]).each_page(:get_templates, page_size: 1).take(1).map(&:result)
-    assert_equal [[]], client_for([]).each_page(:get_subscriber_notes, subscriber_id: 1).map(&:result)
+                 client_for([{ "id" => 1 }]).each_page(:get_templates, page_size: 1).take(1).map(&:as_json)
+    assert_equal [[]], client_for([]).each_page(:get_subscriber_notes, subscriber_id: 1).map(&:as_json)
   end
 
   def test_counts_domains_inside_the_documented_groups
     value = [{ "domains" => [{ "Domain" => "example.test" }] }]
 
-    assert_equal [value], client_for(value).each_page(:get_sender_domain_list, username: "ID1").map(&:result)
+    assert_equal [value], client_for(value).each_page(:get_sender_domain_list, username: "ID1").map(&:as_json)
   end
 
   def test_rejects_malformed_page_shapes
@@ -64,7 +64,7 @@ class HelperBoundariesTest < Minitest::Test
 
     assert_instance_of Unisender::PartialFailure, error.error
     assert_equal({ "invalid" => 1, "log" => [{ "index" => 0, "code" => "e_email_invalid" }] },
-                 error.error.response.result)
+                 error.error.response.as_json)
   end
 
   def test_event_success_without_success_flag_is_malformed

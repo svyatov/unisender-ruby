@@ -23,6 +23,8 @@ client.create_list(title: "News").id
 
 Use `response.result` for the typed result and `response.data` for the original JSON envelope.
 Records retain string-key lookup and unknown fields. `to_h` returns a detached mutable copy.
+Record equality requires the same concrete class. Use `to_h` when comparing a record with a Hash.
+Equivalent records work as Hash keys and in Sets. Object responses also expose `key?`, `keys`, and `values`.
 
 ## HTTP metadata
 
@@ -43,6 +45,7 @@ Count fields use integers. Tabular visited-link results become enumerable record
 Page iterators now execute supplied blocks. Avoid passing a block unless you intend to consume the iterator immediately.
 Successful pages expose checkpoint metadata through `offset`, `limit`, and `next_offset`.
 Completed task handles return immediately from `wait`; a supplied callback receives the existing handle once.
+Failed handles also invoke the callback once, then raise `TaskFailedError` without another request.
 
 `import_contacts_in_batches` and `track_events_in_batches` execute immediately and return a `BatchReport`.
 Use `each_import_batch` and `each_event_batch` for lazy execution. Each accepts a block or returns an Enumerator.

@@ -21,7 +21,7 @@ class EventsTest < Minitest::Test
     request = transport.requests.first
 
     assert_equal [{ "success" => true }, "https://event.unisender.com/v1/events/"],
-                 [response.result, request[:uri].to_s]
+                 [response.as_json, request[:uri].to_s]
     assert_equal({ "Content-Type" => "application/json", "Authorization" => "Bearer test-key" }, request[:headers])
     assert_equal EXPECTED, JSON.parse(request[:body])
   end

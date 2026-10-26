@@ -106,6 +106,7 @@ Named operations return typed responses. Collections support `each`, `map`, and 
 
 Collections also support `length`, `at`, slices, and `fetch` with a default or block.
 Records provide `key?`, `keys`, `values`, and `fetch` with the same missing-value behavior as a Ruby Hash.
+Object responses forward these lookups. Record equality is class-sensitive; use `to_h` to compare with a Hash.
 Object responses expose `to_h`. `as_json` and `to_json` serialize the result payload, without HTTP metadata or the response envelope.
 Both serializers accept `only:` and `except:` field names. Filters select top-level fields on each record; unsupported options raise `ArgumentError`.
 Use `contact.email_address` and `contact.phone_number` for stable address readers; omitted contact details remain `nil`.
@@ -162,6 +163,7 @@ Those are the default transport timeouts in seconds. TLS certificates are verifi
 
 All page iterators accept blocks. Fetched pages expose `offset`, `limit`, and `next_offset` for explicit checkpoints.
 Task handles provide `completed?`, `failed?`, and `pending?`. Calling `wait` on a completed handle returns it without another request.
+Waiting on a failed handle raises `TaskFailedError` immediately, preserving its response and task UUID.
 
 ## Low-level access and types
 

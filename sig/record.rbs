@@ -15,6 +15,8 @@ module Unisender
     def to_json: (?(serialization_options | JSON::State)?) -> String
     def self.copy: (value) -> json
     def ==: (BasicObject) -> bool
+    def eql?: (BasicObject) -> bool
+    def hash: () -> Integer
     def inspect: () -> String
     def normalize: () -> void
     def text: (String) -> String?
@@ -41,6 +43,9 @@ module Unisender
   end
 
   class ObjectResponse[out Result < Record = Record] < Response[Result]
+    def key?: (String | Symbol) -> bool
+    def keys: () -> Array[String]
+    def values: () -> Array[value]
     def []: (String | Symbol) -> value
     def fetch: [Fallback] (String | Symbol, *Fallback) ?{ (String | Symbol) -> Fallback } -> (value | Fallback)
     def to_h: () -> Hash[String, json]

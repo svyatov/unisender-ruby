@@ -4,6 +4,8 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Give records class-sensitive value equality, forward object lookup, and avoid polling failed task handles.
+
 - Honor top-level `only` and `except` JSON filters and reject unsupported serialization options.
 
 - Validate named argument types locally and expose offline `Client#validate!` with shared normalization and encoding.

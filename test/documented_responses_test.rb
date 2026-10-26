@@ -8,12 +8,12 @@ class DocumentedResponsesTest < Minitest::Test
     data = { "message" => "Test letter was sent" }
     response = client(data).send_test_email(email: "test@example.test", id: 1)
 
-    assert_equal data, response.result
+    assert_equal data, response.to_h
     assert_equal data, response.data
   end
 
   def test_update_field_preserves_the_documented_top_level_id
-    assert_equal({ "id" => 1 }, client({ "id" => 1 }).update_field(id: 1, name: "Name").result)
+    assert_equal({ "id" => 1 }, client({ "id" => 1 }).update_field(id: 1, name: "Name").to_h)
   end
 
   def test_envelope_exceptions_require_the_documented_field_types
