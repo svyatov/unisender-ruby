@@ -5,24 +5,38 @@ module Unisender
   class TaskWaiter
     PENDING = %w[new processing].freeze
 
-    def initialize(client, clock:, sleeper:)
+    def initialize(client, clock:, sleeper:, progress: nil)
       @client = client
       @clock = clock
       @sleeper = sleeper
+      @progress = progress
     end
 
     def call(task_uuid, interval, timeout)
-      validate!(interval, timeout)
-      deadline = @clock.call + timeout
-      loop do
-        response = @client.get_task_result(task_uuid:)
-        return response if complete?(response)
-
-        wait(interval, deadline)
-      end
+      poll(task_uuid, interval, deadline_for(interval, timeout))
     end
 
     private
+
+    def poll(task_uuid, interval, deadline)
+      # @type var last_response: TaskResponse?
+      last_response = nil
+      loop do
+        response = @client.get_task_result(task_uuid:)
+        last_response = response
+        @progress&.call(response)
+        return response if complete?(response)
+
+        wait(interval, deadline, response)
+      end
+    rescue Error => e
+      raise e.with_task(task_uuid:, last_response:), cause: nil
+    end
+
+    def deadline_for(interval, timeout)
+      validate!(interval, timeout)
+      @clock.call + timeout
+    end
 
     def validate!(interval, timeout)
       [interval, timeout].each do |value|
@@ -34,19 +48,19 @@ module Unisender
 
     def complete?(response)
       result = response.result
-      raise TaskError, response unless result.is_a?(Hash)
       return true if result["status"] == "completed"
-      raise TaskError, response unless PENDING.include?(result["status"])
+      raise TaskFailedError, response if result["status"] == "failed"
+      raise UnknownTaskStateError, response unless PENDING.include?(result["status"])
 
       false
     end
 
-    def wait(interval, deadline)
+    def wait(interval, deadline, response)
       remaining = deadline - @clock.call
-      raise TimeoutError, "Timed out waiting for the UniSender task" unless remaining.positive?
+      raise TaskTimeoutError, response unless remaining.positive?
 
       @sleeper.call([interval, remaining].min)
-      raise TimeoutError, "Timed out waiting for the UniSender task" if @clock.call >= deadline
+      raise TaskTimeoutError, response if @clock.call >= deadline
     end
   end
 end

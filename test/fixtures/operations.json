@@ -839,7 +839,8 @@
       }
     ],
     "expected": {
-      "username": "ID1234567"
+      "username": "ID1234567",
+      "limit": "100"
     },
     "options": {
       "username": "ID1234567",
@@ -942,7 +943,8 @@
     ],
     "expected": {
       "date_from": "2026-01-01 00:00",
-      "date_to": "2026-01-31 23:59"
+      "date_to": "2026-01-31 23:59",
+      "limit": "100"
     },
     "options": {
       "date_from": "2026-01-01 00:00",
@@ -1004,7 +1006,8 @@
     ],
     "expected": {
       "date_from": "2026-01-01 00:00",
-      "date_to": "2026-01-31 23:59"
+      "date_to": "2026-01-31 23:59",
+      "limit": "100"
     },
     "options": {
       "date_from": "2026-01-01 00:00",
@@ -1033,7 +1036,8 @@
       }
     ],
     "expected": {
-      "from": "2026-01-01 00:00:00"
+      "from": "2026-01-01 00:00:00",
+      "limit": "100"
     },
     "options": {
       "from": "2026-01-01 00:00:00",
@@ -1179,7 +1183,9 @@
         "body": "<p>News</p>"
       }
     ],
-    "expected": {},
+    "expected": {
+      "limit": "100"
+    },
     "options": {
       "type": "user",
       "date_from": "2026-01-01 00:00",
@@ -1206,7 +1212,9 @@
         "title": "News"
       }
     ],
-    "expected": {},
+    "expected": {
+      "limit": "100"
+    },
     "options": {
       "type": "user",
       "date_from": "2026-01-01 00:00",
@@ -1498,7 +1506,8 @@
       }
     ],
     "expected": {
-      "subscriber_id": "123"
+      "subscriber_id": "123",
+      "limit": "100"
     },
     "options": {
       "subscriber_id": 123,

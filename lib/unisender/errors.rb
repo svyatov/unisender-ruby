@@ -17,7 +17,23 @@ module Unisender
     ].freeze
     private_constant :OPERATIONS
 
-    attr_reader :operation
+    attr_reader :operation, :next_offset, :completed_pages, :last_response
+
+    def task_uuid
+      @polling_task_uuid
+    end
+
+    def with_task(task_uuid:, last_response:)
+      @polling_task_uuid = task_uuid.dup.freeze
+      @last_response = last_response
+      self
+    end
+
+    def with_pagination(next_offset:, completed_pages:)
+      @next_offset = next_offset
+      @completed_pages = completed_pages
+      self
+    end
 
     def with_operation(operation)
       @operation = OPERATIONS.include?(operation) ? operation.dup.freeze : nil
@@ -58,7 +74,7 @@ module Unisender
 
     def initialize(response)
       @response = response
-      super("HTTP #{response.status}")
+      super("HTTP #{response.http_status}")
     end
   end
 
@@ -80,6 +96,10 @@ module Unisender
 
   # A failed event request can still have accepted some events (HTTP 400).
   class EventError < HTTPError
+    def report
+      EventResult.new({ "success" => false, "uncertain" => response.http_status != 401 })
+    end
+
     def code
       response.data["code"]
     end
@@ -89,23 +109,34 @@ module Unisender
     end
 
     def possibly_partially_accepted?
-      response.status == 400
+      response.http_status == 400
     end
   end
 
   # Carries the completed batches and the range whose outcome needs inspection.
   class BatchError < Error
-    attr_reader :completed_responses, :failed_range, :error
+    attr_reader :completed_responses, :failed_range, :error, :report
 
     def initialize(completed_responses:, failed_range:, error:)
       @completed_responses = completed_responses.dup.freeze
       @failed_range = failed_range.freeze
       @error = error
+      @report = BatchReport.new(@completed_responses, error:, failed_range:)
       super("UniSender batch failed; inspect the completed responses and failed range")
     end
   end
 
-  class PaginationError < Error; end
+  # Identifies the next unread offset when the page bound is reached.
+  class PaginationError < Error
+    def initialize(operation:, next_offset:, completed_pages:)
+      @operation = operation
+      @next_offset = next_offset
+      @completed_pages = completed_pages
+      super("Pagination page limit reached")
+    end
+  end
+
+  class NotFoundError < Error; end
 
   # The API accepted the import request but rejected some records.
   class PartialFailure < Error

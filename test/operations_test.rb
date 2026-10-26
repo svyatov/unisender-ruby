@@ -9,7 +9,7 @@ class OperationsTest < Minitest::Test
     define_method("test_#{example.fetch('name')}_matches_documented_contract") do
       response, request = invoke_example(example, "args")
 
-      assert_equal example.fetch("result"), response.result, example.fetch("url")
+      assert_equal example.fetch("result"), response.data.fetch("result"), example.fetch("url")
       assert_equal "/en/api/#{example.fetch('wire')}", request.fetch(:uri).path
       assert_body(example.fetch("expected"), request)
     end

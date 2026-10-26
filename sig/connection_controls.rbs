@@ -1,0 +1,55 @@
+module Unisender
+  class ClientClosedError < Error
+  end
+  class ClientState
+    @closed: bool
+    @mutex: Mutex
+    def initialize: () -> void
+    def check_open!: () -> void
+    def close: () { () -> void } -> void
+  end
+
+  class RateLimiter
+    DEFAULT_METHODS: Hash[String, [Integer, duration]]
+    @limits: Hash[String, [Integer, Float]]
+    @history: Hash[String, Array[Float]]
+    @clock: ^() -> Float
+    @sleeper: ^(Float) -> void
+    @mutex: Mutex
+    def self.unisender: (?clock: ( ^() -> Float)?, ?sleeper: ( ^(Float) -> void)?) -> RateLimiter
+    def initialize: (global: [Integer, duration], ?methods: Hash[String, [Integer, duration]], ?clock: ( ^() -> Float)?, ?sleeper: ( ^(Float) -> void)?) -> void
+    def acquire: (String) -> void
+    def inspect: () -> String
+    private
+    def validate: ([Integer, duration]) -> [Integer, Float]
+    def reserve: (String) -> Float
+    def delay_for: (String, Float) -> Float
+  end
+
+  class PersistentTransport < Transport
+    class Connection < Data
+      attr_reader http: Net::HTTP
+      attr_reader used_at: Float
+      def self.new: (http: Net::HTTP, used_at: Float) -> Connection
+    end
+    HOSTS: Array[String]
+    @idle_timeout: duration
+    @clock: ^() -> Float
+    @pid_source: ^() -> Integer
+    @pid: Integer
+    @connections: Hash[String, Connection]
+    @mutex: Mutex
+    @closed: bool
+    def initialize: (?idle_timeout: duration, ?clock: ( ^() -> Float)?, ?pid: ( ^() -> Integer)?, ?open_timeout: duration, ?read_timeout: duration, ?write_timeout: duration, ?http_factory: (^(URI::Generic) -> Net::HTTP)?) -> void
+    def close: () -> void
+    def initialize_pool: (( ^() -> Float)?, ( ^() -> Integer)?) -> void
+    def inspect: () -> String
+    private
+    def send_request: (String, URI::Generic, Net::HTTPRequest) -> Net::HTTPResponse
+    def perform: (URI::Generic, Net::HTTPRequest) -> Net::HTTPResponse
+    def origin: (URI::Generic) -> String
+    def connection: (String, URI::Generic) -> Net::HTTP
+    def discard: (String) -> void
+    def reset_after_fork: () -> void
+  end
+end

@@ -9,7 +9,7 @@ abort "Set UNISENDER_API_KEY before running this example." if api_key.nil? || ap
 begin
   client = Unisender::Client.new(api_key:)
   response = client.get_lists
-  puts "Connected to UniSender: HTTP #{response.status}, #{response.result.size} list(s)."
+  puts "Connected to UniSender: HTTP #{response.http_status}, #{response.result.size} list(s)."
 rescue ArgumentError, Unisender::Error => e
   warn e.message
   exit 1

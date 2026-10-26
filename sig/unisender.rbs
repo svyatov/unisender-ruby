@@ -2,9 +2,10 @@ module Unisender
   VERSION: String
 
   type json = nil | bool | Integer | Float | String | Array[json] | Hash[String, json]
-  type parameter = nil | bool | Integer | Float | String | Array[parameter] | Hash[String | Symbol | Integer, parameter]
+  type parameter = nil | bool | Integer | Float | String | Symbol | Time | Attachment | Array[parameter] | Hash[String | Symbol | Integer, parameter]
   type params = Hash[String | Symbol | Integer, parameter]
   type duration = Integer | Float
+  type value = json | Record | Array[value]
 
   class HTTPResponse < Data
     attr_reader status: Integer
@@ -15,15 +16,16 @@ module Unisender
     alias to_s inspect
   end
 
-  class Response[out Result = json]
+  class Response[out Result = value]
     EMPTY_WARNINGS: Array[json]
     @data: Hash[String, json]
-    @status: Integer
+    @http_status: Integer
+    @result: json | value
     @headers: Hash[String, String]
     attr_reader data: Hash[String, json]
-    attr_reader status: Integer
+    attr_reader http_status: Integer
     attr_reader headers: Hash[String, String]
-    def initialize: (data: Hash[String, json], status: Integer, headers: Hash[String, String]) -> void
+    def initialize: (data: Hash[String, json], status: Integer, headers: Hash[String, String], ?result: value) -> void
     def result: () -> Result
     def warnings: () -> json
     def inspect: () -> String
@@ -36,7 +38,26 @@ module Unisender
     OPERATIONS: Array[String]
     @operation: String?
     attr_reader operation: String?
+    @next_offset: Integer?
+    @completed_pages: Integer?
+    attr_reader next_offset: Integer?
+    attr_reader completed_pages: Integer?
+    @polling_task_uuid: String?
+    attr_reader last_response: TaskResponse?
+    def task_uuid: () -> String?
+    def with_task: (task_uuid: String, last_response: TaskResponse?) -> self
+    def with_pagination: (next_offset: Integer, completed_pages: Integer) -> self
     def with_operation: (String) -> self
+    def self.safe_operation: (String) -> String?
+    def category: () -> Symbol
+    def transient?: () -> bool
+    def safe_to_retry?: () -> bool
+    def request_id: () -> String?
+    def recovery_hint: () -> String
+    private
+    def api_category: (json) -> Symbol
+    def http_category: (Integer) -> Symbol
+    public
     def to_s: () -> String
     def inspect: () -> String
   end
@@ -61,18 +82,25 @@ module Unisender
   class TimeoutError < TransportError
   end
   class EventError < HTTPError
+    def report: () -> EventResult
     def code: () -> json
     def details: () -> json
     def possibly_partially_accepted?: () -> bool
   end
 
   class BatchError < Error
+    attr_reader report: BatchReport
     attr_reader completed_responses: Array[Response]
     attr_reader failed_range: Range[Integer]
     attr_reader error: StandardError
     def initialize: (completed_responses: Array[Response], failed_range: Range[Integer], error: StandardError) -> void
   end
+  class NotFoundError < Error
+  end
   class PaginationError < Error
+    def next_offset: () -> Integer
+    def completed_pages: () -> Integer
+    def initialize: (operation: String, next_offset: Integer, completed_pages: Integer) -> void
   end
   class PartialFailure < Error
     attr_reader response: Response
@@ -85,8 +113,10 @@ module Unisender
 
   module PaginatedOperations
     DEFINITIONS: Hash[String, [String, Array[Symbol], Array[Symbol], Integer?]]
-    def self.call: (Client, String | Symbol, params) -> Response[objects]
+    def self.call: (Client, String | Symbol, params) -> PageResponse[Record]
+    def self.validate: (String | Symbol, params) -> String
     def self.page_limit: (String | Symbol) -> Integer?
+    def self.validate_controls: (String | Symbol, params) -> void
     def self.definition: (String | Symbol) -> [String, Array[Symbol], Array[Symbol], Integer?]
   end
 
@@ -96,19 +126,26 @@ module Unisender
     @page_size: Integer
     @max_pages: Integer
     @params: params
-    def initialize: (Client, String | Symbol, Integer, Integer, params) -> void
-    def each: () -> Enumerator[Response, void]
+    @first_page: PageResponse[Record]?
+    def initialize: (Client, String | Symbol, Integer, Integer, params, ?first_page: PageResponse[Record]?) -> void
+    def each: () -> Enumerator[PageResponse[Record], void]
+    def self.snapshot: (params) -> params
+    def self.copy: (parameter) -> parameter
     private
     def validate!: (Integer?) -> void
     def validate_limit!: (Integer?) -> void
     def page_length: (Response) -> Integer
     def initial_offset: () -> Integer
     def fetch_pages: (_ResponseSink, Integer) -> void
+    def fetch_page: (Integer, Integer) -> PageResponse[Record]
   end
 
   module Batches
     def self.each: [T] (Enumerable[T], Integer, Integer) { (Array[T]) -> Response } -> Enumerator[Response, void]
     def self.execute: [T] (Array[T], Integer, Array[Response]) { (Array[T]) -> Response } -> Response
+    def self.each_chunks: [T] (Enumerator[Array[T], void]) { (Array[T]) -> Response } -> Enumerator[Response, void]
+    def self.validate_size: (Integer, Integer) -> void
+    def self.next_chunk: [T] (Enumerator[Array[T], void], Integer, Array[Response]) -> Array[T]?
   end
 
   class TaskWaiter
@@ -116,16 +153,22 @@ module Unisender
     @client: Client
     @clock: ^() -> Float
     @sleeper: ^(duration) -> void
-    def initialize: (Client, clock: ^() -> Float, sleeper: ^(duration) -> void) -> void
-    def call: (String, duration, duration) -> Response
+    @progress: (^(TaskResponse) -> void)?
+    def initialize: (Client, clock: ^() -> Float, sleeper: ^(duration) -> void, ?progress: (^(TaskResponse) -> void)?) -> void
+    def call: (String, duration, duration) -> TaskResponse
     private
     def validate!: (duration, duration) -> void
-    def complete?: (Response) -> bool
-    def wait: (duration, Float) -> void
+    def deadline_for: (duration, duration) -> Float
+    def poll: (String, duration, Float) -> TaskResponse
+    def complete?: (TaskResponse) -> bool
+    def wait: (duration, Float, TaskResponse) -> void
   end
 
   module EventPayload
+    MAX_BYTES: Integer
     def self.encode: (Array[params]) -> String
+    def self.serialize: (Array[params]) -> String
+    def self.with_timestamp: (parameter) -> parameter
     def self.validate: (json) -> Hash[String, json]
     def self.validate_name: (json) -> void
     def self.validate_email: (json) -> void
@@ -144,14 +187,13 @@ module Unisender
     def initialize: (?max_retries: Integer, ?max_elapsed: duration, ?clock: ( ^() -> Float)?, ?sleeper: ( ^(Float) -> void)?, ?random: ( ^() -> Float)?) -> void
     def call: [T] (String) { () -> T } -> T
     private
-    def transient?: (Error) -> bool
     def retry_after: (Error) -> Float
     def validate!: (Integer, duration) -> void
     def wait?: (Error, Integer, Float) -> bool
   end
 
   module Protocol
-    def self.parse: (HTTPResponse, ?method: String?) -> Response
+    def self.parse: (HTTPResponse, ?method: String?) -> Response[json]
     def self.result?: (Hash[String, json], String?) -> bool
     def self.decode: (HTTPResponse) -> Hash[String, json]
   end
@@ -195,24 +237,48 @@ module Unisender
     private
     def configured_http: (URI::Generic) -> Net::HTTP
     def exchange: (URI::Generic, headers: Hash[String, String], body: String) -> HTTPResponse
+    def perform: (URI::Generic, Net::HTTPRequest) -> Net::HTTPResponse
   end
 
   class Client
     RESERVED_PARAMETERS: Array[String]
+    TASK_METHODS: Array[String]
+    UNSET: Symbol
+    EMAIL_REQUIRED: Array[String]
+    CAMPAIGN_REQUIRED: Array[String]
+    @configuration: Configuration
     @api_key: String
     @language: String
     @transport: _Transport
     @retry_policy: RetryPolicy
-    def initialize: (api_key: String, ?transport: _Transport, ?language: String | Symbol, ?retry_policy: RetryPolicy) -> void
-    def request: (String, ?params: params) -> Response
-    def track_events: (events: Array[params]) -> Response[event_accepted]
-    def each_page: (String | Symbol, ?page_size: Integer, ?max_pages: Integer, **parameter) -> Enumerator[Response, void]
-    def import_contacts_in_batches: (field_names: Array[String], data: Enumerable[Array[parameter]], ?batch_size: Integer, ?overwrite_tags: flag?, ?overwrite_lists: flag?, ?telegram_bot_channel_id: String?) -> Enumerator[Response, void]
-    def track_events_in_batches: (events: Enumerable[params], ?batch_size: Integer) -> Enumerator[Response, void]
-    def wait_for_task: (task_uuid: String, ?interval: duration, ?timeout: duration, ?clock: ( ^() -> Float)?, ?sleeper: ( ^(duration) -> void)?) -> Response[task_completed]
+    def initialize: (api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?, ?persistent: bool, ?rate_limiter: RateLimiter?) -> void
+    def self.from_env: (?env: _Environment, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?, ?persistent: bool, ?rate_limiter: RateLimiter?) -> Client
+    def close: () -> void
+    def with: (?api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?, ?persistent: bool, ?rate_limiter: RateLimiter?) -> Client
+    def request: (String, ?params: params) -> Response[json]
+    def track_events: (events: Array[params]) -> EventResponse
+    def each_page: (String | Symbol, ?page_size: Integer, ?max_pages: Integer, **parameter) -> Enumerator[PageResponse[Record], void]
+    def import_contacts_in_batches: (?field_names: Array[String]?, ?data: Enumerable[Array[parameter]]?, ?records: Enumerable[params]?, ?batch_size: Integer, ?overwrite_tags: flag?, ?overwrite_lists: flag?, ?telegram_bot_channel_id: String?) -> BatchReport
+    def each_import_batch: (?field_names: Array[String]?, ?data: Enumerable[Array[parameter]]?, ?records: Enumerable[params]?, ?batch_size: Integer, ?overwrite_tags: flag?, ?overwrite_lists: flag?, ?telegram_bot_channel_id: String?) ?{ (Response) -> void } -> Enumerator[Response, void]
+    def track_events_in_batches: (events: Enumerable[params], ?batch_size: Integer) -> BatchReport
+    def each_event_batch: (events: Enumerable[params], ?batch_size: Integer) ?{ (Response) -> void } -> Enumerator[Response, void]
+    def wait_for_task: (task_uuid: String, ?interval: duration, ?timeout: duration, ?clock: ( ^() -> Float)?, ?sleeper: ( ^(duration) -> void)?) ?{ (TaskResponse) -> void } -> TaskResponse
+    def contact_in_lists?: (email: String, list_ids: String | Array[id], condition: :any | :all) -> bool
     def inspect: () -> String
     private
-    def invoke: [Result] (String, params, ?required: Array[String], ?comma: Array[String]) -> Response[Result]
+    def message_defaults: (params) -> params
+    def request_values: (String, params) -> [URI::Generic, Hash[String, String], String]
+    def perform_request: (String, params, named: bool) -> Response
+    def decode_response: (HTTPResponse, String, params, bool) -> Response
+    def observe: (String, Integer, Float, HTTPResponse?, Exception?) -> void
+    def exchange: [Result] (String, URI::Generic, headers: Hash[String, String], body: String, ?attempt: Integer) { (HTTPResponse) -> Result } -> Result
+    def bind_task: (String, Response, params) -> Response
+    def import_source: (Array[String]?, Enumerable[Array[parameter]]?, Enumerable[params]?) -> (RecordRows | Enumerable[Array[parameter]])
+    def parse_event_response: (HTTPResponse) -> EventResponse
+    def prepare: (String, params, ?required: Array[String], ?comma: Array[String]) -> params
+    public
+    def invoke: [Result] (String, params, ?required: Array[String], ?comma: Array[String]) -> Result
+    private
     def validate_request: (String, params) -> void
   end
 end

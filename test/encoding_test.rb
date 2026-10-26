@@ -5,7 +5,7 @@ require_relative "support/scripted_transport"
 
 class EncodingTest < Minitest::Test
   def test_email_categories_use_the_documented_comma_separated_field
-    transport = ScriptedTransport.new(ScriptedTransport.reply)
+    transport = ScriptedTransport.new(ScriptedTransport.reply({ "result" => { "message_id" => 1 } }))
     client = Unisender::Client.new(api_key: "key", transport:)
     client.create_email_message(sender_name: "Sender", sender_email: "a@b.test", list_id: 1,
                                 template_id: 1, categories: %w[one two])

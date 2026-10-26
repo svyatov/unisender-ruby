@@ -5,14 +5,14 @@ require_relative "support/scripted_transport"
 
 class HelpersTest < Minitest::Test
   def test_paginates_lazily_and_preserves_responses
-    transport = ScriptedTransport.new(ScriptedTransport.reply({ "result" => [1, 2] }),
-                                      ScriptedTransport.reply({ "result" => [3],
+    transport = ScriptedTransport.new(ScriptedTransport.reply({ "result" => [{ "id" => 1 }, { "id" => 2 }] }),
+                                      ScriptedTransport.reply({ "result" => [{ "id" => 3 }],
                                                                 "warnings" => [{ "warning" => "note" }] }))
     client = Unisender::Client.new(api_key: "test-key", transport:)
     pages = client.each_page(:get_campaigns, from: "2026-01-01 00:00:00", page_size: 2)
 
     assert_empty transport.requests
-    assert_equal [[1, 2], [3]], pages.map(&:result)
+    assert_equal [[{ "id" => 1 }, { "id" => 2 }], [{ "id" => 3 }]], pages.map(&:result)
     assert_equal(%w[0 2], transport.requests.map { |r| URI.decode_www_form(r[:body]).to_h["offset"] })
   end
 
@@ -21,7 +21,7 @@ class HelpersTest < Minitest::Test
     transport = ScriptedTransport.new(ScriptedTransport.reply({ "result" => { "total" => 500, "invalid" => 0 } }),
                                       ScriptedTransport.reply({ "error" => "bad", "code" => "invalid_arg" }))
     client = Unisender::Client.new(api_key: "test-key", transport:)
-    batches = client.import_contacts_in_batches(field_names: ["email"], data: rows)
+    batches = client.each_import_batch(field_names: ["email"], data: rows)
 
     assert_empty transport.requests
     error = assert_raises(Unisender::BatchError) { batches.to_a }

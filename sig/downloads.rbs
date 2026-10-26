@@ -1,0 +1,52 @@
+module Unisender
+  interface _Writable
+    def write: (String) -> Integer
+  end
+  class DownloadReceipt < Data
+    attr_reader bytes_written: Integer
+    attr_reader http_status: Integer
+    def self.new: (bytes_written: Integer, http_status: Integer) -> DownloadReceipt
+  end
+  class DownloadError < Error
+    attr_reader reason: Symbol
+    attr_reader bytes_written: Integer
+    attr_reader http_status: Integer?
+    def initialize: (reason: Symbol, ?bytes_written: Integer, ?http_status: Integer?) -> void
+  end
+  class DownloadTarget
+    GLOBAL_V6: IPAddr
+    BLOCKED: Array[IPAddr]
+    @timeout: duration
+    @resolver: ^(String) -> Array[String]
+    def initialize: (timeout: duration, ?resolver: (^(String) -> Array[String])?) -> void
+    def resolve: (String) -> [URI::Generic, String]
+    private
+    def validated_uri: (String) -> URI::Generic
+    def resolved_addresses: (String) -> Array[String]
+    def blocked?: (String) -> bool
+  end
+  class DownloadTransfer
+    @io: _Writable
+    @max_bytes: Integer
+    attr_reader bytes_written: Integer
+    def initialize: (_Writable, Integer) -> void
+    def write: (String) -> void
+    private
+    def copy_chunk: (String) -> void
+  end
+  class Downloader
+    @open_timeout: duration
+    @read_timeout: duration
+    @write_timeout: duration
+    @target: DownloadTarget
+    @http_factory: ^(URI::Generic, String) -> Net::HTTP
+    def initialize: (?open_timeout: duration, ?read_timeout: duration, ?write_timeout: duration, ?resolver: (^(String) -> Array[String])?, ?http_factory: (^(URI::Generic, String) -> Net::HTTP)?) -> void
+    def download: (String, _Writable, max_bytes: Integer) -> DownloadReceipt
+    private
+    def execute: (String, DownloadTransfer) -> DownloadReceipt
+    def download_response: (String, DownloadTransfer) -> Net::HTTPResponse
+    def build_http: (URI::Generic, String) -> Net::HTTP
+    def configured_http: (URI::Generic, String) -> Net::HTTP
+    def stream: (Net::HTTPResponse, DownloadTransfer) -> void
+  end
+end

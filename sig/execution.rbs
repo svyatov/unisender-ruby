@@ -1,0 +1,45 @@
+module Unisender
+  module Iteration
+    def self.items: [Item < Record] (Enumerator[PageResponse[Item], void]) -> Enumerator[Item, void]
+    def self.call: [Item] (Enumerator[Item, void]) ?{ (Item) -> void } -> Enumerator[Item, void]
+  end
+  class BatchReport
+    include Enumerable[Response]
+    attr_reader responses: Array[Response]
+    @error: StandardError?
+    @failed_range: Range[Integer]?
+    def initialize: (Array[Response], ?error: StandardError?, ?failed_range: Range[Integer]?) -> void
+    def each: () -> Enumerator[Response, Array[Response]]
+            | () { (Response) -> void } -> Array[Response]
+    def complete?: () -> bool
+    def completed_batches: () -> Integer
+    def partial?: () -> bool
+    def uncertain?: () -> bool
+    def failures: () -> Array[Failure]
+    def total: () -> Integer?
+    def invalid: () -> Integer?
+    private
+    def failed_response: () -> OutcomeResponse[Record & _Outcome]?
+    def import_results: () -> Array[ImportResult]?
+  end
+
+  module EventBatches
+    def self.each: (Enumerable[params], Integer) -> Enumerator[Array[params], void]
+    def self.validate: (params, Integer) -> void
+    def self.build: (Enumerable[params], Integer, _EventBatchSink) -> void
+    def self.append: (Array[params], params, Integer, _EventBatchSink) -> Array[params]
+  end
+
+  interface _EventBatchSink
+    def <<: (Array[params]) -> void
+  end
+
+  class PageResponse[out Item < Record = Record] < CollectionResponse[Item]
+    @client: Client
+    @method: String
+    @params: params
+    def initialize: (CollectionResponse[Item], client: Client, method: String, params: params) -> void
+    def each_page: (?max_pages: Integer) -> Enumerator[PageResponse[Item], void]
+    def auto_each: (?max_pages: Integer) -> Enumerator[Item, void]
+  end
+end

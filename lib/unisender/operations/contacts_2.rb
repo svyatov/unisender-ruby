@@ -4,14 +4,24 @@ module Unisender
   # Contacts operations from the official UniSender API.
   class Client
     # https://www.unisender.com/ru/support/api/contacts/importcontacts/
-    def import_contacts(field_names:, data:, overwrite_tags: nil, overwrite_lists: nil,
+    # rubocop:disable-next Metrics/ParameterLists -- Accepts either records or the documented matrix form.
+    def import_contacts(field_names: nil, data: nil, records: nil, overwrite_tags: nil, overwrite_lists: nil,
                         telegram_bot_channel_id: nil)
+      if records
+        raise ValidationError.new(field: "records", code: :conflicting_input) if field_names || data
+
+        rows = RecordRows.new(records)
+        data = rows.to_a
+        field_names = rows.field_names
+      end
       params = { field_names:, data:, overwrite_tags:, overwrite_lists:, telegram_bot_channel_id: }
       invoke("importContacts", params, required: %w[field_names data])
     end
 
     # https://www.unisender.com/ru/support/api/contacts/subscribe/
-    def subscribe(list_ids:, fields:, tags: nil, double_optin: nil, overwrite: nil)
+    # rubocop:disable-next Metrics/ParameterLists -- Adds email to the documented subscription options.
+    def subscribe(list_ids:, fields: nil, email: nil, tags: nil, double_optin: nil, overwrite: nil)
+      fields = Inputs.contact_fields(fields, email)
       params = { list_ids:, fields:, tags:, double_optin:, overwrite: }
       invoke("subscribe", params, required: %w[list_ids fields], comma: %w[list_ids tags])
     end
@@ -27,6 +37,13 @@ module Unisender
     def is_contact_in_lists(email:, list_ids:, condition:)
       params = { email:, list_ids:, condition: }
       invoke("isContactInLists", params, required: %w[email list_ids condition], comma: %w[list_ids])
+    end
+
+    def contact_in_lists?(email:, list_ids:, condition:)
+      wire = { any: "or", all: "and" }.fetch(condition) do
+        raise ArgumentError, "condition must be any or all"
+      end
+      is_contact_in_lists(email:, list_ids:, condition: wire).result
     end
 
     # https://www.unisender.com/ru/support/api/contacts/getcontact/

@@ -9,7 +9,7 @@ begin
   client.track_events_in_batches(events: [
                                    { name: "purchase", email: ENV.fetch("UNISENDER_CONTACT_EMAIL"), total: 1200,
                                      currency: "RUB" }
-                                 ]).each { |response| puts "Recorded batch: HTTP #{response.status}" }
+                                 ]).each { |response| puts "Recorded batch: HTTP #{response.http_status}" }
 rescue Unisender::BatchError => e
   warn "Review events #{e.failed_range}; completed batches: #{e.completed_responses.size}"
   failure = e.error

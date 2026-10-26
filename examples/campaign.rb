@@ -5,9 +5,8 @@
 require "unisender"
 
 client = Unisender::Client.new(api_key: ENV.fetch("UNISENDER_API_KEY"))
-message = client.create_email_message(
-  sender_name: "Example", sender_email: ENV.fetch("UNISENDER_SENDER_EMAIL"),
-  list_id: ENV.fetch("UNISENDER_LIST_ID"), subject: "Product news", body: "<p>Hello</p>"
-)
-campaign = client.create_campaign(message_id: message.result.fetch("message_id"))
-puts campaign.result.fetch("campaign_id")
+receipt = client.send_campaign(message: {
+                                 sender_name: "Example", sender_email: ENV.fetch("UNISENDER_SENDER_EMAIL"),
+                                 list_id: ENV.fetch("UNISENDER_LIST_ID"), subject: "Product news", body: "<p>Hello</p>"
+                               })
+puts receipt.campaign.campaign_id

@@ -44,30 +44,25 @@ class PaginatedOperationsTest < Minitest::Test
     end
   end
 
-  def test_unknown_keywords_fail_lazily_before_a_request
+  def test_unknown_keywords_fail_immediately_before_a_request
     transport = ScriptedTransport.new(ScriptedTransport.reply)
     client = Unisender::Client.new(api_key: "test-key", transport:)
-    pages = client.each_page(:get_templates, unexpected: true)
-
-    assert_empty transport.requests
-    assert_raises(ArgumentError) { pages.first }
+    assert_raises(ArgumentError) { client.each_page(:get_templates, unexpected: true) }
     assert_empty transport.requests
   end
 
-  def test_preserves_broad_runtime_values_for_required_parameters
+  def test_rejects_non_timestamp_values_before_requests
     [false, 0, ["value"], { value: "example" }].each do |value|
-      direct, paginated = paired_requests(:get_campaigns, { from: value })
-
-      assert_equal direct, paginated
+      assert_rejected(:get_campaigns, { from: value })
     end
   end
 
-  def test_direct_calls_keep_their_limit_and_offset_behavior
+  def test_direct_calls_preserve_valid_limit_and_offset
     transport = ScriptedTransport.new(ScriptedTransport.reply)
     client = Unisender::Client.new(api_key: "test-key", transport:)
-    client.get_templates(limit: -1, offset: -1)
+    client.get_templates(limit: 100, offset: 10)
 
-    assert_equal "-1", URI.decode_www_form(transport.requests.first.fetch(:body)).to_h.fetch("limit")
+    assert_equal "100", URI.decode_www_form(transport.requests.first.fetch(:body)).to_h.fetch("limit")
   end
 
   def test_method_page_limit_prevents_requests
@@ -104,7 +99,8 @@ class PaginatedOperationsTest < Minitest::Test
   end
 
   def assert_response_equal(direct, paginated)
-    assert_equal [direct.data, direct.status, direct.headers], [paginated.data, paginated.status, paginated.headers]
+    assert_equal [direct.data, direct.http_status, direct.headers],
+                 [paginated.data, paginated.http_status, paginated.headers]
   end
 
   def assert_rejected(name, params)
@@ -112,10 +108,7 @@ class PaginatedOperationsTest < Minitest::Test
     client = Unisender::Client.new(api_key: "test-key", transport:)
 
     assert_raises(ArgumentError) { client.public_send(name, **params, limit: 2) }
-    pages = client.each_page(name, **params, page_size: 2)
-
-    assert_empty transport.requests
-    error = assert_raises(ArgumentError) { pages.first }
+    error = assert_raises(ArgumentError) { client.each_page(name, **params, page_size: 2) }
     refute_includes error.message, "private-value"
     assert_empty transport.requests
   end

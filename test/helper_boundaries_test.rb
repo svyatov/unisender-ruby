@@ -19,14 +19,15 @@ class HelperBoundariesTest < Minitest::Test
   end
 
   def test_stops_at_the_page_limit
-    client = client_for([1])
+    client = client_for([{ "id" => 1 }])
 
     assert_raises(Unisender::PaginationError) { client.each_page(:get_templates, page_size: 1, max_pages: 1).to_a }
   end
 
   def test_empty_pages_and_early_stopping
     assert_equal [[]], client_for([]).each_page(:get_templates).map(&:result)
-    assert_equal [[1]], client_for([1]).each_page(:get_templates, page_size: 1).take(1).map(&:result)
+    assert_equal [[{ "id" => 1 }]],
+                 client_for([{ "id" => 1 }]).each_page(:get_templates, page_size: 1).take(1).map(&:result)
     assert_equal [[]], client_for([]).each_page(:get_subscriber_notes, subscriber_id: 1).map(&:result)
   end
 
@@ -38,7 +39,7 @@ class HelperBoundariesTest < Minitest::Test
 
   def test_rejects_malformed_page_shapes
     assert_raises(Unisender::InvalidResponseError) { client_for({}).each_page(:get_templates).to_a }
-    [1, {}].each do |group|
+    [1, {}, { "domains" => 1 }].each do |group|
       assert_raises(Unisender::InvalidResponseError) do
         client_for([group]).each_page(:get_sender_domain_list, username: "ID1").to_a
       end
@@ -56,13 +57,14 @@ class HelperBoundariesTest < Minitest::Test
   end
 
   def test_partial_import_failure_is_available_without_replaying
-    client = client_for({ "invalid" => 1, "log" => ["fake failure"] })
+    client = client_for({ "invalid" => 1, "log" => [{ "index" => 0, "code" => "e_email_invalid" }] })
     error = assert_raises(Unisender::BatchError) do
       client.import_contacts_in_batches(field_names: ["email"], data: [["a@example.test"]]).to_a
     end
 
     assert_instance_of Unisender::PartialFailure, error.error
-    assert_equal({ "invalid" => 1, "log" => ["fake failure"] }, error.error.response.result)
+    assert_equal({ "invalid" => 1, "log" => [{ "index" => 0, "code" => "e_email_invalid" }] },
+                 error.error.response.result)
   end
 
   def test_event_success_without_success_flag_is_malformed
@@ -87,7 +89,7 @@ class HelperBoundariesTest < Minitest::Test
     client = Unisender::Client.new(api_key: "test-key", transport:)
 
     assert_equal "completed", client.wait_for_task(task_uuid: "task", interval: 0.001).result["status"]
-    [{ "status" => "failed" }, []].each do |result|
+    [{ "status" => "failed" }].each do |result|
       assert_raises(Unisender::TaskError) { client_for(result).wait_for_task(task_uuid: "task") }
     end
   end

@@ -9,7 +9,7 @@ class ClientTest < Minitest::Test
     transport = ScriptedTransport.new(ScriptedTransport.reply(reply, headers: { "x-request-id" => "r1" }))
     response = Unisender::Client.new(api_key: "test-key", transport:).request("getLists")
 
-    assert_equal [reply, 200, "r1"], [response.data, response.status, response.headers.fetch("x-request-id")]
+    assert_equal [reply, 200, "r1"], [response.data, response.http_status, response.headers.fetch("x-request-id")]
     assert_get_lists_request(transport.requests.first)
   end
 

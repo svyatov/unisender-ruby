@@ -8,7 +8,7 @@ class ResponseTest < Minitest::Test
     ["<html>Unavailable</html>", "[]", '{"result":[]}', '{"code":"denied","error":"sensitive"}'].each do |body|
       error = assert_raises(Unisender::HTTPError) { client(body, 503).request("getLists") }
 
-      assert_equal [503, "2"], [error.response.status, error.response.headers["retry-after"]]
+      assert_equal [503, "2"], [error.response.http_status, error.response.headers["retry-after"]]
       refute_includes error.message, body
     end
   end

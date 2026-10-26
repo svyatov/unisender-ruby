@@ -21,19 +21,14 @@ module Unisender
     empty = []
     EMPTY_WARNINGS = empty.freeze
 
-    attr_reader :data, :status, :headers
+    attr_reader :data, :http_status, :headers, :result
 
-    def initialize(data:, status:, headers:)
+    def initialize(data:, status:, headers:, result: nil)
       @data = immutable_hash(data)
-      @status = status
+      @http_status = status
+      @result = result.nil? ? @data.fetch("result", @data) : result
       @headers = headers.to_h { |key, value| [key.dup.freeze, value.dup.freeze] }.freeze
       freeze
-    end
-
-    # The parser retains JSON; named operation signatures describe its upstream shape.
-    # @type method result: () -> json
-    def result
-      @data.fetch("result", @data)
     end
 
     def warnings
@@ -41,7 +36,7 @@ module Unisender
     end
 
     def inspect
-      "#<Unisender::Response status=#{@status}>"
+      "#<Unisender::Response http_status=#{@http_status}>"
     end
 
     private

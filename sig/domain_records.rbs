@@ -1,0 +1,73 @@
+module Unisender
+  class EmailContact < Record
+    def email: () -> String
+    def status: () -> String?
+    def availability: () -> String?
+    def normalize: () -> void
+  end
+  class Contact < Record
+    def email: () -> (EmailContact | String)?
+    def normalize: () -> void
+  end
+  class ContactResponse < ObjectResponse[Contact]
+    def email: () -> (EmailContact | String)?
+  end
+  class SenderDomain < Record
+    def domain: () -> String
+    def status: () -> String?
+    def key: () -> String?
+    def normalize: () -> void
+  end
+  class SenderDomainGroup < Record
+    def status: () -> String?
+    def domains: () -> Array[SenderDomain]
+    def normalize: () -> void
+  end
+  class ContactFields < Record
+    def field_values: () -> Record
+    def normalize: () -> void
+  end
+  class ContactFieldsResponse < ObjectResponse[ContactFields]
+    def field_values: () -> Record
+  end
+  class CampaignStats < Record
+    COUNTERS: Array[String]
+    def total: () -> Integer?
+    def sent: () -> Integer?
+    def delivered: () -> Integer?
+    def read_unique: () -> Integer?
+    def read_all: () -> Integer?
+    def clicked_unique: () -> Integer?
+    def clicked_all: () -> Integer?
+    def unsubscribed: () -> Integer?
+    def spam: () -> Integer?
+    def normalize: () -> void
+  end
+  class CampaignStatsResponse < ObjectResponse[CampaignStats]
+    def total: () -> Integer?
+    def sent: () -> Integer?
+    def delivered: () -> Integer?
+    def read_unique: () -> Integer?
+    def read_all: () -> Integer?
+    def clicked_unique: () -> Integer?
+    def clicked_all: () -> Integer?
+    def unsubscribed: () -> Integer?
+    def spam: () -> Integer?
+  end
+  class SmsReceipt < Record
+    def sms_id: () -> id
+    def price: () -> (Integer | Float)?
+    def currency: () -> String?
+    def normalize: () -> void
+  end
+  class SmsReceiptResponse < ObjectResponse[SmsReceipt]
+    def sms_id: () -> id
+    def price: () -> (Integer | Float)?
+    def currency: () -> String?
+  end
+  class EmailDelivery < Record
+    def id: () -> id?
+    def status: () -> String?
+    def normalize: () -> void
+  end
+end
