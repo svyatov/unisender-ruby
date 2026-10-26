@@ -12,6 +12,6 @@ message_id = client.create_email_message(
 ).message_id
 client.create_campaign(message_id:)
 job = client.export_contacts(list_id:)
-completed = client.wait_for_task(task_uuid: job.task_uuid || raise("Missing task UUID"))
+completed = job.wait
 puts completed.result.fetch("file_to_download")
 puts client.track_events(events: [{ name: "purchase", email: "person@example.com" }]).result.fetch("success")

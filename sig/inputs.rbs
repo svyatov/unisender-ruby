@@ -1,0 +1,36 @@
+module Unisender
+  class ValidationError < ArgumentError
+    attr_reader field: String
+    attr_reader code: Symbol
+    attr_reader operation: String?
+    attr_reader index: Integer?
+    def initialize: (field: String, code: Symbol, ?operation: String?, ?index: Integer?) -> void
+  end
+
+  module Inputs
+    MODES: Hash[Symbol, Hash[Symbol, Integer]]
+    MINUTES: Array[String]
+    SECONDS: Array[String]
+    DATES: Array[Symbol]
+    def self.normalize: (String, params) -> params
+    def self.timestamp_format: (String) -> String?
+    def self.mode: (parameter, Hash[Symbol, Integer], Symbol) -> Integer?
+    def self.timestamp: (parameter, String, Symbol) -> String?
+    def self.contact_fields: (params?, String?) -> params
+    def self.merge_email: (params, String) -> parameter
+    def self.validate_email: (params) -> void
+  end
+
+  class RecordRows
+    include Enumerable[Array[parameter]]
+    @records: Enumerable[params]
+    @rows: Array[Array[parameter]]?
+    attr_reader field_names: Array[String]
+    def initialize: (Enumerable[params]) -> void
+    def each: () { (Array[parameter]) -> void } -> void
+    private
+    def row: (parameter, Integer) -> Array[parameter]
+    def record_object: (parameter, Integer) -> params
+    def validate_columns: (Array[String], Integer) -> void
+  end
+end

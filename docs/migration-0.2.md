@@ -42,3 +42,29 @@ Use a fetched page's `each_page` or `auto_each` to continue from that page witho
 Named iterators such as `each_message` yield typed items across pages and accept a block.
 Invalid pagination arguments raise when constructing the iterator. HTTP requests remain lazy.
 Pagination errors expose `next_offset` and `completed_pages` for recovery.
+
+## Inputs and tasks
+
+Supply `email:` directly to `subscribe`, or continue using `fields:`.
+Subscription modes accept `:request_confirmation`, `:already_confirmed`, and `:confirm_if_needed`.
+Overwrite modes accept `:preserve`, `:replace`, and `:update`. Numeric modes retain their meanings.
+
+Imports accept `records:` with consistent keys, including `email`. This input is mutually exclusive with `field_names:` and `data:`.
+Record key order may differ; the first record determines column order. Missing columns must be supplied explicitly.
+Arrays validate before sending. Streaming input validates as consumed.
+
+Timestamp arguments accept `Time` and convert it to the operation's UTC format. String inputs pass through unchanged.
+`ValidationError` provides `field`, `code`, and optional `operation` without including private values.
+
+Export and delivery-report responses are task handles. Call `job.wait` explicitly to poll.
+A block passed to `wait` receives each observed state. Polling deadlines retain the last response and task UUID.
+
+## Partial success
+
+Import, send, and event responses expose `complete?`, `partial?`, `uncertain?`, and `failures`.
+These describe request acceptance, not final message delivery. Call `raise_for_partial_failure!` to reject incomplete acceptance explicitly.
+
+`BatchError#report` retains completed responses, known import totals, and failures with global input indices.
+Unknown acceptance remains unknown; the client does not count an uncertain request as rejected.
+Event batches respect the encoded payload limit as well as the event-count limit.
+Streaming input failures retain completed batches. No failed request or input chunk is replayed automatically.

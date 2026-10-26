@@ -86,6 +86,10 @@ module Unisender
 
   # A failed event request can still have accepted some events (HTTP 400).
   class EventError < HTTPError
+    def report
+      EventResult.new({ "success" => false, "uncertain" => response.http_status != 401 })
+    end
+
     def code
       response.data["code"]
     end
@@ -101,12 +105,13 @@ module Unisender
 
   # Carries the completed batches and the range whose outcome needs inspection.
   class BatchError < Error
-    attr_reader :completed_responses, :failed_range, :error
+    attr_reader :completed_responses, :failed_range, :error, :report
 
     def initialize(completed_responses:, failed_range:, error:)
       @completed_responses = completed_responses.dup.freeze
       @failed_range = failed_range.freeze
       @error = error
+      @report = BatchReport.new(@completed_responses, error:, failed_range:)
       super("UniSender batch failed; inspect the completed responses and failed range")
     end
   end

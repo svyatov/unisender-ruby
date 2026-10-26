@@ -3,16 +3,31 @@
 module Unisender
   # Event Tracking uses JSON with its own batch and payload limits.
   module EventPayload
+    MAX_BYTES = 130 * 1024
+
     def self.encode(events)
       raise ArgumentError, "Expected 1 to 25 events" unless (1..25).cover?(events.size)
 
-      normalized = events.map { |event| validate(normalize(event, 0)) }
-      body = JSON.generate({ "events" => normalized })
-      raise ArgumentError, "Event payload exceeds 130 KB" if body.bytesize > 130 * 1024
+      body = serialize(events)
+      raise ArgumentError, "Event payload exceeds 130 KB" if body.bytesize > MAX_BYTES
 
       body
+    end
+
+    def self.serialize(events)
+      normalized = events.map { |event| validate(normalize(with_timestamp(event), 0)) }
+      JSON.generate({ "events" => normalized })
     rescue EncodingError, JSON::GeneratorError
       raise ArgumentError, "Events must contain valid JSON values and UTF-8 text", cause: nil
+    end
+
+    def self.with_timestamp(event)
+      return event unless event.is_a?(Hash)
+
+      event.to_h do |key, value|
+        item = key.to_s == "created" && value.is_a?(Time) ? value.getutc.strftime("%Y-%m-%d %H:%M:%S") : value
+        [key, item]
+      end
     end
 
     def self.validate(event)

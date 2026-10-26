@@ -1,0 +1,68 @@
+module Unisender
+  module Outcomes
+    def self.records: (value) -> Array[Record]
+  end
+  class Failure < Record
+    def index: () -> Integer?
+    def code: () -> String?
+    def message: () -> String?
+    def warning?: () -> bool
+    def with_offset: (Integer) -> Failure
+    def normalize: () -> void
+  end
+  interface _Outcome
+    def complete?: () -> bool
+    def partial?: () -> bool
+    def uncertain?: () -> bool
+    def failures: () -> Array[Failure]
+  end
+  class ImportResult < Record
+    def total: () -> Integer?
+    def invalid: () -> Integer
+    def complete?: () -> bool
+    def partial?: () -> bool
+    def uncertain?: () -> bool
+    def failures: () -> Array[Failure]
+    def normalize: () -> void
+  end
+  class RecipientResult < Record
+    def id: () -> id?
+    def index: () -> Integer?
+    def email: () -> String?
+    def failures: () -> Array[Failure]
+    def accepted?: () -> bool
+    def normalize: () -> void
+  end
+  class SendResult < Record
+    def recipients: () -> Array[RecipientResult]
+    def email_id: () -> id?
+    def complete?: () -> bool
+    def partial?: () -> bool
+    def uncertain?: () -> bool
+    def failures: () -> Array[Failure]
+    def normalize: () -> void
+  end
+  class EventResult < Record
+    def complete?: () -> bool
+    def partial?: () -> bool
+    def uncertain?: () -> bool
+    def failures: () -> Array[Failure]
+  end
+  class OutcomeResponse[out Result < (Record & _Outcome) = ImportResult] < ObjectResponse[Result]
+    def complete?: () -> bool
+    def partial?: () -> bool
+    def uncertain?: () -> bool
+    def failures: () -> Array[Failure]
+    def raise_for_partial_failure!: () -> self
+  end
+  class ImportResponse < OutcomeResponse[ImportResult]
+    def total: () -> Integer?
+    def invalid: () -> Integer
+  end
+  class SendResponse < OutcomeResponse[SendResult]
+    def recipients: () -> Array[RecipientResult]
+    def email_id: () -> id?
+  end
+  class EventResponse < OutcomeResponse[EventResult]
+  end
+end

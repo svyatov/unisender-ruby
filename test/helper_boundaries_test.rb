@@ -57,13 +57,14 @@ class HelperBoundariesTest < Minitest::Test
   end
 
   def test_partial_import_failure_is_available_without_replaying
-    client = client_for({ "invalid" => 1, "log" => ["fake failure"] })
+    client = client_for({ "invalid" => 1, "log" => [{ "index" => 0, "code" => "e_email_invalid" }] })
     error = assert_raises(Unisender::BatchError) do
       client.import_contacts_in_batches(field_names: ["email"], data: [["a@example.test"]]).to_a
     end
 
     assert_instance_of Unisender::PartialFailure, error.error
-    assert_equal({ "invalid" => 1, "log" => ["fake failure"] }, error.error.response.result)
+    assert_equal({ "invalid" => 1, "log" => [{ "index" => 0, "code" => "e_email_invalid" }] },
+                 error.error.response.result)
   end
 
   def test_event_success_without_success_flag_is_malformed

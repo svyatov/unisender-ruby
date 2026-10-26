@@ -4,6 +4,12 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Expose typed acceptance reports and global batch failure indices without replaying requests.
+- Split event batches by encoded bytes and count; preserve completed work when input enumeration fails.
+
+- Accept contact records, named subscription modes, and Ruby time inputs.
+- Add task handles with explicit polling, progress callbacks, and contextual timeout errors.
+
 - Execute batch commands immediately; provide explicit lazy batch and typed item iterators.
 - Add page navigation with resume offsets and immediate argument validation.
 

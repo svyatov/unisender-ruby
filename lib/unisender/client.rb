@@ -4,6 +4,7 @@ module Unisender
   # Synchronous client for the documented UniSender API.
   class Client
     RESERVED_PARAMETERS = %w[api_key format].freeze
+    TASK_METHODS = %w[async/exportContacts async/getCampaignDeliveryStats async/getTaskResult].freeze
 
     def initialize(api_key:, transport: Transport.new, language: :en, retry_policy: RetryPolicy.new)
       unless api_key.is_a?(String) && !api_key.strip.empty? && !api_key.match?(/[\r\n]/)
@@ -47,13 +48,25 @@ module Unisender
     # The wire response stays JSON; each named operation declares the documented result type.
     # @type method invoke: (String, params, ?required: Array[String], ?comma: Array[String]) -> Response
     def invoke(method, params, required: [], comma: [])
+      params = Inputs.normalize(method, params)
       Validation.required!(params, required)
       Validation.operation!(method, params)
       comma.each do |name|
         value = params[name.to_sym]
         params[name.to_sym] = Validation.comma_list(value) if value.is_a?(Array)
       end
-      Results.build(method, request(method, params:))
+      response = Results.build(method, request(method, params:))
+      bind_task(method, response, params)
+    end
+
+    def bind_task(method, response, params)
+      return response unless TASK_METHODS.include?(method)
+      raise InvalidResponseError, "Expected task result" unless response.is_a?(TaskResultResponse)
+
+      uuid = params[:task_uuid] || response.task_uuid
+      raise InvalidResponseError, "Missing task UUID" unless uuid.is_a?(String)
+
+      TaskResponse.new(response, client: self, task_uuid: uuid)
     end
   end
 end

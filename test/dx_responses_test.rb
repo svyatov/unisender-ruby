@@ -70,7 +70,7 @@ class DxResponsesTest < Minitest::Test
 
   def test_pagination_and_task_shapes
     assert_raises(Unisender::InvalidResponseError) { client({ "id" => 1 }).each_page(:get_templates).first }
-    assert_raises(Unisender::TaskError) { client([]).wait_for_task(task_uuid: "task") }
+    assert_raises(Unisender::InvalidResponseError) { client([]).wait_for_task(task_uuid: "task") }
   end
 
   private

@@ -1,0 +1,17 @@
+module Unisender
+  class TaskResponse < TaskResultResponse
+    @client: Client
+    attr_reader task_uuid: String
+    def initialize: (TaskResultResponse, client: Client, task_uuid: String) -> void
+    def wait: (?interval: duration, ?timeout: duration, ?clock: ( ^() -> Float)?, ?sleeper: ( ^(duration) -> void)?) ?{ (TaskResponse) -> void } -> TaskResponse
+  end
+  class TaskFailedError < TaskError
+  end
+  class UnknownTaskStateError < TaskError
+  end
+  class TaskTimeoutError < TimeoutError
+    attr_reader response: TaskResponse
+    attr_reader task_uuid: String
+    def initialize: (TaskResponse) -> void
+  end
+end

@@ -12,6 +12,7 @@ module Unisender
     end
 
     def self.normalize(method, value)
+      return { "recipients" => value } if method == "sendEmail" && value.is_a?(Array)
       return single_message(value) if method == "getMessage"
       return rows(value) if method == "getVisitedLinks"
       return {} if EMPTY_OPERATIONS.include?(method) && value == []

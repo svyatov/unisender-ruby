@@ -19,7 +19,8 @@ module Unisender
       raise EventError, response, cause: nil unless (200..299).cover?(http.status)
       raise InvalidResponseError, "Missing event success status", cause: nil unless response.data["success"] == true
 
-      Results.build("track_events", response) # : ObjectResponse[Record]
+      EventResponse.new(data: response.data, status: response.http_status, headers: response.headers,
+                        result: EventResult.new(response.data))
     end
   end
 end

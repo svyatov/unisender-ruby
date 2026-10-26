@@ -24,6 +24,7 @@ module Unisender
     def self.call(client, method, params)
       params = params.compact.merge(limit: params.fetch(:limit, nil) || 100)
       wire = validate(method, params)
+      params = Inputs.normalize(wire, params)
       response = Results.build(wire, client.request(wire, params:)) # : CollectionResponse[Record]
       PageResponse.new(response, client:, method: method.to_s, params:)
     end

@@ -1,0 +1,32 @@
+# frozen_string_literal: true
+
+module Unisender
+  # A task handle polls only when the caller requests it.
+  class TaskResponse < TaskResultResponse
+    attr_reader :task_uuid
+
+    def initialize(response, client:, task_uuid:)
+      @client = client
+      @task_uuid = task_uuid.dup.freeze
+      super(data: response.data, status: response.http_status, headers: response.headers, result: response.result)
+    end
+
+    def wait(interval: 1, timeout: 60, clock: nil, sleeper: nil, &)
+      @client.wait_for_task(task_uuid:, interval:, timeout:, clock:, sleeper:, &)
+    end
+  end
+
+  class TaskFailedError < TaskError; end
+  class UnknownTaskStateError < TaskError; end
+
+  # A polling deadline retains the last known task state.
+  class TaskTimeoutError < TimeoutError
+    attr_reader :response, :task_uuid
+
+    def initialize(response)
+      @response = response
+      @task_uuid = response.task_uuid
+      super("Timed out waiting for the UniSender task")
+    end
+  end
+end

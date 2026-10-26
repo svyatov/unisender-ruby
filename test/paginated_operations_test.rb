@@ -51,11 +51,9 @@ class PaginatedOperationsTest < Minitest::Test
     assert_empty transport.requests
   end
 
-  def test_preserves_broad_runtime_values_for_required_parameters
+  def test_rejects_non_timestamp_values_before_requests
     [false, 0, ["value"], { value: "example" }].each do |value|
-      direct, paginated = paired_requests(:get_campaigns, { from: value })
-
-      assert_equal direct, paginated
+      assert_rejected(:get_campaigns, { from: value })
     end
   end
 

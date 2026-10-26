@@ -12,7 +12,8 @@ module Unisender
       @params = self.class.snapshot(params)
       @first_page = first_page
       validate!(PaginatedOperations.page_limit(@method))
-      PaginatedOperations.validate(@method, @params)
+      wire = PaginatedOperations.validate(@method, @params)
+      @params = self.class.snapshot(Inputs.normalize(wire, @params))
       initial_offset
     end
 

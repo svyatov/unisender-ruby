@@ -5,10 +5,11 @@ module Unisender
   class TaskWaiter
     PENDING = %w[new processing].freeze
 
-    def initialize(client, clock:, sleeper:)
+    def initialize(client, clock:, sleeper:, progress: nil)
       @client = client
       @clock = clock
       @sleeper = sleeper
+      @progress = progress
     end
 
     def call(task_uuid, interval, timeout)
@@ -16,9 +17,10 @@ module Unisender
       deadline = @clock.call + timeout
       loop do
         response = @client.get_task_result(task_uuid:)
+        @progress&.call(response)
         return response if complete?(response)
 
-        wait(interval, deadline)
+        wait(interval, deadline, response)
       end
     end
 
@@ -34,19 +36,19 @@ module Unisender
 
     def complete?(response)
       result = response.result
-      raise TaskError, response unless result.is_a?(Record)
       return true if result["status"] == "completed"
-      raise TaskError, response unless PENDING.include?(result["status"])
+      raise TaskFailedError, response if result["status"] == "failed"
+      raise UnknownTaskStateError, response unless PENDING.include?(result["status"])
 
       false
     end
 
-    def wait(interval, deadline)
+    def wait(interval, deadline, response)
       remaining = deadline - @clock.call
-      raise TimeoutError, "Timed out waiting for the UniSender task" unless remaining.positive?
+      raise TaskTimeoutError, response unless remaining.positive?
 
       @sleeper.call([interval, remaining].min)
-      raise TimeoutError, "Timed out waiting for the UniSender task" if @clock.call >= deadline
+      raise TaskTimeoutError, response if @clock.call >= deadline
     end
   end
 end
