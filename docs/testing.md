@@ -25,6 +25,26 @@ Request inspection omits payloads. `form` excludes the API key.
 Explicit `body`, `headers`, and `uri` access can expose credentials or contact data. Keep those values out of test failure output.
 Queued fixtures should use fake addresses and keys.
 
+## Fixtures and request expectations
+
+`Fixtures.list`, `Fixtures.import_result`, `Fixtures.task`, and `Fixtures.recipient` return result values without the outer `result` envelope.
+Required keywords describe the minimum usable fixture; optional keywords add failures, IDs, and download URLs.
+
+Add this expectation to an application test:
+
+```ruby
+transport.enqueue(
+  operation: "importContacts",
+  expected_form: { "field_names[0]" => "email", "data[0][0]" => "person@example.test" },
+  data: { "result" => Unisender::Testing::Fixtures.import_result(total: 1) }
+)
+```
+
+`expected_form:` checks selected encoded fields. `expected_json:` checks nested object subsets and positional array prefixes.
+Choose one per reply. Additional request fields are allowed; missing or different expected fields fail immediately.
+Error messages contain a redacted field path, without expected or actual payload values. API keys cannot be form expectations.
+Use exact request counts and `verify!` when order and extra requests matter.
+
 For Event Tracking, use `transport.requests.last.json` to inspect the decoded JSON payload with its `events` array.
 Like `body`, this reader contains contact data. Compare selected fields instead of printing the full payload.
 
