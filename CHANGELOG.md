@@ -4,6 +4,8 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Document the accepted MD5 exception required by UniSender's webhook protocol.
+
 - Scan webhook JSON tokens without regular-expression backtracking and reject unterminated strings.
 - Escape backslashes as well as table separators in generated API type descriptions.
 

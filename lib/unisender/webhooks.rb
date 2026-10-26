@@ -182,6 +182,7 @@ module Unisender
       auth = auth_value(data)
       start, finish = auth_span(bytes)
       signed = bytes.byteslice(0...start).to_s + JSON.generate(api_key) + bytes.byteslice(finish..).to_s
+      # UniSender requires MD5; the accepted protocol exception is documented in docs/webhooks.md.
       expected = Digest::MD5.hexdigest(signed)
       raise WebhookError, :invalid_auth unless secure_equal?(auth, expected)
     end

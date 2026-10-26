@@ -30,4 +30,12 @@ The verifier preserves unknown fields and accepts `events` or `Events` within ea
 
 Authentication follows the upstream MD5 procedure on the original decompressed JSON, replacing only the top-level auth value with the JSON-encoded key. Never parse and regenerate the JSON before verification. Authentication alone does not prevent replay. Deduplicate and process events idempotently in durable application storage. Return HTTP 200 only after durable acceptance; keep processing short. Delivery can repeat, and an unsuccessful receiver is retried before registration stops. Handle malformed data without logging bodies, API keys, or contact information.
 
+## Protocol security limitation
+
+The [supported webhook protocol](https://www.unisender.com/ru/support/api/common/sistema-uvedomlenij-o-sobytiyah-webhooks/) requires MD5 and documents no stronger signature mode. Replacing MD5 locally would reject valid notifications.
+
+This library accepts that protocol limitation. The exception covers only the digest in `Unisender::Webhooks.authenticate`, tracked by [CodeQL alert #3](https://github.com/svyatov/unisender-ruby/security/code-scanning/3). Its disposition is `won't fix`, not `false positive`. Other uses of weak cryptography remain subject to CodeQL checks.
+
+Require HTTPS, retain the request limits, and deduplicate events in application storage. These controls do not remove MD5's cryptographic limitations. Reassess the exception if UniSender introduces stronger webhook authentication.
+
 These contracts are based on [UniSender's webhook documentation](https://www.unisender.com/ru/support/api/common/sistema-uvedomlenij-o-sobytiyah-webhooks/) and offline fixtures. A designated test account and an authorized receiver are still required to verify live delivery.
