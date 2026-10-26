@@ -4,6 +4,8 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Bound direct imports to 501 inspected records and add optional byte limits to attachment reads.
+
 - Schedule Time inputs in explicit UTC with minute precision; reject conflicting timezones.
 
 - Document the accepted MD5 exception required by UniSender's webhook protocol.

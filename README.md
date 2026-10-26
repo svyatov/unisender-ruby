@@ -213,6 +213,8 @@ Pacing is opt-in, process-local, and separate from retries. Share a limiter betw
 
 `Attachment.from_path(path)` and `Attachment.from_io(io, filename:)` read binary data into an immutable snapshot. Pass one attachment, an array, or the existing filename-to-bytes hash as `attachments:`. The helper never closes a caller-owned IO.
 
+Pass `max_bytes:` to bound attachment reads. Direct imports inspect at most 501 records; use batching for more than 500 records.
+
 `send_campaign(message: {...}, campaign: {...})` validates both steps before creating the message and returns `receipt.message` and `receipt.campaign`. If campaign creation fails, `CampaignWorkflowError#message_response` preserves the created message. The workflow cannot roll back account changes.
 
 Completed export tasks can stream into a caller-owned IO:

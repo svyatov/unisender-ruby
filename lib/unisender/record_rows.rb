@@ -7,6 +7,15 @@ module Unisender
 
     attr_reader :field_names
 
+    def self.bounded(records)
+      values = records.take(501)
+      if values.size > 500
+        raise ValidationError.new(field: "records", code: :too_many_records, operation: "importContacts")
+      end
+
+      new(values)
+    end
+
     def initialize(records)
       @field_names = []
       @records = records

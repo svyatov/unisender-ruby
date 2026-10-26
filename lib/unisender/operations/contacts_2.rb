@@ -12,7 +12,7 @@ module Unisender
           raise ValidationError.new(field: "records", code: :conflicting_input, operation: "importContacts")
         end
 
-        rows = RecordRows.new(records)
+        rows = RecordRows.bounded(records)
         data = rows.to_a
         field_names = rows.field_names
       end

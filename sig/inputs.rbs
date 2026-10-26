@@ -47,6 +47,7 @@ module Unisender
   end
 
   class RecordRows
+    def self.bounded: (Enumerable[params]) -> RecordRows
     include Enumerable[Array[parameter]]
     @records: Enumerable[params]
     @rows: Array[Array[parameter]]?
