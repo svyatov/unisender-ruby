@@ -122,6 +122,9 @@ Use `client.validate!(:subscribe, email: "person@example.test", list_ids: [123])
 Validation returns `true` or raises. It applies client defaults and consumes supplied import enumerables, but makes no requests.
 Known flags accept only booleans or 0/1. Template types and note ordering also accept documented Symbol choices.
 `send_email` requests detailed recipient acceptance by default; set `error_checking: false` for the legacy response or `nil` to omit it.
+Use `accepted_ids`, `accepted_recipients`, `rejected_recipients`, and `unknown_recipients` to inspect send outcomes.
+`reply_to:` and `priority:` merge with Hash headers; conflicting or multiline values are rejected.
+`images_as:` accepts `:attachments`, `:only_links`, or `:user_default` as well as their String forms.
 
 Use this error handler in your application's `request.rb`:
 

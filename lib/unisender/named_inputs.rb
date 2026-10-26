@@ -15,6 +15,7 @@ module Unisender
       "getSubscriberNotes" => %i[is_pinned]
     }.transform_values(&:freeze).freeze
     ENUMS = {
+      "sendEmail" => { images_as: %w[attachments only_links user_default].freeze }.freeze,
       "setHook" => { event_format: %w[json_post json_post_gzip http_get], status: %w[active disabled] },
       "getTemplates" => { type: %w[user system].freeze }.freeze,
       "listTemplates" => { type: %w[user system].freeze }.freeze,

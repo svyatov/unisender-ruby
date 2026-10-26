@@ -72,6 +72,8 @@ Conflicting timezone arguments raise `ValidationError`. String inputs retain the
 Named flags reject values outside booleans and 0/1 before networking. Known closed choices reject unsupported values.
 Library validation failures expose structured fields through `ValidationError`, while remaining rescuable as `ArgumentError`.
 `send_email` defaults `error_checking` to true. Use recipient results for IDs; explicit false retains the legacy format.
+`accepted_ids` works with both formats. Recipient views retain rejected and unknown outcomes separately.
+Named `reply_to:` and `priority:` headers reject conflicts. Unsupported `images_as` values fail locally.
 List/tag arrays in import records become comma-separated scalar cells. Subscription-time arrays retain their list-ID order.
 
 Supply `email:` directly to `subscribe`, or continue using `fields:`.

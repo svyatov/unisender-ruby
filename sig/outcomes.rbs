@@ -40,6 +40,10 @@ module Unisender
     def normalize: () -> void
   end
   class SendResult < Record
+    def accepted_recipients: () -> Array[RecipientResult]
+    def rejected_recipients: () -> Array[RecipientResult]
+    def unknown_recipients: () -> Array[RecipientResult]
+    def accepted_ids: () -> Array[id]
     def recipients: () -> Array[RecipientResult]
     def email_id: () -> id?
     def complete?: () -> bool
@@ -71,6 +75,10 @@ module Unisender
     def invalid: () -> Integer
   end
   class SendResponse < OutcomeResponse[SendResult]
+    def accepted_recipients: () -> Array[RecipientResult]
+    def rejected_recipients: () -> Array[RecipientResult]
+    def unknown_recipients: () -> Array[RecipientResult]
+    def accepted_ids: () -> Array[id]
     def recipients: () -> Array[RecipientResult]
     def email_id: () -> id?
   end

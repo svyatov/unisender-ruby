@@ -45,7 +45,7 @@ module Unisender
     def delete_message: (message_id: id) -> ObjectResponse[Record]
     def get_actual_message_version: (message_id: id) -> MessageVersionResponse
     def get_web_version: (campaign_id: id) -> WebVersionResponse
-    def send_email: (email: String, ?sender_name: String?, ?sender_email: String?, subject: String, body: String, list_id: id, ?attachments: Hash[String, String] | Attachment | Array[Attachment] | nil, ?lang: String | nil, ?track_read: flag | nil, ?track_links: flag | nil, ?cc: String | nil, ?headers: String | params | nil, ?images_as: String | nil, ?ref_key: String | nil, ?error_checking: flag | nil, ?metadata: params | nil) -> SendResponse
+    def send_email: (email: String, ?sender_name: String?, ?sender_email: String?, subject: String, body: String, list_id: id, ?attachments: Hash[String, String] | Attachment | Array[Attachment] | nil, ?lang: String | nil, ?track_read: flag | nil, ?track_links: flag | nil, ?cc: String | nil, ?headers: String | params | nil, ?images_as: String | Symbol | nil, ?ref_key: String | nil, ?error_checking: flag | nil, ?metadata: params | nil, ?reply_to: String | nil, ?priority: String | nil) -> SendResponse
     def send_sms: (phone: String | Array[String], sender: String, text: String) -> CollectionResponse[SmsReceipt]
     def send_test_email: (email: String | Array[id], id: id) -> MessageNoticeResponse
     def update_email_message: (id: id, ?sender_name: String | nil, ?sender_email: String | nil, ?subject: String | nil, ?body: String | nil, ?list_id: id | nil, ?text_body: String | nil, ?lang: String | nil, ?categories: String | Array[id] | nil) -> MessageCreatedResponse

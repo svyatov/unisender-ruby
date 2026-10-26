@@ -51,7 +51,7 @@ The offline contract cases are in `test/fixtures/operations.json` and run throug
 | [`delete_message`](#delete_message) | [`deleteMessage`](https://www.unisender.com/ru/support/api/messages/deletemessage/) | `message_id` | None | `ObjectResponse[Record]` |
 | [`get_actual_message_version`](#get_actual_message_version) | [`getActualMessageVersion`](https://www.unisender.com/ru/support/api/messages/get-actual-message-version/) | `message_id` | None | `MessageVersionResponse` |
 | [`get_web_version`](#get_web_version) | [`getWebVersion`](https://www.unisender.com/ru/support/api/messages/getwebversion/) | `campaign_id` | None | `WebVersionResponse` |
-| [`send_email`](#send_email) | [`sendEmail`](https://www.unisender.com/ru/support/api/messages/sendemail/) | `email`, `subject`, `body`, `list_id`; sender defaults | `sender_name`, `sender_email`, `attachments`, `lang`, `track_read`, `track_links`, `cc`, `headers`, `images_as`, `ref_key`, `error_checking`, `metadata` | `SendResponse` |
+| [`send_email`](#send_email) | [`sendEmail`](https://www.unisender.com/ru/support/api/messages/sendemail/) | `email`, `subject`, `body`, `list_id`; sender defaults | `sender_name`, `sender_email`, `attachments`, `lang`, `track_read`, `track_links`, `cc`, `headers`, `images_as`, `ref_key`, `error_checking`, `metadata`, `reply_to`, `priority` | `SendResponse` |
 | [`send_sms`](#send_sms) | [`sendSms`](https://www.unisender.com/ru/support/api/messages/sendsms/) | `phone`, `sender`, `text` | None | `CollectionResponse[SmsReceipt]` |
 | [`send_test_email`](#send_test_email) | [`sendTestEmail`](https://www.unisender.com/ru/support/api/messages/sendtestemail/) | `email`, `id` | None | `MessageNoticeResponse` |
 | [`update_email_message`](#update_email_message) | [`updateEmailMessage`](https://www.unisender.com/ru/support/api/messages/updateemailmessage/) | `id` | `sender_name`, `sender_email`, `subject`, `body`, `list_id`, `text_body`, `lang`, `categories` | `MessageCreatedResponse` |
@@ -515,10 +515,12 @@ Supply nonempty `subject` and `body`, or select `template_id` / `system_template
 | `track_links` | `flag \| nil` | Optional, omitted |
 | `cc` | `String \| nil` | Optional, omitted |
 | `headers` | `String \| params \| nil` | Optional, omitted |
-| `images_as` | `String \| nil` | Optional, omitted |
+| `images_as` | `String \| Symbol \| nil` | Optional, omitted |
 | `ref_key` | `String \| nil` | Optional, omitted |
 | `error_checking` | `flag \| nil` | Optional, defaults to true; nil omits the field |
 | `metadata` | `params \| nil` | Optional, omitted |
+| `reply_to` | `String \| nil` | Optional, omitted |
+| `priority` | `String \| nil` | Optional, omitted |
 
 **Result:** With `error_checking: 1` or `cc`, an Array of per-recipient results containing `index`, `email`, and accepted message `id`. Without either, the legacy result is an Object with `email_id`. With `error_checking: 1`, also inspect recipient `errors`; the top-level success envelope alone is insufficient.
 
@@ -1095,7 +1097,7 @@ Object responses expose their result readers directly. Collection elements expos
 | `OptionalIdentifier` | `id` |
 | `PhoneContact` | `phone`, `status`, `availability`, `added_at` |
 | `RecipientResult` | `id`, `index`, `email`, `failures`, `accepted?` |
-| `SendResult` | `recipients`, `email_id`, `complete?`, `partial?`, `uncertain?`, `failures` |
+| `SendResult` | `accepted_recipients`, `rejected_recipients`, `unknown_recipients`, `accepted_ids`, `recipients`, `email_id`, `complete?`, `partial?`, `uncertain?`, `failures` |
 | `SenderDomain` | `domain`, `status`, `key` |
 | `SenderDomainGroup` | `status`, `domains` |
 | `SmsReceipt` | `sms_id`, `price`, `currency` |

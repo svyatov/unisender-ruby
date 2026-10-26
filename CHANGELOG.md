@@ -4,6 +4,8 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Add named mail headers, image-mode symbols, and explicit accepted, rejected, and unknown recipient views.
+
 - Accept SMS phone arrays and always return a typed receipt collection.
 
 - Give records class-sensitive value equality, forward object lookup, and avoid polling failed task handles.

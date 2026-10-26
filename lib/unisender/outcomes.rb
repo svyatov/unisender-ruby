@@ -143,6 +143,23 @@ module Unisender
 
   # Handles both documented sendEmail result formats.
   class SendResult < Record
+    def accepted_recipients
+      recipients.select(&:accepted?).freeze
+    end
+
+    def rejected_recipients
+      recipients.reject { |recipient| recipient.failures.empty? }.freeze
+    end
+
+    def unknown_recipients
+      recipients.reject { |recipient| recipient.accepted? || !recipient.failures.empty? }.freeze
+    end
+
+    def accepted_ids
+      legacy = email_id
+      (legacy ? [legacy] : accepted_recipients.filter_map(&:id)).freeze
+    end
+
     def recipients
       Outcomes.records(self["recipients"]).map { |item| RecipientResult.new(item.to_h) }
     end
@@ -256,6 +273,22 @@ module Unisender
 
   # Per-recipient send acceptance.
   class SendResponse < OutcomeResponse
+    def accepted_recipients
+      result.accepted_recipients
+    end
+
+    def rejected_recipients
+      result.rejected_recipients
+    end
+
+    def unknown_recipients
+      result.unknown_recipients
+    end
+
+    def accepted_ids
+      result.accepted_ids
+    end
+
     def recipients
       result.recipients
     end
