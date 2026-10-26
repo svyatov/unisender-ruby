@@ -17,7 +17,13 @@ module Unisender
     ].freeze
     private_constant :OPERATIONS
 
-    attr_reader :operation
+    attr_reader :operation, :next_offset, :completed_pages
+
+    def with_pagination(next_offset:, completed_pages:)
+      @next_offset = next_offset
+      @completed_pages = completed_pages
+      self
+    end
 
     def with_operation(operation)
       @operation = OPERATIONS.include?(operation) ? operation.dup.freeze : nil
@@ -105,7 +111,15 @@ module Unisender
     end
   end
 
-  class PaginationError < Error; end
+  # Identifies the next unread offset when the page bound is reached.
+  class PaginationError < Error
+    def initialize(operation:, next_offset:, completed_pages:)
+      @operation = operation
+      @next_offset = next_offset
+      @completed_pages = completed_pages
+      super("Pagination page limit reached")
+    end
+  end
 
   class NotFoundError < Error; end
 

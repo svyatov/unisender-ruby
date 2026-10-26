@@ -21,7 +21,7 @@ class HelpersTest < Minitest::Test
     transport = ScriptedTransport.new(ScriptedTransport.reply({ "result" => { "total" => 500, "invalid" => 0 } }),
                                       ScriptedTransport.reply({ "error" => "bad", "code" => "invalid_arg" }))
     client = Unisender::Client.new(api_key: "test-key", transport:)
-    batches = client.import_contacts_in_batches(field_names: ["email"], data: rows)
+    batches = client.each_import_batch(field_names: ["email"], data: rows)
 
     assert_empty transport.requests
     error = assert_raises(Unisender::BatchError) { batches.to_a }

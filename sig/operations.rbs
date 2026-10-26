@@ -46,21 +46,21 @@ module Unisender
     def send_test_email: (email: String | Array[id], id: id) -> ObjectResponse[Record]
     def update_email_message: (id: id, ?sender_name: String | nil, ?sender_email: String | nil, ?subject: String | nil, ?body: String | nil, ?list_id: id | nil, ?text_body: String | nil, ?lang: String | nil, ?categories: String | Array[id] | nil) -> MessageCreatedResponse
     def update_opt_in_email: (sender_name: String, sender_email: String, subject: String, body: String, list_id: id) -> ObjectResponse[Record]
-    def get_sender_domain_list: (username: String, ?domain: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> CollectionResponse[Record]
+    def get_sender_domain_list: (username: String, ?domain: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> PageResponse[Record]
     def get_campaign_common_stats: (campaign_id: id) -> ObjectResponse[Record]
     def get_campaign_delivery_stats: (campaign_id: id, ?notify_url: String | nil, ?changed_since: String | nil, ?field_ids: Array[id] | nil) -> TaskResultResponse
     def get_campaign_status: (campaign_id: id) -> StatusResponse
-    def get_messages: (date_from: String, date_to: String, ?limit: Integer | nil, ?offset: Integer | nil) -> CollectionResponse[Message]
+    def get_messages: (date_from: String, date_to: String, ?limit: Integer | nil, ?offset: Integer | nil) -> PageResponse[Message]
     def get_visited_links: (campaign_id: id, ?group: flag | nil) -> CollectionResponse[Record]
-    def list_messages: (date_from: String, date_to: String, ?limit: Integer | nil, ?offset: Integer | nil) -> CollectionResponse[Message]
-    def get_campaigns: (from: String, ?to: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> CollectionResponse[Campaign]
+    def list_messages: (date_from: String, date_to: String, ?limit: Integer | nil, ?offset: Integer | nil) -> PageResponse[Message]
+    def get_campaigns: (from: String, ?to: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> PageResponse[Campaign]
     def get_message: (id: id) -> MessageResponse
     def get_task_result: (task_uuid: String) -> TaskResultResponse
     def create_email_template: (title: String, subject: String, body: String, ?description: String | nil, ?text_body: String | nil, ?lang: String | nil) -> IdentifierRecordResponse
     def delete_template: (template_id: id) -> ObjectResponse[Record]
     def get_template: (?template_id: id | nil, ?system_template_id: id | nil) -> TemplateResponse
-    def get_templates: (?type: String | nil, ?date_from: String | nil, ?date_to: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> CollectionResponse[Template]
-    def list_templates: (?type: String | nil, ?date_from: String | nil, ?date_to: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> CollectionResponse[Template]
+    def get_templates: (?type: String | nil, ?date_from: String | nil, ?date_to: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> PageResponse[Template]
+    def list_templates: (?type: String | nil, ?date_from: String | nil, ?date_to: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> PageResponse[Template]
     def update_email_template: (template_id: id, ?title: String | nil, ?description: String | nil, ?subject: String | nil, ?body: String | nil, ?text_body: String | nil, ?lang: String | nil) -> IdentifierRecordResponse
     def create_field: (name: String, type: String, ?public_name: String | nil) -> IdentifierRecordResponse
     def delete_field: (id: id) -> ObjectResponse[Record]
@@ -73,6 +73,6 @@ module Unisender
     def update_subscriber_note: (id: id, content: String) -> IdentifierRecordResponse
     def delete_subscriber_note: (id: id) -> ObjectResponse[Record]
     def get_subscriber_note: (id: id) -> NoteResponse
-    def get_subscriber_notes: (subscriber_id: id, ?limit: Integer | nil, ?offset: Integer | nil, ?order_type: String | nil, ?order_by: String | nil, ?is_pinned: flag | nil) -> CollectionResponse[Note]
+    def get_subscriber_notes: (subscriber_id: id, ?limit: Integer | nil, ?offset: Integer | nil, ?order_type: String | nil, ?order_by: String | nil, ?is_pinned: flag | nil) -> PageResponse[Note]
   end
 end

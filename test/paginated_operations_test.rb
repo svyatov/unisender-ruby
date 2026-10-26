@@ -44,13 +44,10 @@ class PaginatedOperationsTest < Minitest::Test
     end
   end
 
-  def test_unknown_keywords_fail_lazily_before_a_request
+  def test_unknown_keywords_fail_immediately_before_a_request
     transport = ScriptedTransport.new(ScriptedTransport.reply)
     client = Unisender::Client.new(api_key: "test-key", transport:)
-    pages = client.each_page(:get_templates, unexpected: true)
-
-    assert_empty transport.requests
-    assert_raises(ArgumentError) { pages.first }
+    assert_raises(ArgumentError) { client.each_page(:get_templates, unexpected: true) }
     assert_empty transport.requests
   end
 
@@ -113,10 +110,7 @@ class PaginatedOperationsTest < Minitest::Test
     client = Unisender::Client.new(api_key: "test-key", transport:)
 
     assert_raises(ArgumentError) { client.public_send(name, **params, limit: 2) }
-    pages = client.each_page(name, **params, page_size: 2)
-
-    assert_empty transport.requests
-    error = assert_raises(ArgumentError) { pages.first }
+    error = assert_raises(ArgumentError) { client.each_page(name, **params, page_size: 2) }
     refute_includes error.message, "private-value"
     assert_empty transport.requests
   end

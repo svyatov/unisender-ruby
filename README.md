@@ -140,7 +140,7 @@ client = Unisender::Client.new(
 
 Those are the default transport timeouts in seconds. TLS certificates are verified, redirects are rejected, and calls do not share connections. **Retries default to zero.** The opt-in policy retries only explicitly identified read-only operations, at most twice, with backoff, jitter, and `Retry-After`. Sends, mutations, imports, exports, events, and unknown methods are never retried automatically. The elapsed retry budget is not a hard request deadline; in-flight requests use transport timeouts.
 
-`each_page` and batch helpers return lazy Enumerators: **consume them to make requests**. Stopping enumeration prevents subsequent requests. `each_page` yields responses, accepts a supported Ruby method name, and raises `PaginationError` at `max_pages`. `wait_for_task` polls an existing job; its deadline is checked between requests. See [helper limits and recovery behavior](docs/api.md#convenience-operations) and [upstream rate limits](https://www.unisender.com/ru/support/api/common/api-limits/).
+`each_page` and `each_*` helpers return lazy Enumerators. Consume them, or supply a block to a named iterator, to make requests. Batch command methods execute immediately and return a `BatchReport`. Stopping enumeration prevents subsequent requests. A fetched page exposes `each_page` and `auto_each`; ordinary `each` only visits that page. `each_page` yields responses, accepts a supported Ruby method name, and raises `PaginationError` at `max_pages`. `wait_for_task` polls an existing job; its deadline is checked between requests. See [helper limits and recovery behavior](docs/api.md#convenience-operations) and [upstream rate limits](https://www.unisender.com/ru/support/api/common/api-limits/).
 
 ## Low-level access and types
 

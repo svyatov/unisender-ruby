@@ -32,7 +32,7 @@ module Unisender
     def get_subscriber_notes(subscriber_id:, limit: nil, offset: nil, order_type: nil, order_by: nil,
                              is_pinned: nil)
       params = { subscriber_id:, limit:, offset:, order_type:, order_by:, is_pinned: }
-      PaginatedOperations.call(self, :get_subscriber_notes, params) # : CollectionResponse[Note]
+      PaginatedOperations.call(self, :get_subscriber_notes, params) # : PageResponse[Note]
     end
   end
 end

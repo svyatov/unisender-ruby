@@ -4,6 +4,9 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Execute batch commands immediately; provide explicit lazy batch and typed item iterators.
+- Add page navigation with resume offsets and immediate argument validation.
+
 - Return typed immutable records and enumerable collections from named operations.
 - Add direct field access, a boolean membership predicate, and singular message results.
 - Rename response HTTP metadata to `http_status`; preserve upstream JSON through `data`.

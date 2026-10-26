@@ -22,12 +22,19 @@ module Unisender
     private_constant :DEFINITIONS
 
     def self.call(client, method, params)
+      params = params.compact.merge(limit: params.fetch(:limit, nil) || 100)
+      wire = validate(method, params)
+      response = Results.build(wire, client.request(wire, params:)) # : CollectionResponse[Record]
+      PageResponse.new(response, client:, method: method.to_s, params:)
+    end
+
+    def self.validate(method, params)
       wire, required, allowed, = definition(method)
       raise ArgumentError, "Unknown operation parameter" unless params.keys.all? { |key| allowed.include?(key) }
 
       Validation.required!(params, required.map(&:to_s))
       Validation.operation!(wire, params)
-      Results.build(wire, client.request(wire, params:)) # : CollectionResponse[Record]
+      wire
     end
 
     def self.page_limit(method)

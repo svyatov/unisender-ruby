@@ -38,6 +38,11 @@ module Unisender
     OPERATIONS: Array[String]
     @operation: String?
     attr_reader operation: String?
+    @next_offset: Integer?
+    @completed_pages: Integer?
+    attr_reader next_offset: Integer?
+    attr_reader completed_pages: Integer?
+    def with_pagination: (next_offset: Integer, completed_pages: Integer) -> self
     def with_operation: (String) -> self
     def to_s: () -> String
     def inspect: () -> String
@@ -77,6 +82,9 @@ module Unisender
   class NotFoundError < Error
   end
   class PaginationError < Error
+    def next_offset: () -> Integer
+    def completed_pages: () -> Integer
+    def initialize: (operation: String, next_offset: Integer, completed_pages: Integer) -> void
   end
   class PartialFailure < Error
     attr_reader response: Response
@@ -89,7 +97,8 @@ module Unisender
 
   module PaginatedOperations
     DEFINITIONS: Hash[String, [String, Array[Symbol], Array[Symbol], Integer?]]
-    def self.call: (Client, String | Symbol, params) -> CollectionResponse[Record]
+    def self.call: (Client, String | Symbol, params) -> PageResponse[Record]
+    def self.validate: (String | Symbol, params) -> String
     def self.page_limit: (String | Symbol) -> Integer?
     def self.definition: (String | Symbol) -> [String, Array[Symbol], Array[Symbol], Integer?]
   end
@@ -100,14 +109,18 @@ module Unisender
     @page_size: Integer
     @max_pages: Integer
     @params: params
-    def initialize: (Client, String | Symbol, Integer, Integer, params) -> void
-    def each: () -> Enumerator[Response, void]
+    @first_page: PageResponse[Record]?
+    def initialize: (Client, String | Symbol, Integer, Integer, params, ?first_page: PageResponse[Record]?) -> void
+    def each: () -> Enumerator[PageResponse[Record], void]
+    def self.snapshot: (params) -> params
+    def self.copy: (parameter) -> parameter
     private
     def validate!: (Integer?) -> void
     def validate_limit!: (Integer?) -> void
     def page_length: (Response) -> Integer
     def initial_offset: () -> Integer
     def fetch_pages: (_ResponseSink, Integer) -> void
+    def fetch_page: (Integer, Integer) -> PageResponse[Record]
   end
 
   module Batches
@@ -210,9 +223,11 @@ module Unisender
     def initialize: (api_key: String, ?transport: _Transport, ?language: String | Symbol, ?retry_policy: RetryPolicy) -> void
     def request: (String, ?params: params) -> Response[json]
     def track_events: (events: Array[params]) -> Response[event_accepted]
-    def each_page: (String | Symbol, ?page_size: Integer, ?max_pages: Integer, **parameter) -> Enumerator[Response, void]
-    def import_contacts_in_batches: (field_names: Array[String], data: Enumerable[Array[parameter]], ?batch_size: Integer, ?overwrite_tags: flag?, ?overwrite_lists: flag?, ?telegram_bot_channel_id: String?) -> Enumerator[Response, void]
-    def track_events_in_batches: (events: Enumerable[params], ?batch_size: Integer) -> Enumerator[Response, void]
+    def each_page: (String | Symbol, ?page_size: Integer, ?max_pages: Integer, **parameter) -> Enumerator[PageResponse[Record], void]
+    def import_contacts_in_batches: (field_names: Array[String], data: Enumerable[Array[parameter]], ?batch_size: Integer, ?overwrite_tags: flag?, ?overwrite_lists: flag?, ?telegram_bot_channel_id: String?) -> BatchReport
+    def each_import_batch: (field_names: Array[String], data: Enumerable[Array[parameter]], ?batch_size: Integer, ?overwrite_tags: flag?, ?overwrite_lists: flag?, ?telegram_bot_channel_id: String?) ?{ (Response) -> void } -> Enumerator[Response, void]
+    def track_events_in_batches: (events: Enumerable[params], ?batch_size: Integer) -> BatchReport
+    def each_event_batch: (events: Enumerable[params], ?batch_size: Integer) ?{ (Response) -> void } -> Enumerator[Response, void]
     def wait_for_task: (task_uuid: String, ?interval: duration, ?timeout: duration, ?clock: ( ^() -> Float)?, ?sleeper: ( ^(duration) -> void)?) -> Response[task_completed]
     def contact_in_lists?: (email: String, list_ids: String | Array[id], condition: :any | :all) -> bool
     def inspect: () -> String

@@ -1,0 +1,11 @@
+module Unisender
+  class Client
+    def each_campaign: (from: String, ?to: String | nil, ?page_size: Integer, ?max_pages: Integer, ?offset: Integer) ?{ (Campaign) -> void } -> Enumerator[Campaign, void]
+    def each_message: (date_from: String, date_to: String, ?page_size: Integer, ?max_pages: Integer, ?offset: Integer) ?{ (Message) -> void } -> Enumerator[Message, void]
+    def each_message_summary: (date_from: String, date_to: String, ?page_size: Integer, ?max_pages: Integer, ?offset: Integer) ?{ (Message) -> void } -> Enumerator[Message, void]
+    def each_template: (?type: String | nil, ?date_from: String | nil, ?date_to: String | nil, ?page_size: Integer, ?max_pages: Integer, ?offset: Integer) ?{ (Template) -> void } -> Enumerator[Template, void]
+    def each_template_summary: (?type: String | nil, ?date_from: String | nil, ?date_to: String | nil, ?page_size: Integer, ?max_pages: Integer, ?offset: Integer) ?{ (Template) -> void } -> Enumerator[Template, void]
+    def each_sender_domain_group: (username: String, ?domain: String | nil, ?page_size: Integer, ?max_pages: Integer, ?offset: Integer) ?{ (Record) -> void } -> Enumerator[Record, void]
+    def each_subscriber_note: (subscriber_id: id, ?order_type: String | nil, ?order_by: String | nil, ?is_pinned: flag | nil, ?page_size: Integer, ?max_pages: Integer, ?offset: Integer) ?{ (Note) -> void } -> Enumerator[Note, void]
+  end
+end
