@@ -52,20 +52,30 @@ module Unisender
 
     alias to_hash to_h
 
-    def as_json(_options = nil)
-      to_h
+    def as_json(options = nil)
+      Serialization.payload(self, options)
     end
 
     def to_json(state = nil)
-      as_json.to_json(state)
+      Serialization.json(self, state)
     end
 
     def ==(other)
       case other
-      when Record then to_h == other.to_h
-      when Hash then to_h == other
+      when Record then self.class == other.class && to_h == other.to_h
       else false
       end
+    end
+
+    def eql?(other)
+      case other
+      when Record then self.class == other.class && to_h.eql?(other.to_h)
+      else false
+      end
+    end
+
+    def hash
+      [self.class, to_h].hash
     end
 
     def inspect
@@ -174,6 +184,18 @@ module Unisender
 
   # A typed object with explicit field readers supplied by its subclass.
   class ObjectResponse < Response
+    def key?(key)
+      result.key?(key)
+    end
+
+    def keys
+      result.keys
+    end
+
+    def values
+      result.values
+    end
+
     def [](key)
       result[key]
     end

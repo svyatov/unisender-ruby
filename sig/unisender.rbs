@@ -28,8 +28,8 @@ module Unisender
     def initialize: (data: Hash[String, json], status: Integer, headers: Hash[String, String], ?result: value) -> void
     def result: () -> Result
     def warnings: () -> json
-    def as_json: (?json) -> json
-    def to_json: (?JSON::State?) -> String
+    def as_json: (?serialization_options?) -> json
+    def to_json: (?(serialization_options | JSON::State)?) -> String
     def inspect: () -> String
     private
     def immutable: (json) -> json

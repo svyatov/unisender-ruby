@@ -107,6 +107,7 @@ Named operations return typed responses. Collections support `each`, `map`, and 
 Collections also support `length`, `at`, slices, and `fetch` with a default or block.
 Records provide `key?`, `keys`, `values`, and `fetch` with the same missing-value behavior as a Ruby Hash.
 Object responses expose `to_h`. `as_json` and `to_json` serialize the result payload, without HTTP metadata or the response envelope.
+Both serializers accept `only:` and `except:` field names. Filters select top-level fields on each record; unsupported options raise `ArgumentError`.
 Use `contact.email_address` and `contact.phone_number` for stable address readers; omitted contact details remain `nil`.
 
 Named methods use snake_case and reject unknown keywords. Optional `nil` values are omitted, preserving server defaults. API messages default to English; use `Client.new(api_key: ..., language: :ru)` for Russian. Message-level `lang:` is a separate setting.

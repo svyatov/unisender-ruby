@@ -8,6 +8,7 @@ Named operations return typed records and collections. `request` retains raw JSO
 
 `JSON.generate(response)` serializes the typed payload. Use `response.data` when you need the upstream envelope.
 Collections support slices and fetch defaults; object responses provide `to_h`.
+`as_json` and `to_json` honor top-level `only:` and `except:` filters and reject unsupported options.
 Contact address strings are available through `email_address` and `phone_number`, independent of nested detail shapes.
 
 ```ruby

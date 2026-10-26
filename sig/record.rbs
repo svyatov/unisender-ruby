@@ -11,8 +11,8 @@ module Unisender
     def dig: (String | Symbol, *(String | Integer)) -> value
     def to_h: () -> Hash[String, json]
     alias to_hash to_h
-    def as_json: (?json) -> Hash[String, json]
-    def to_json: (?JSON::State?) -> String
+    def as_json: (?serialization_options?) -> Hash[String, json]
+    def to_json: (?(serialization_options | JSON::State)?) -> String
     def self.copy: (value) -> json
     def ==: (BasicObject) -> bool
     def inspect: () -> String

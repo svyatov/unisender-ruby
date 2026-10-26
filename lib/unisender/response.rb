@@ -35,12 +35,12 @@ module Unisender
       @data.fetch("warnings", EMPTY_WARNINGS)
     end
 
-    def as_json(_options = nil)
-      Record.copy(@result)
+    def as_json(options = nil)
+      Serialization.payload(@result, options)
     end
 
     def to_json(state = nil)
-      as_json.to_json(state)
+      Serialization.json(@result, state)
     end
 
     def inspect
