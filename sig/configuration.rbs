@@ -28,6 +28,7 @@ module Unisender
     @state: ClientState
     @owns_transport: bool
     attr_reader rate_limiter: RateLimiter?
+    attr_reader event_rate_limiter: RateLimiter?
     def close: () -> void
     def check_open!: () -> void
     @options: Hash[Symbol, config_value]
@@ -37,12 +38,13 @@ module Unisender
     attr_reader retry_policy: RetryPolicy
     attr_reader message_defaults: Hash[Symbol, String]
     attr_reader instrumentation: (^(RequestEvent) -> void)?
-    def initialize: (api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?, ?persistent: bool, ?rate_limiter: RateLimiter?) -> void
+    def initialize: (api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?, ?persistent: bool, ?rate_limiter: RateLimiter?, ?event_rate_limiter: RateLimiter?) -> void
     def merge_defaults: (Hash[Symbol, config_value], Hash[Symbol, config_value]) -> void
     def options_for: (Hash[Symbol, config_value]) -> Hash[Symbol, config_value]
     def inspect: () -> String
     private
-    def initialize_resources: (RateLimiter?, _Transport?) -> void
+    def initialize_resources: (RateLimiter?, _Transport?, RateLimiter?) -> void
+    def validate_default_keys: (Hash[String | Symbol, String?]) -> void
     def timeout_options: (duration?, duration?, duration?) -> Hash[Symbol, duration]
     def clear_alternative: (Hash[Symbol, config_value], Hash[Symbol, config_value], Symbol, Array[Symbol]) -> void
     def credentials: (String, String | Symbol) -> [String, String]

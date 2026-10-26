@@ -65,8 +65,8 @@ module Unisender
     end
 
     def acquire_limit(operation)
-      limiter = @configuration.rate_limiter
-      return unless limiter && operation != "track_events"
+      limiter = operation == "track_events" ? @configuration.event_rate_limiter : @configuration.rate_limiter
+      return unless limiter
 
       # rubocop:disable-next Style/ClassEqualityComparison -- Preserve custom subclass types in Steep's fallback.
       if limiter.class == RateLimiter

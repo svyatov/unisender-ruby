@@ -7,21 +7,23 @@ module Unisender
     DEFAULT_KEYS = %i[sender_name sender_email lang].freeze
     TIMEOUT_KEYS = %i[open_timeout read_timeout write_timeout persistent].freeze
     RETRY_KEYS = %i[max_retries max_elapsed].freeze
-    attr_reader :api_key, :language, :transport, :retry_policy, :message_defaults, :instrumentation, :rate_limiter
+    attr_reader :api_key, :language, :transport, :retry_policy, :message_defaults, :instrumentation, :rate_limiter,
+                :event_rate_limiter
 
     # rubocop:disable-next Metrics/ParameterLists -- Public configuration options are explicit keywords.
     def initialize(api_key:, language: :en, transport: nil, retry_policy: nil, open_timeout: nil,
                    read_timeout: nil, write_timeout: nil, max_retries: nil, max_elapsed: nil,
-                   message_defaults: {}, instrumentation: nil, persistent: false, rate_limiter: nil)
+                   message_defaults: {}, instrumentation: nil, persistent: false, rate_limiter: nil,
+                   event_rate_limiter: nil)
       @api_key, @language = credentials(api_key, language)
       @message_defaults = defaults(message_defaults)
       @instrumentation = instrumentation
       @transport = build_transport(transport, open_timeout, read_timeout, write_timeout, persistent)
       @retry_policy = build_retry(retry_policy, max_retries, max_elapsed)
-      initialize_resources(rate_limiter, transport)
+      initialize_resources(rate_limiter, transport, event_rate_limiter)
       @options = { api_key: @api_key, language: @language, transport:, retry_policy:, open_timeout:,
                    read_timeout:, write_timeout:, max_retries:, max_elapsed:, message_defaults: @message_defaults,
-                   instrumentation:, persistent:, rate_limiter: }.freeze
+                   instrumentation:, persistent:, rate_limiter:, event_rate_limiter: }.freeze
       freeze
     end
 
@@ -81,8 +83,9 @@ module Unisender
       transport || factory.new(**timeout_options(open_timeout, read_timeout, write_timeout))
     end
 
-    def initialize_resources(limiter, transport)
+    def initialize_resources(limiter, transport, event_limiter)
       @rate_limiter = limiter
+      @event_rate_limiter = event_limiter
       @owns_transport = case transport
                         when nil then true
                         else false
@@ -121,12 +124,19 @@ module Unisender
     end
 
     def normalize_defaults(values)
+      validate_default_keys(values)
       names = values.keys.map(&:to_sym)
       unless names.uniq == names && names.all? { |key| DEFAULT_KEYS.include?(key) }
         raise ArgumentError, "Unknown or duplicate message default"
       end
 
       values.to_h { |key, value| [key.to_sym, default_value(value)] }
+    end
+
+    def validate_default_keys(values)
+      return if values.is_a?(Hash) && values.keys.all? { |key| key.is_a?(String) || key.is_a?(Symbol) }
+
+      raise ArgumentError, "Message defaults require string or symbol keys"
     end
 
     def default_value(value)

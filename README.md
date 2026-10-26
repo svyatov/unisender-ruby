@@ -221,6 +221,9 @@ end
 
 Pacing is opt-in, process-local, and separate from retries. Share a limiter between clients that share an account budget. The built-in preset covers marketing requests; Event Tracking has a separate budget. An injected transport remains caller-owned. Create clients after forking where possible; persistent transports discard inherited connections on a PID change.
 
+Set `event_rate_limiter: Unisender::RateLimiter.new(global: [count, seconds])` to pace Event Tracking independently.
+Choose the event budget for your application; the library supplies no provider rate preset for this protocol.
+
 `Attachment.from_path(path)` and `Attachment.from_io(io, filename:)` read binary data into an immutable snapshot. Pass one attachment, an array, or the existing filename-to-bytes hash as `attachments:`. The helper never closes a caller-owned IO.
 
 Pass `max_bytes:` to bound attachment reads. Direct imports inspect at most 501 records; use batching for more than 500 records.
