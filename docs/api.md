@@ -2,9 +2,26 @@
 
 Contract audit: 2026-10-25. The [official UniSender documentation](https://www.unisender.com/ru/support/category/api/) is the source of truth. Tests use deterministic, artificial responses and do not establish live account compatibility.
 
-All methods return `Unisender::Response`; named operations declare their result type as `Response[Result]`. Required arguments are Ruby keywords. Optional keywords default to omission, preserving the service's defaults. RBS signatures ship with the gem. Identifiers accept integers or strings; flags accept booleans or 0/1. Dates remain strings in the format and time zone documented for each method.
+All methods return `Unisender::Response`; named operations declare their result type as `Response[Result]`. Required arguments are Ruby keywords. Optional keywords default to omission, preserving the service's defaults. RBS signatures ship with the gem. Identifiers accept integers or strings; flags accept booleans or 0/1. Timestamp arguments accept strings or Ruby `Time` values. Time values use the method's documented UTC format.
 
 Arrays supplied to comma-separated fields are joined only by named methods. For other array or hash arguments, the form encoder emits explicit bracket indices. `request(method, params: {})` accepts the exact wire method and parameters; it does not perform method-specific conversions or validation.
+
+## Choose an operation
+
+| Task | Starting point |
+| --- | --- |
+| Iterate lists | `get_lists.each` |
+| Iterate every message or campaign | `each_message`, `each_message_summary`, or `each_campaign` |
+| Manage a subscription | `subscribe(email:, list_ids:)` |
+| Import application records | `import_contacts_in_batches(records:)` |
+| Export contacts | `export_contacts(...).wait` |
+| Inspect acceptance | `complete?`, `partial?`, `uncertain?`, and `failures` on report responses |
+| Test without networking | [Testing transport](testing.md) |
+| Configure an application | [Rails integration and configuration](rails.md) |
+
+Named reads make one request. A fetched page's `each` remains local.
+`each_page`, `auto_each`, and named iterators explicitly traverse further pages.
+Batch commands execute immediately. Their `each_*` equivalents accept a block or return a lazy Enumerator.
 
 ## Implemented operations
 
@@ -647,7 +664,7 @@ Use the international phone format and an approved sender. Sending is never auto
 
 **Result:** Array of message objects, including identifiers, content, sender information, and version metadata. Field availability depends on email versus SMS.
 
-Date filters use UTC `YYYY-MM-DD HH:MM:SS`. `limit` is 1 to 100 (default 50), and `offset` starts at zero.
+Date filters use UTC `YYYY-MM-DD HH:MM`. `limit` is 1 to 100 (default 50), and `offset` starts at zero.
 
 </details>
 
@@ -1034,6 +1051,50 @@ Supply 1 to 25 events. Each event requires a `name` of 1 to 40 characters and an
 
 </details>
 
+## Typed result readers
+
+Records support `[]`, `fetch`, and `dig` with exact upstream keys. `to_h` returns a detached mutable copy.
+Documented optional fields return `nil`; unknown fields remain accessible through lookup and the raw response.
+Object responses expose their result readers directly. Collection elements expose the readers in this table.
+
+| Result | Readers |
+| --- | --- |
+| `IdentifierRecord` | `id` |
+| `List` | `id`, `title` |
+| `Message` | `id`, `subject`, `body`, `sender_name`, `sender_email` |
+| `Campaign` | `id`, `status`, `subject` |
+| `Template` | `id`, `title`, `subject`, `body` |
+| `Field` | `id`, `name`, `type` |
+| `Tag` | `id`, `name` |
+| `Note` | `id`, `content` |
+| `MessageCreated` | `message_id` |
+| `Subscription` | `person_id` |
+| `CampaignCreated` | `campaign_id`, `status` |
+| `Status` | `status` |
+| `ContactCount` | `count` |
+| `TotalContacts` | `total` |
+| `MessageVersion` | `message_id`, `actual_version_id` |
+| `WebVersion` | `letter_id`, `web_letter_link` |
+| `TaskResult` | `task_uuid`, `status`, `file_to_download` |
+| `Contact` | `email` |
+| `EmailContact` | `email`, `status`, `availability` |
+| `SenderDomainGroup` | `status`, `domains` |
+| `SenderDomain` | `domain`, `status`, `key` |
+| `ContactFields` | `field_values` |
+| `CampaignStats` | `total`, `sent`, `delivered`, `read_unique`, `read_all`, `clicked_unique`, `clicked_all`, `unsubscribed`, `spam` |
+| `SmsReceipt` | `sms_id`, `price`, `currency` |
+| `EmailDelivery` | `id`, `status` |
+| `Failure` | `index`, `code`, `message`, `warning?`, `with_offset` |
+| `RecipientResult` | `id`, `index`, `email`, `failures`, `accepted?` |
+| `ImportResult` | `invalid`, `total`, `complete?`, `partial?`, `uncertain?`, `failures` |
+| `SendResult` | `recipients`, `email_id`, `complete?`, `partial?`, `uncertain?`, `failures` |
+| `EventResult` | `complete?`, `partial?`, `uncertain?`, `failures` |
+
+Report responses also expose `raise_for_partial_failure!`.
+A `BatchReport` exposes `responses`, `completed_batches`, `total`, `invalid`, `failures`, `complete?`, `partial?`, and `uncertain?`.
+Its totals return `nil` when the outcome does not provide reliable import counts.
+Task handles expose `task_uuid` and `wait`; their result retains the original task fields.
+
 ## Documentation decisions
 
 Successful `sendTestEmail` and `updateField` examples omit the `result` envelope. These two operations also accept their documented top-level success fields. Other operations still require `result`, and `error` always takes precedence.
@@ -1052,11 +1113,11 @@ Successful `sendTestEmail` and `updateField` examples omit the `result` envelope
 | Helper | Behavior |
 | --- | --- |
 | `each_page(method, page_size: 100, max_pages: 1000, **params)` | Lazy Enumerator of responses for `get_campaigns`, `get_messages`, `list_messages`, `get_templates`, `list_templates`, `get_sender_domain_list`, and `get_subscriber_notes`. An optional `offset` starts iteration. Stops at a short or empty page; raises at the page bound. Offset pagination is not a server snapshot. |
-| `import_contacts_in_batches(field_names:, data:, batch_size: 500, ...)` | Lazy sequential import of an Enumerable of rows. Accepts `overwrite_tags`, `overwrite_lists`, and `telegram_bot_channel_id`. Stops on request failures or a nonzero `invalid` count. |
-| `track_events_in_batches(events:, batch_size: 25)` | Lazy sequential event batches. Each request must also meet the 130 KiB payload limit. Use a smaller batch size for large events. |
+| `import_contacts_in_batches(field_names:, data:, batch_size: 500, ...)` | Immediate sequential import returning a `BatchReport`; `each_import_batch` is the lazy equivalent. Accepts `overwrite_tags`, `overwrite_lists`, and `telegram_bot_channel_id`. Stops on request failures or a nonzero `invalid` count. |
+| `track_events_in_batches(events:, batch_size: 25)` | Immediate sequential event batches returning a `BatchReport`; `each_event_batch` is the lazy equivalent. Each request must also meet the 130 KiB payload limit. Use a smaller batch size for large events. |
 | `wait_for_task(task_uuid:, interval: 1, timeout: 60)` | Polls existing tasks until completion, with a monotonic deadline. Raises on an unknown task state. Deadlines are checked between requests; an in-flight request remains bounded by transport timeouts. |
 
-`each_page` accepts the same operation keywords as the corresponding named method, except that `page_size` replaces `limit`. Unknown keywords, non-symbol keys, and missing or empty required values raise `ArgumentError` when enumeration starts, before any request. Direct named calls reject invalid arguments immediately. The low-level `request` method retains its existing parameter handling.
+`each_page` accepts the same operation keywords as the corresponding named method, except that `page_size` replaces `limit`. Unknown keywords, non-symbol keys, and missing or empty required values raise `ArgumentError` when the iterator is constructed, before any request. Direct named calls reject invalid arguments immediately. The low-level `request` method retains its existing parameter handling.
 
 Pagination additionally requires a positive integer page size within the method's documented limit, a positive integer `max_pages`, and a nonnegative integer `offset`. These are helper controls; direct named calls retain the service's validation of their `limit` and `offset` values. Each yielded response preserves its warnings and metadata.
 

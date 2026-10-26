@@ -49,7 +49,7 @@ module Unisender
     def each_sender_domain_group(username:, domain: nil, page_size: 100, max_pages: 1000, offset: 0, &)
       pages = each_page(
         :get_sender_domain_list, username:, domain:, page_size:, max_pages:, offset:
-      ) # : Enumerator[PageResponse[Record], void]
+      ) # : Enumerator[PageResponse[SenderDomainGroup], void]
       items = Enumerator.new { |output| pages.each { |page| page.each { |item| output << item } } }
       Iteration.call(items, &)
     end

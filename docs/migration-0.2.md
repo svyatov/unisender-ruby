@@ -68,3 +68,19 @@ These describe request acceptance, not final message delivery. Call `raise_for_p
 Unknown acceptance remains unknown; the client does not count an uncertain request as rejected.
 Event batches respect the encoded payload limit as well as the event-count limit.
 Streaming input failures retain completed batches. No failed request or input chunk is replayed automatically.
+
+## Configuration and diagnostics
+
+Pass timeout and retry options directly to `Client.new`, or retain explicit transport and policy objects.
+Combining an explicit object with its construction options raises `ArgumentError`.
+`Client.from_env` reads the API key without loading files. `client.with(...)` leaves the original unchanged.
+
+`message_defaults` supplies sender name, sender email, and message language for message creation and direct email sends.
+Explicit arguments override defaults; explicit `nil` suppresses a default.
+
+Use `error.category`, `error.recovery_hint`, and `error.request_id` for diagnosis.
+`error.transient?` describes the failure. `error.safe_to_retry?` also checks the operation.
+Neither enables retries automatically.
+
+The optional instrumentation callback receives safe metadata for each attempt.
+See [application testing](testing.md) for deterministic responses and failure scenarios.

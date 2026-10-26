@@ -4,6 +4,11 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Add direct timeout and retry options, environment construction, immutable variants, and message defaults.
+- Add safe request instrumentation, structured error categories, recovery hints, and retry-safety checks.
+- Ship optional test transport support and application integration guides.
+- Expand typed contact, sender-domain, SMS, and campaign-statistics results.
+
 - Expose typed acceptance reports and global batch failure indices without replaying requests.
 - Split event batches by encoded bytes and count; preserve completed work when input enumeration fails.
 

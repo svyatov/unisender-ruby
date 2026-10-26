@@ -44,6 +44,16 @@ module Unisender
     attr_reader completed_pages: Integer?
     def with_pagination: (next_offset: Integer, completed_pages: Integer) -> self
     def with_operation: (String) -> self
+    def self.safe_operation: (String) -> String?
+    def category: () -> Symbol
+    def transient?: () -> bool
+    def safe_to_retry?: () -> bool
+    def request_id: () -> String?
+    def recovery_hint: () -> String
+    private
+    def api_category: (json) -> Symbol
+    def http_category: (Integer) -> Symbol
+    public
     def to_s: () -> String
     def inspect: () -> String
   end
@@ -170,7 +180,6 @@ module Unisender
     def initialize: (?max_retries: Integer, ?max_elapsed: duration, ?clock: ( ^() -> Float)?, ?sleeper: ( ^(Float) -> void)?, ?random: ( ^() -> Float)?) -> void
     def call: [T] (String) { () -> T } -> T
     private
-    def transient?: (Error) -> bool
     def retry_after: (Error) -> Float
     def validate!: (Integer, duration) -> void
     def wait?: (Error, Integer, Float) -> bool
@@ -226,11 +235,15 @@ module Unisender
   class Client
     RESERVED_PARAMETERS: Array[String]
     TASK_METHODS: Array[String]
+    UNSET: Symbol
+    @configuration: Configuration
     @api_key: String
     @language: String
     @transport: _Transport
     @retry_policy: RetryPolicy
-    def initialize: (api_key: String, ?transport: _Transport, ?language: String | Symbol, ?retry_policy: RetryPolicy) -> void
+    def initialize: (api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?) -> void
+    def self.from_env: (?env: _Environment, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?) -> Client
+    def with: (?api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?) -> Client
     def request: (String, ?params: params) -> Response[json]
     def track_events: (events: Array[params]) -> EventResponse
     def each_page: (String | Symbol, ?page_size: Integer, ?max_pages: Integer, **parameter) -> Enumerator[PageResponse[Record], void]
@@ -242,6 +255,10 @@ module Unisender
     def contact_in_lists?: (email: String, list_ids: String | Array[id], condition: :any | :all) -> bool
     def inspect: () -> String
     private
+    def message_defaults: (params) -> params
+    def request_values: (String, params) -> [URI::Generic, Hash[String, String], String]
+    def observe: (String, Integer, Float, HTTPResponse?, Exception?) -> void
+    def exchange: [Result] (String, URI::Generic, headers: Hash[String, String], body: String, ?attempt: Integer) { (HTTPResponse) -> Result } -> Result
     def bind_task: (String, Response, params) -> Response
     def import_source: (Array[String]?, Enumerable[Array[parameter]]?, Enumerable[params]?) -> (RecordRows | Enumerable[Array[parameter]])
     def parse_event_response: (HTTPResponse) -> EventResponse

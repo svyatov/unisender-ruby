@@ -29,7 +29,7 @@ module Unisender
       begin
         yield
       rescue Error => e
-        raise unless READ_ONLY.include?(operation) && attempts < @max_retries && transient?(e)
+        raise unless READ_ONLY.include?(operation) && attempts < @max_retries && e.transient?
 
         raise unless wait?(e, attempts, started + @max_elapsed)
 
@@ -55,16 +55,6 @@ module Unisender
 
       @sleeper.call(delay)
       @clock.call < deadline
-    end
-
-    def transient?(error)
-      case error
-      when APIError then TRANSIENT_CODES.include?(error.code)
-      when HTTPError then [429, 502, 503, 504].include?(error.response.http_status)
-      when TimeoutError then true
-      when TransportError then error.retryable?
-      else false
-      end
     end
 
     def retry_after(error)

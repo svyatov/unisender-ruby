@@ -16,8 +16,12 @@ module Unisender
     end
 
     # https://www.unisender.com/ru/support/api/messages/sendemail/
+    # rubocop:disable Layout/LineLength -- The static annotation mirrors the complete keyword signature.
+    # @type method send_email: (email: String, ?sender_name: (String | Symbol)?, ?sender_email: (String | Symbol)?, subject: String, body: String, list_id: id, ?attachments: Hash[String, String] | nil, ?lang: String | Symbol | nil, ?track_read: flag | nil, ?track_links: flag | nil, ?cc: String | nil, ?headers: String | params | nil, ?images_as: String | nil, ?ref_key: String | nil, ?error_checking: flag | nil, ?metadata: params | nil) -> SendResponse
+    # rubocop:enable Layout/LineLength
     # rubocop:disable-next Metrics/ParameterLists -- Mirrors the documented operation.
-    def send_email(email:, sender_name:, sender_email:, subject:, body:, list_id:, attachments: nil, lang: nil,
+    def send_email(email:, subject:, body:, list_id:, sender_name: UNSET, sender_email: UNSET,
+                   attachments: nil, lang: UNSET,
                    track_read: nil, track_links: nil, cc: nil, headers: nil, images_as: nil, ref_key: nil,
                    error_checking: nil, metadata: nil)
       params = { email:, sender_name:, sender_email:, subject:, body:, list_id:, attachments:, lang:,

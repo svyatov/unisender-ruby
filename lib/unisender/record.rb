@@ -78,6 +78,17 @@ module Unisender
       invalid!(name)
     end
 
+    def integer(name)
+      self[name].nil? ? nil : integer!(name)
+    end
+
+    def number(name)
+      value = self[name]
+      return value if value.nil? || value.is_a?(Integer) || value.is_a?(Float)
+
+      invalid!(name)
+    end
+
     def invalid!(name)
       raise InvalidResponseError, "Invalid result field: #{name}", cause: nil
     end

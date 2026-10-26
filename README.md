@@ -133,8 +133,8 @@ In `quickstart.rb`, replace the client construction with:
 ```ruby
 client = Unisender::Client.new(
   api_key: ENV.fetch("UNISENDER_API_KEY"),
-  transport: Unisender::Transport.new(open_timeout: 5, read_timeout: 60, write_timeout: 30),
-  retry_policy: Unisender::RetryPolicy.new(max_retries: 2, max_elapsed: 60)
+  open_timeout: 5, read_timeout: 60, write_timeout: 30,
+  max_retries: 2, max_elapsed: 60
 )
 ```
 
@@ -146,7 +146,23 @@ Those are the default transport timeouts in seconds. TLS certificates are verifi
 
 `client.request("getLists", params: {})` accepts exact upstream names. It handles authentication, encoding, and failures, but does not perform operation-specific conversions. Comma-separated fields must already be strings; nested arrays and hashes become bracketed form fields. Credentials and JSON format cannot be overridden.
 
-RBS signatures ship with the gem. `Response[Result]` describes a named operation's result; the low-level method keeps the general JSON type. Signatures describe documented shapes, not runtime schema validation. Unknown fields remain accessible through `response.data`. Consumer examples are checked with Steep alongside library code.
+RBS signatures ship with the gem. `Response[Result]` describes a named operation's result; the low-level method keeps the general JSON type. Named results validate documented field shapes while retaining unknown fields. Unknown fields remain accessible through `response.data`. Consumer examples are checked with Steep alongside library code.
+
+## Configuration and application tests
+
+`Client.from_env` reads `UNISENDER_API_KEY` from the supplied environment. It does not load `.env`.
+Use `client.with(...)` to create an independent configuration variant.
+`message_defaults:` accepts only `sender_name`, `sender_email`, and `lang`; explicit call arguments take precedence.
+
+An optional `instrumentation:` callable receives operation, attempt, duration, HTTP status, outcome, and error category.
+It receives no request payload. Exceptions raised by the callback do not change the operation's result.
+
+Errors expose `category`, `recovery_hint`, `request_id` when supplied, `transient?`, and `safe_to_retry?`.
+A transient failure does not imply that repeating a mutation is safe.
+Import and send reports expose `complete?`, `partial?`, `uncertain?`, and `failures`.
+These describe acceptance, not final message delivery.
+
+See [application testing](docs/testing.md), [Rails integration](docs/rails.md), and the [migration guide](docs/migration-0.2.md).
 
 ## Project information
 

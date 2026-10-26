@@ -1,0 +1,49 @@
+module Unisender
+  type client_options = { api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)? }
+  type client_changes = { ?api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)? }
+  type config_value = String | Symbol | duration | _Transport | RetryPolicy | Hash[String | Symbol, String?] | Hash[Symbol, String] | (^(RequestEvent) -> void) | nil
+
+  interface _Environment
+    def []: (String) -> String?
+  end
+
+  class RequestEvent < Data
+    attr_reader operation: String
+    attr_reader attempt: Integer
+    attr_reader duration: Float
+    attr_reader http_status: Integer?
+    attr_reader outcome: Symbol
+    attr_reader error_category: Symbol?
+    def self.new: (operation: String, attempt: Integer, duration: Float, http_status: Integer?, outcome: Symbol, error_category: Symbol?) -> RequestEvent
+  end
+
+  module Observation
+    def self.emit: ((^(RequestEvent) -> void)?, RequestEvent) -> void
+    def self.event: (String, Integer, Float, HTTPResponse?, Exception?) -> RequestEvent
+    def self.category: (Exception?) -> Symbol?
+  end
+  class Configuration
+    DEFAULT_KEYS: Array[Symbol]
+    TIMEOUT_KEYS: Array[Symbol]
+    RETRY_KEYS: Array[Symbol]
+    @options: Hash[Symbol, config_value]
+    attr_reader api_key: String
+    attr_reader language: String
+    attr_reader transport: _Transport
+    attr_reader retry_policy: RetryPolicy
+    attr_reader message_defaults: Hash[Symbol, String]
+    attr_reader instrumentation: (^(RequestEvent) -> void)?
+    def initialize: (api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?) -> void
+    def merge_defaults: (Hash[Symbol, config_value], Hash[Symbol, config_value]) -> void
+    def options_for: (Hash[Symbol, config_value]) -> Hash[Symbol, config_value]
+    def inspect: () -> String
+    private
+    def clear_alternative: (Hash[Symbol, config_value], Hash[Symbol, config_value], Symbol, Array[Symbol]) -> void
+    def credentials: (String, String | Symbol) -> [String, String]
+    def build_transport: (_Transport?, duration?, duration?, duration?) -> _Transport
+    def build_retry: (RetryPolicy?, Integer?, duration?) -> RetryPolicy
+    def default_value: (String?) -> String?
+    def validate_conflicts: (_Transport | RetryPolicy | nil, Array[duration?]) -> void
+    def defaults: (Hash[String | Symbol, String?]) -> Hash[Symbol, String]
+  end
+end

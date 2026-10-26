@@ -1,0 +1,31 @@
+module Unisender
+  module Testing
+    class Request < Data
+      attr_reader uri: URI::Generic
+      attr_reader headers: Hash[String, String]
+      attr_reader body: String
+      def self.new: (uri: URI::Generic, headers: Hash[String, String], body: String) -> Request
+      alias to_s inspect
+      def operation: () -> String
+      def form: () -> Hash[String, String]
+      def inspect: () -> String
+    end
+    class Reply < Data
+      attr_reader operation: String?
+      attr_reader response: HTTPResponse | StandardError
+      def self.new: (operation: String?, response: HTTPResponse | StandardError) -> Reply
+    end
+    class Transport
+      @replies: Array[Reply]
+      @requests: Array[Request]
+      def initialize: () -> void
+      def enqueue: (data: Hash[String, json], ?http_status: Integer, ?headers: Hash[String, String], ?operation: String?) -> self
+      def enqueue_response: (HTTPResponse | StandardError, ?operation: String?) -> self
+      def requests: () -> Array[Request]
+      def post: (URI::Generic, headers: Hash[String, String], body: String) -> HTTPResponse
+      def inspect: () -> String
+      private
+      def next_response: (Request) -> (HTTPResponse | StandardError)
+    end
+  end
+end
