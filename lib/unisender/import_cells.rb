@@ -14,6 +14,9 @@ module Unisender
       when Hash then invalid!(index)
       else value
       end
+    rescue ValidationError => e
+      raise ValidationError.new(field: "records[#{index}].#{name}", code: e.code, operation: "importContacts", index:),
+            cause: nil
     end
 
     def self.array(name, value, index)
@@ -45,7 +48,10 @@ module Unisender
       TIMES.each do |name|
         times = record[name]
         lists = record[name.sub("subscribe_times", "list_ids")]
-        invalid!(index) if times.is_a?(Array) && lists.is_a?(Array) && times.size != lists.size
+        next unless times.is_a?(Array) && lists.is_a?(Array) && times.size != lists.size
+
+        raise ValidationError.new(field: "records[#{index}].#{name}", code: :invalid_cell,
+                                  operation: "importContacts", index:)
       end
     end
 

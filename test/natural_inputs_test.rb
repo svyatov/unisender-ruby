@@ -4,6 +4,19 @@ require "test_helper"
 require "unisender/testing"
 
 class NaturalInputsTest < Minitest::Test
+  def test_count_filters_reject_invalid_types
+    client = Unisender::Client.new(api_key: "test")
+    assert_raises(Unisender::ValidationError) { client.get_contact_count(list_id: 1, tag_id: true) }
+    assert_raises(Unisender::ValidationError) { client.get_contact_count(list_id: 1, search: false) }
+    assert_raises(Unisender::ValidationError) { client.get_contact_count(list_id: 1, search: 123) }
+  end
+
+  def test_invalid_fields_have_operation_context
+    client = Unisender::Client.new(api_key: "test")
+    error = assert_raises(Unisender::ValidationError) { client.subscribe(list_ids: [1], fields: []) }
+    assert_equal "subscribe", error.operation
+  end
+
   def test_flags_fail_before_a_request
     transport = Unisender::Testing::Transport.new
     client = Unisender::Client.new(api_key: "test", transport:)

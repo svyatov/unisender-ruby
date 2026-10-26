@@ -42,6 +42,7 @@ module Unisender
     def self.validate_selector: (params, params, String) -> void
     def self.count_filters: (params?, id?, contact_type | "address" | nil, String?) -> params
     def self.count_contact_type: (parameter) -> String?
+    def self.validate_filters: (parameter, parameter) -> void
   end
 
   class RecordRows

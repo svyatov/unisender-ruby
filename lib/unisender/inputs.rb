@@ -107,6 +107,10 @@ module Unisender
     end
 
     def self.contact_fields(fields, email)
+      unless fields.nil? || fields.is_a?(Hash)
+        raise ValidationError.new(field: "fields", code: :invalid_type, operation: "subscribe")
+      end
+
       # @type var result: params
       result = fields ? fields.dup : {}
       names = result.keys.map(&:to_s)
@@ -162,6 +166,7 @@ module Unisender
     end
 
     def self.count_filters(params, tag_id, contact_type, search)
+      validate_filters(tag_id, search)
       if params && [tag_id, contact_type, search].any?
         raise ValidationError.new(field: "params", code: :conflicting_input, operation: "getContactCount")
       end
@@ -171,6 +176,15 @@ module Unisender
       raise ValidationError.new(field: "contact_type", code: :required, operation: "getContactCount") if search && !type
 
       { tagId: tag_id, type:, search: }.compact
+    end
+
+    def self.validate_filters(tag_id, search)
+      if !tag_id.nil? && !tag_id.is_a?(String) && !tag_id.is_a?(Integer)
+        raise ValidationError.new(field: "tag_id", code: :invalid_type, operation: "getContactCount")
+      end
+      return if search.nil? || search.is_a?(String)
+
+      raise ValidationError.new(field: "search", code: :invalid_type, operation: "getContactCount")
     end
 
     def self.count_contact_type(value)
