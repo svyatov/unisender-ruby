@@ -82,7 +82,8 @@ module Unisender
         name = key.to_s.encode(Encoding::UTF_8)
         raise ValidationError.new(field: path, code: :duplicate_key) if result.key?(name)
 
-        result[name] = normalize(item, depth + 1, "#{path}.#{name}")
+        field = Diagnostics::FIELDS.include?(name) ? name : "*"
+        result[name] = normalize(item, depth + 1, "#{path}.#{field}")
       end
       result
     end

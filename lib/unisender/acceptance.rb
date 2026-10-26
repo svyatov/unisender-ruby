@@ -28,6 +28,8 @@ module Unisender
     end
 
     def self.bounded_counts(count, values)
+      return [nil, nil, nil] if values.compact.any?(&:negative?)
+
       accepted, rejected, unknown = values
       known = accepted.to_i + rejected.to_i + unknown.to_i
       known > count ? [nil, nil, nil] : values

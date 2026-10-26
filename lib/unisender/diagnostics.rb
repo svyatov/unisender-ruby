@@ -16,9 +16,17 @@ module Unisender
       root = path.split(/[.\[]/, 2).first.to_s
       return "parameters" unless FIELDS.include?(root)
 
-      suffix = path.delete_prefix(root).gsub(/\[[^\]]*\]/) { |part| part.match?(/\A\[\d+\]\z/) ? part : "[*]" }
-      suffix = suffix.gsub(/\.[^.\[]+/) { |part| FIELDS.include?(part.delete_prefix(".")) ? part : ".*" }
-      root + suffix
+      path.split(/\.(?![^\[]*\])/, -1).map { |segment| path_segment(segment) }.join(".")
+    end
+
+    def self.path_segment(segment)
+      name = segment.split("[", 2).first.to_s
+      return "*" unless FIELDS.include?(name)
+
+      suffix = segment.delete_prefix(name)
+      return "#{name}[*]" unless suffix.match?(/\A(?:\[[^\]]*\])*\z/)
+
+      name + suffix.gsub(/\[[^\]]*\]/) { |part| part.match?(/\A\[\d+\]\z/) ? part : "[*]" }
     end
 
     def self.type_name(value)

@@ -63,6 +63,13 @@ class AcceptanceObservationTest < Minitest::Test
     assert_event :uncertain, 1, nil, nil, nil
   end
 
+  def test_negative_import_counts_are_unknown
+    @transport.enqueue(data: { "result" => { "total" => 1, "invalid" => -1 } })
+    @client.import_contacts(records: [{ email: "a@example.test" }])
+
+    assert_event :uncertain, 1, nil, nil, nil
+  end
+
   def test_missing_recipient_or_import_counts_prevent_complete_outcome
     mail([{ "id" => 1 }], cc: "cc@example.test")
 

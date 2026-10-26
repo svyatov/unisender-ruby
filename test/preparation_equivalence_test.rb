@@ -51,6 +51,15 @@ class PreparationEquivalenceTest < Minitest::Test
     assert_matching_diagnostics(client, :track_events, { events: false })
   end
 
+  def test_dynamic_event_keys_cannot_inject_path_syntax
+    client = Unisender::Client.new(api_key: "test", transport: Unisender::Testing::Transport.new)
+    event = { name: "sale", email: "a@example.test", "email[123456789]SECRET" => Object.new }
+    error = assert_raises(Unisender::ValidationError) { client.track_events(events: [event]) }
+
+    assert_equal "events[0].*", error.path
+    assert_equal "fields[*]", Unisender::Diagnostics.input_path("fields[0]SECRET")
+  end
+
   def test_tabular_error_locations
     [[[], "result"], [{ "data" => [] }, "result.fields"],
      [{ "fields" => [], "data" => nil }, "result.data"],

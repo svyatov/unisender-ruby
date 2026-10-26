@@ -5,6 +5,7 @@ module Unisender
     URLS: Hash[String, String]
     def self.type_name: (parameter | value) -> String
     def self.input_path: (String) -> String
+    def self.path_segment: (String) -> String
     def self.for_error: (Error | ValidationError) -> Hash[Symbol, json]
     def self.error_fields: (Error) -> Hash[Symbol, json]
     def self.common_fields: (Error | ValidationError) -> Hash[Symbol, json]
