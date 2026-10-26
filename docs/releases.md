@@ -9,11 +9,11 @@ Starting with 0.1.1, GitHub releases include the gem, an SPDX inventory of its p
 Download and verify a release in your terminal:
 
 ```sh
-gh release download v0.1.1 --repo svyatov/unisender-ruby --dir release
+gh release download v0.2.0 --repo svyatov/unisender-ruby --dir release
 cd release
-gh attestation verify unisender-ruby.gem --repo svyatov/unisender-ruby --signer-workflow svyatov/unisender-ruby/.github/workflows/release.yml --source-ref refs/tags/v0.1.1
-gh attestation verify sbom.spdx.json --repo svyatov/unisender-ruby --signer-workflow svyatov/unisender-ruby/.github/workflows/release.yml --source-ref refs/tags/v0.1.1
-gh attestation verify SHA256SUMS --repo svyatov/unisender-ruby --signer-workflow svyatov/unisender-ruby/.github/workflows/release.yml --source-ref refs/tags/v0.1.1
+gh attestation verify unisender-ruby.gem --repo svyatov/unisender-ruby --signer-workflow svyatov/unisender-ruby/.github/workflows/release.yml --source-ref refs/tags/v0.2.0
+gh attestation verify sbom.spdx.json --repo svyatov/unisender-ruby --signer-workflow svyatov/unisender-ruby/.github/workflows/release.yml --source-ref refs/tags/v0.2.0
+gh attestation verify SHA256SUMS --repo svyatov/unisender-ruby --signer-workflow svyatov/unisender-ruby/.github/workflows/release.yml --source-ref refs/tags/v0.2.0
 shasum -a 256 -c SHA256SUMS
 ```
 

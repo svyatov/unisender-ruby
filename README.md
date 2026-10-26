@@ -9,16 +9,16 @@ A Ruby client for applications using the [UniSender marketing API](https://www.u
 
 ## Install
 
-This branch documents **unreleased 0.2 development**. The published gem is 0.1.1, with [separate instructions](https://github.com/svyatov/unisender-ruby/blob/v0.1.1/README.md).
+This guide covers version 0.2. See the [migration guide](docs/migration-0.2.md) when upgrading from 0.1.
 
-To use the development interface, add the checkout to your application's `Gemfile`:
+Add the gem to your application's `Gemfile`:
 
 ```ruby
-gem "unisender-ruby", path: "../unisender-ruby", require: "unisender"
+gem "unisender-ruby", "~> 0.2.0", require: "unisender"
 ```
 
-Adjust the path and run `bundle install`.
-For an installed package, follow [build and installation](CONTRIBUTING.md#build-and-test-the-package).
+Run `bundle install`.
+To build from a checkout, follow [build and installation](CONTRIBUTING.md#build-and-test-the-package).
 The package name is `unisender-ruby`; the Ruby load path is `unisender`.
 
 ## Read your lists
