@@ -39,3 +39,7 @@ get_templates: *page
 list_templates: *page
 get_sender_domain_list: *page
 get_subscriber_notes: *page
+set_hook:
+  event_format: Optional, defaults to json_post_gzip
+  single_event: Optional, defaults to false (0 on the wire)
+  status: Optional, defaults to active

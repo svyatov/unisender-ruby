@@ -39,12 +39,20 @@ module Unisender
       url = file_to_download
       raise InvalidResponseError, "Missing task download URL" unless url
 
+      download_file(url, io, max_bytes, downloader)
+    end
+
+    private
+
+    def download_file(url, io, max_bytes, downloader)
       case downloader
       when Downloader
-        downloader.download(url, io, max_bytes:, execution: @client.execution_context)
-      else
-        downloader.download(url, io, max_bytes:)
+        # rubocop:disable-next Style/ClassEqualityComparison -- Preserve custom subclass types in Steep's fallback.
+        if downloader.class == Downloader
+          return downloader.download(url, io, max_bytes:, execution: @client.execution_context)
+        end
       end
+      downloader.download(url, io, max_bytes:)
     end
   end
 

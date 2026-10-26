@@ -1126,10 +1126,10 @@ Task handles expose `task_uuid`, `wait`, and `download_to`; their result retains
 | --- | --- | --- |
 | `hook_url` | `String` | Required |
 | `events` | `Hash[String \| Symbol, String \| Array[String \| Integer]]` | Required |
-| `event_format` | `:json_post \| :json_post_gzip \| :http_get \| String` | Optional, omitted |
+| `event_format` | `:json_post \| :json_post_gzip \| :http_get \| String` | Optional, defaults to json_post_gzip |
 | `max_parallel` | `Integer?` | Optional, omitted |
-| `single_event` | `flag` | Optional, omitted |
-| `status` | `:active \| :disabled \| String` | Optional, omitted |
+| `single_event` | `flag` | Optional, defaults to false (0 on the wire) |
+| `status` | `:active \| :disabled \| String` | Optional, defaults to active |
 
 <a id="list_hooks"></a>
 #### `list_hooks`

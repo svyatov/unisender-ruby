@@ -286,6 +286,8 @@ module Unisender
     def post_request: (URI::Generic, Hash[String, String], String) -> HTTPResponse
     def request_values: (String, params) -> [URI::Generic, Hash[String, String], String]
     def perform_request: (String, params, named: bool) -> Response
+    def with_retries: [Result] (String) { () -> Result } -> Result
+    def acquire_limit: (String) -> void
     def decode_response: (HTTPResponse, String, params, bool) -> Response
     def observe: (String, Integer, Float, HTTPResponse?, Exception?) -> void
     def exchange: [Result] (String, URI::Generic, headers: Hash[String, String], body: String, ?attempt: Integer) { (HTTPResponse) -> Result } -> Result

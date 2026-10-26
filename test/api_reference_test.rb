@@ -4,6 +4,14 @@ require "test_helper"
 require_relative "../scripts/api_reference"
 
 class APIReferenceTest < Minitest::Test
+  def test_hook_defaults_are_explicit
+    reference = APIReference.new(File.expand_path("..", __dir__)).render
+
+    assert_includes reference, "Optional, defaults to json_post_gzip"
+    assert_includes reference, "Optional, defaults to false (0 on the wire)"
+    assert_includes reference, "Optional, defaults to active"
+  end
+
   KEYWORD_KINDS = %i[key keyreq].freeze
 
   def test_reference_matches_public_signatures

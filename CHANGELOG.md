@@ -4,6 +4,7 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Preserve existing injected retry policies, rate limiters, and downloaders when execution scopes are enabled.
 - Add cooperative execution scopes and cancellation across retries, pacing, polling, and batch boundaries, with separate execution timing events and request IDs on request events.
 - Add opt-in summary retention and progress checkpoints for import and Event Tracking batches, preserving known source offsets for row diagnostics.
 - Add hook management and bounded JSON/gzip webhook authentication with typed notification readers.

@@ -34,3 +34,5 @@ This work implements the [2026-10-26 audit](dx-audit-2026-10-26.md) in the appro
 
 Publishing and live account operations require separate authorization. Offline evidence does not establish live compatibility.
 The staging harness is implemented but has not been run against a live account. DX32's live service validation remains unverified.
+
+Final local validation: 592 tests pass on Ruby 3.3.11, 3.4.9, and 4.0.9. `rake check` passes with 100% line, branch, and typed-call coverage. The built gem loads outside the checkout without development dependencies. Independent QA and host-only review covered the new public behavior; the review's default-documentation and extension-compatibility findings were corrected and rechecked. Mutation probes confirmed that cancellation and authentication tests fail when their checks are disabled.
