@@ -19,12 +19,18 @@ module Unisender
     end
 
     def self.event(operation, count, response, error)
-      accepted, rejected, unknown = counts(count, response, error)
+      accepted, rejected, unknown = bounded_counts(count, counts(count, response, error))
       request_id = response&.headers&.[]("x-request-id") || (error.is_a?(Error) ? error.request_id : nil)
       AcceptanceEvent.new(operation: Error.safe_operation(operation) || "request",
                           outcome: state(response, error, unknown), input_count: count,
                           accepted_count: accepted, rejected_count: rejected, unknown_count: unknown,
                           row_warning_count: warning_count(response), request_id:)
+    end
+
+    def self.bounded_counts(count, values)
+      accepted, rejected, unknown = values
+      known = accepted.to_i + rejected.to_i + unknown.to_i
+      known > count ? [nil, nil, nil] : values
     end
 
     def self.warning_count(response)
@@ -57,18 +63,19 @@ module Unisender
     end
 
     def self.state(response, error, unknown)
-      return error.is_a?(EventError) && error.http_status == 401 ? :rejected : :uncertain if error
+      return failure_state(error) if error
+      return :uncertain unless unknown&.zero?
       return result_state(response) if response.is_a?(OutcomeResponse)
 
-      case unknown
-      when 0 then :complete
-      else :uncertain
-      end
+      :complete
+    end
+
+    def self.failure_state(error)
+      error.is_a?(EventError) && error.http_status == 401 ? :rejected : :uncertain
     end
 
     def self.result_state(response)
       return :complete if response.complete?
-      return :uncertain if response.uncertain?
       return :partial if response.partial?
 
       :rejected

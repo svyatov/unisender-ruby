@@ -3,6 +3,7 @@
 require "test_helper"
 require "unisender/testing"
 
+# rubocop:disable-next Metrics/ClassLength -- Covers acceptance across all four supported operation families.
 class AcceptanceObservationTest < Minitest::Test
   def setup
     @events = []
@@ -53,7 +54,23 @@ class AcceptanceObservationTest < Minitest::Test
     @transport.enqueue(data: { "result" => { "total" => 0, "invalid" => 1 } })
     @client.import_contacts(field_names: ["email"], data: [["bad"]])
 
-    assert_event :rejected, 1, nil, 1, 1
+    assert_event :uncertain, 1, nil, nil, nil
+  end
+
+  def test_excess_receipt_counts_are_unknown
+    mail([{ "id" => 1 }, { "id" => 2 }])
+
+    assert_event :uncertain, 1, nil, nil, nil
+  end
+
+  def test_missing_recipient_or_import_counts_prevent_complete_outcome
+    mail([{ "id" => 1 }], cc: "cc@example.test")
+
+    assert_event :uncertain, 2, 1, 0, 1
+    @transport.enqueue(data: { "result" => { "total" => 1, "invalid" => 0 } })
+    @client.import_contacts(field_names: ["email"], data: [["a@example.test"], ["b@example.test"]])
+
+    assert_event :uncertain, 2, 1, 0, 1
   end
 
   def test_sms_and_events

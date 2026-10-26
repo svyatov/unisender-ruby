@@ -121,6 +121,7 @@ module Unisender
     def self.supports?: (String | Symbol) -> bool
     DEFINITIONS: Hash[String, [String, Array[Symbol], Array[Symbol], Integer?]]
     def self.call: (Client, String | Symbol, params) -> PageResponse[Record]
+    def self.prepare: (String | Symbol, params) -> params
     def self.validate: (String | Symbol, params) -> String
     def self.page_limit: (String | Symbol) -> Integer?
     def self.wire_name: (String | Symbol) -> String
@@ -176,14 +177,14 @@ module Unisender
 
   module EventPayload
     MAX_BYTES: Integer
-    def self.encode: (Array[params]) -> String
-    def self.serialize: (Array[params]) -> String
+    def self.encode: (parameter) -> String
+    def self.serialize: (Array[parameter]) -> String
     def self.with_timestamp: (parameter) -> parameter
-    def self.validate: (json) -> Hash[String, json]
-    def self.validate_name: (json) -> void
-    def self.validate_email: (json) -> void
-    def self.normalize: (parameter, Integer) -> json
-    def self.normalize_hash: (params, Integer) -> Hash[String, json]
+    def self.validate: (json, String) -> Hash[String, json]
+    def self.validate_name: (json, String) -> void
+    def self.validate_email: (json, String) -> void
+    def self.normalize: (parameter, Integer, String) -> json
+    def self.normalize_hash: (params, Integer, String) -> Hash[String, json]
   end
 
   class RetryPolicy

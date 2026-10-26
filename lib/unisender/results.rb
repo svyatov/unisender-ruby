@@ -13,7 +13,7 @@ module Unisender
     end
 
     def self.boolean(response)
-      raise InvalidResponseError, "Expected boolean result" unless [true, false].include?(response.result)
+      shape_error("Boolean", response.result, "result") unless [true, false].include?(response.result)
 
       response
     end
@@ -22,7 +22,7 @@ module Unisender
       collection = COLLECTION_OPERATIONS.include?(method)
       return if collection == value.is_a?(Array)
 
-      raise InvalidResponseError, "Unexpected result container"
+      shape_error(collection ? "Array" : "Hash", value, "result")
     end
 
     def self.normalize(method, value)
@@ -42,7 +42,8 @@ module Unisender
 
     def self.single_message(value)
       raise NotFoundError, "Message not found" if value.is_a?(Array) && value.empty?
-      raise InvalidResponseError, "Expected one message" unless value.is_a?(Array) && value.size == 1
+
+      shape_error("Array with one message", value, "result") unless value.is_a?(Array) && value.size == 1
 
       value.first
     end
@@ -70,24 +71,35 @@ module Unisender
     end
 
     def self.rows(value)
-      unless value.is_a?(Hash) && value["fields"].is_a?(Array) && value["data"].is_a?(Array)
-        raise InvalidResponseError, "Expected tabular result"
-      end
+      shape_error("Hash", value, "result") unless value.is_a?(Hash)
+      names, data = value.values_at("fields", "data")
+      shape_error("Array", names, "result.fields") unless names.is_a?(Array)
+      shape_error("Array", data, "result.data") unless data.is_a?(Array)
 
-      fields = field_names(value["fields"])
-      value["data"].map { |row| row_object(fields, row) }
+      fields = field_names(names)
+      data.each_with_index.map { |row, index| row_object(fields, row, index) }
     end
 
-    def self.row_object(fields, row)
-      raise InvalidResponseError, "Invalid tabular row" unless row.is_a?(Array) && row.size == fields.size
+    def self.row_object(fields, row, index)
+      unless row.is_a?(Array) && row.size == fields.size
+        shape_error("Array with #{fields.size} cells", row, "result.data[#{index}]")
+      end
 
       fields.zip(row).to_h
     end
 
     def self.field_names(value)
-      raise InvalidResponseError, "Invalid tabular fields" unless value.all?(String) && value.uniq == value
+      value.each_with_index do |name, index|
+        shape_error("String", name, "result.fields[#{index}]") unless name.is_a?(String)
+      end
+      shape_error("Unique field names", value, "result.fields") unless value.uniq == value
 
       value # : Array[String]
+    end
+
+    def self.shape_error(expected, value, path)
+      raise InvalidResponseError.new("Unexpected result shape", path:, expected_type: expected,
+                                                                actual_type: Diagnostics.type_name(value))
     end
   end
 end

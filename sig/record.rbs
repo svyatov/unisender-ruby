@@ -71,6 +71,7 @@ module Unisender
     def self.wrap: (json, singleton(Record), singleton(ObjectResponse), Response[json]) -> Response
     def self.rows: (json) -> Array[Hash[String, json]]
     def self.field_names: (Array[json]) -> Array[String]
-    def self.row_object: (Array[String], json) -> Hash[String, json]
+    def self.row_object: (Array[String], json, Integer) -> Hash[String, json]
+    def self.shape_error: (String, json, String) -> bot
   end
 end

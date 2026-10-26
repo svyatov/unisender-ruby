@@ -26,15 +26,20 @@ module Unisender
     end
 
     def self.call(client, method, params)
+      params = prepare(method, params)
+      response = client.invoke(wire_name(method), params) # : CollectionResponse[Record]
+      PageResponse.new(response, client:, method: method.to_s, params:)
+    rescue ValidationError => e
+      raise e.with_operation(wire_name(method)), cause: nil
+    end
+
+    def self.prepare(method, params)
       params = params.compact
       params = params.merge(limit: params.fetch(:limit, 100))
       wire = validate(method, params)
       params = Inputs.normalize(wire, params)
       validate_controls(method, params)
-      response = client.invoke(wire, params) # : CollectionResponse[Record]
-      PageResponse.new(response, client:, method: method.to_s, params:)
-    rescue ValidationError => e
-      raise e.with_operation(wire_name(method)), cause: nil
+      params
     end
 
     def self.validate(method, params)

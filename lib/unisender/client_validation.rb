@@ -33,9 +33,7 @@ module Unisender
     end
 
     def validation_page(operation, params)
-      params = params.compact.merge(limit: params[:limit] || 100)
-      PaginatedOperations.validate_controls(operation, params)
-      params
+      PaginatedOperations.prepare(operation, params)
     end
 
     # rubocop:disable-next Naming/PredicateMethod -- Validation returns true or raises.
@@ -62,11 +60,9 @@ module Unisender
     end
 
     def validate_events(params)
-      unless params.keys == [:events] && params[:events].is_a?(Array)
-        raise ValidationError.new(field: "events", code: :invalid_type)
-      end
+      raise ValidationError.new(field: "events", code: :invalid_type) unless params.keys == [:events]
 
-      events = params.fetch(:events) # : Array[params]
+      events = params.fetch(:events)
       EventPayload.encode(events)
       true
     rescue ValidationError => e

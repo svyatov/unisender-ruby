@@ -4,6 +4,9 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Keep offline pagination validation aligned with execution and report indexed event and response-shape errors.
+- Mark acceptance as uncertain when responses omit inputs or return inconsistent counts; enforce false JSON expectations.
+
 - Add optional fixture builders and redacted subset assertions for queued form and JSON requests.
 
 - Add optional acceptance instrumentation with separate accepted, rejected, and unknown counts for sends, imports, and events.

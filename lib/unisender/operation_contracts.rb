@@ -82,7 +82,7 @@ module Unisender
         InputTypes.validate!(value, types.fetch(key.to_s), key.to_s) unless value.nil?
       end
       Validation.required!(params, required)
-      extra = { "getContactCount" => %w[params], "subscribe" => %w[fields],
+      extra = { "getContactCount" => %w[params], "subscribe" => %w[fields], "importContacts" => %w[field_names data],
                 "exclude" => %w[contact_type contact], "unsubscribe" => %w[contact_type contact] }
       Validation.required!(params, extra.fetch(wire, []))
     end

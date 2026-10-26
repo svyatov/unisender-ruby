@@ -15,9 +15,11 @@ module Unisender
     def self.event: (String, Integer, Response?, StandardError?) -> AcceptanceEvent
     def self.warning_count: (Response?) -> Integer?
     def self.counts: (Integer, Response?, StandardError?) -> [Integer?, Integer?, Integer?]
+    def self.bounded_counts: (Integer, [Integer?, Integer?, Integer?]) -> [Integer?, Integer?, Integer?]
     def self.send_counts: (Integer, SendResponse) -> [Integer, Integer, Integer]
     def self.import_counts: (Integer, ImportResponse) -> [Integer?, Integer, Integer?]
     def self.state: (Response?, StandardError?, Integer?) -> Symbol
+    def self.failure_state: (StandardError) -> Symbol
     def self.result_state: (OutcomeResponse) -> Symbol
     def self.emit: (^(AcceptanceEvent) -> void, AcceptanceEvent) -> void
   end

@@ -42,6 +42,26 @@ class TestingExpectationsTest < Minitest::Test
     refute_match(/private/, error.message)
   end
 
+  def test_named_field_mismatch_identifies_the_field_without_values
+    transport = Unisender::Testing::Transport.new.enqueue(data: {}, expected_form: { "title" => "expected-private" })
+    error = assert_raises(RuntimeError) do
+      Unisender::Client.new(api_key: "test", transport:).create_list(title: "actual-private")
+    end
+
+    assert_equal "Unexpected request value at title", error.message
+  end
+
+  def test_false_json_expectation_is_checked_and_conflicts_with_form
+    transport = Unisender::Testing::Transport.new.enqueue(data: {}, expected_json: false)
+
+    assert_raises(ArgumentError) { transport.enqueue(data: {}, expected_form: {}, expected_json: false) }
+    assert_raises(RuntimeError) do
+      Unisender::Client.new(api_key: "test",
+                            transport:).track_events(events: [{ name: "sale",
+                                                                email: "a@example.test" }])
+    end
+  end
+
   def test_expectation_setup_rejects_credentials_and_protocol_conflicts
     transport = Unisender::Testing::Transport.new
 
