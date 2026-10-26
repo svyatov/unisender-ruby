@@ -43,7 +43,7 @@ module Unisender
     def get_web_version: (campaign_id: id) -> WebVersionResponse
     def send_email: (email: String, ?sender_name: String?, ?sender_email: String?, subject: String, body: String, list_id: id, ?attachments: Hash[String, String] | Attachment | Array[Attachment] | nil, ?lang: String | nil, ?track_read: flag | nil, ?track_links: flag | nil, ?cc: String | nil, ?headers: String | params | nil, ?images_as: String | nil, ?ref_key: String | nil, ?error_checking: flag | nil, ?metadata: params | nil) -> SendResponse
     def send_sms: (phone: String, sender: String, text: String) -> (SmsReceiptResponse | CollectionResponse[SmsReceipt])
-    def send_test_email: (email: String | Array[id], id: id) -> ObjectResponse[Record]
+    def send_test_email: (email: String | Array[id], id: id) -> MessageNoticeResponse
     def update_email_message: (id: id, ?sender_name: String | nil, ?sender_email: String | nil, ?subject: String | nil, ?body: String | nil, ?list_id: id | nil, ?text_body: String | nil, ?lang: String | nil, ?categories: String | Array[id] | nil) -> MessageCreatedResponse
     def update_opt_in_email: (sender_name: String, sender_email: String, subject: String, body: String, list_id: id) -> ObjectResponse[Record]
     def get_sender_domain_list: (username: String, ?domain: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> PageResponse[SenderDomainGroup]
@@ -67,7 +67,7 @@ module Unisender
     def delete_tag: (id: id) -> ObjectResponse[Record]
     def get_fields: () -> CollectionResponse[Field]
     def get_tags: () -> CollectionResponse[Tag]
-    def update_field: (id: id, name: String, ?public_name: String | nil) -> ObjectResponse[Record]
+    def update_field: (id: id, name: String, ?public_name: String | nil) -> OptionalIdentifierResponse
     def get_contact_field_values: (email: String, field_ids: String | Array[id]) -> ContactFieldsResponse
     def create_subscriber_note: (subscriber_id: id, content: String) -> IdentifierRecordResponse
     def update_subscriber_note: (id: id, content: String) -> IdentifierRecordResponse

@@ -4,6 +4,11 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Accept blocks on page iterators and expose page checkpoint offsets.
+- Add Array-style collection access, Hash-style record lookup, and payload JSON serialization.
+- Add stable contact address readers, optional contact details, note metadata, and mutation result readers.
+- Return completed task handles without polling; expose task predicates and block-scoped client lifetime.
+
 - Separate development installation from published usage and link gem documentation to its version tag.
 - Generate API argument and result tables from RBS, with agreement checks for the Ruby interface.
 

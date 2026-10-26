@@ -3,14 +3,42 @@ module Unisender
     def email: () -> String
     def status: () -> String?
     def availability: () -> String?
+    def added_at: () -> String?
+    def last_send_datetime: () -> String?
+    def last_delivery_datetime: () -> String?
+    def last_read_datetime: () -> String?
+    def last_click_datetime: () -> String?
+    def rating: () -> (Integer | Float)?
+    def normalize: () -> void
+  end
+  class PhoneContact < Record
+    def phone: () -> String
+    def status: () -> String?
+    def availability: () -> String?
+    def added_at: () -> String?
+    def normalize: () -> void
+  end
+  class ContactList < IdentifierRecord
+    def status: () -> String?
+    def added_at: () -> String?
     def normalize: () -> void
   end
   class Contact < Record
     def email: () -> (EmailContact | String)?
+    def email_address: () -> String?
+    def phone: () -> (PhoneContact | String)?
+    def phone_number: () -> String?
+    def lists: () -> Array[ContactList]?
+    def fields: () -> Record?
     def normalize: () -> void
   end
   class ContactResponse < ObjectResponse[Contact]
     def email: () -> (EmailContact | String)?
+    def email_address: () -> String?
+    def phone: () -> (PhoneContact | String)?
+    def phone_number: () -> String?
+    def lists: () -> Array[ContactList]?
+    def fields: () -> Record?
   end
   class SenderDomain < Record
     def domain: () -> String

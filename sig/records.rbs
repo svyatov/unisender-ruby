@@ -69,10 +69,24 @@ module Unisender
     def name: () -> String
   end
   class Note < IdentifierRecord
+    def user_id: () -> id?
+    def subscriber_id: () -> id?
+    def origin: () -> String?
+    def is_pinned: () -> bool?
+    def created_at: () -> String?
+    def updated_at: () -> String?
+    def pinned_at: () -> String?
     def content: () -> String
     def normalize: () -> void
   end
   class NoteResponse < ObjectResponse[Note]
+    def user_id: () -> id?
+    def subscriber_id: () -> id?
+    def origin: () -> String?
+    def is_pinned: () -> bool?
+    def created_at: () -> String?
+    def updated_at: () -> String?
+    def pinned_at: () -> String?
     def id: () -> id
     def content: () -> String
   end
@@ -91,11 +105,13 @@ module Unisender
     def person_id: () -> id
   end
   class CampaignCreated < Record
+    def count: () -> Integer?
     def campaign_id: () -> id
     def status: () -> String
     def normalize: () -> void
   end
   class CampaignCreatedResponse < ObjectResponse[CampaignCreated]
+    def count: () -> Integer?
     def campaign_id: () -> id
     def status: () -> String
   end
@@ -148,5 +164,19 @@ module Unisender
     def task_uuid: () -> String?
     def status: () -> String
     def file_to_download: () -> String?
+  end
+  class OptionalIdentifier < Record
+    def id: () -> id?
+    def normalize: () -> void
+  end
+  class OptionalIdentifierResponse < ObjectResponse[OptionalIdentifier]
+    def id: () -> id?
+  end
+  class MessageNotice < Record
+    def message: () -> String?
+    def normalize: () -> void
+  end
+  class MessageNoticeResponse < ObjectResponse[MessageNotice]
+    def message: () -> String?
   end
 end

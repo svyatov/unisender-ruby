@@ -15,12 +15,89 @@ module Unisender
       text("availability")
     end
 
+    def added_at
+      text("added_at")
+    end
+
+    def last_send_datetime
+      text("last_send_datetime")
+    end
+
+    def last_delivery_datetime
+      text("last_delivery_datetime")
+    end
+
+    def last_read_datetime
+      text("last_read_datetime")
+    end
+
+    def last_click_datetime
+      text("last_click_datetime")
+    end
+
+    def rating
+      number("rating")
+    end
+
     protected
 
     def normalize
       email
       status
       availability
+      added_at
+      last_send_datetime
+      last_delivery_datetime
+      last_read_datetime
+      last_click_datetime
+      rating
+    end
+  end
+
+  # Optional phone details returned by getContact.
+  class PhoneContact < Record
+    def phone
+      text!("phone")
+    end
+
+    def status
+      text("status")
+    end
+
+    def availability
+      text("availability")
+    end
+
+    def added_at
+      text("added_at")
+    end
+
+    protected
+
+    def normalize
+      phone
+      status
+      availability
+      added_at
+    end
+  end
+
+  # A contact's membership in one list.
+  class ContactList < IdentifierRecord
+    def status
+      text("status")
+    end
+
+    def added_at
+      text("added_at")
+    end
+
+    protected
+
+    def normalize
+      super
+      status
+      added_at
     end
   end
 
@@ -34,10 +111,45 @@ module Unisender
       invalid!("email")
     end
 
+    def email_address
+      value = email
+      value.is_a?(EmailContact) ? value.email : value
+    end
+
+    def phone
+      value = self["phone"]
+      return value if value.nil? || value.is_a?(String)
+      return PhoneContact.new(value.to_h) if value.is_a?(Record)
+
+      invalid!("phone")
+    end
+
+    def phone_number
+      value = phone
+      value.is_a?(PhoneContact) ? value.phone : value
+    end
+
+    def lists
+      value = self["lists"]
+      return nil if value.nil?
+
+      Outcomes.records(value).map { |item| ContactList.new(item.to_h) }.freeze
+    end
+
+    def fields
+      value = self["fields"]
+      return value if value.nil? || value.is_a?(Record)
+
+      invalid!("fields")
+    end
+
     protected
 
     def normalize
       email
+      phone
+      lists
+      fields
     end
   end
 
@@ -45,6 +157,26 @@ module Unisender
   class ContactResponse < ObjectResponse
     def email
       result.email
+    end
+
+    def email_address
+      result.email_address
+    end
+
+    def phone
+      result.phone
+    end
+
+    def phone_number
+      result.phone_number
+    end
+
+    def lists
+      result.lists
+    end
+
+    def fields
+      result.fields
     end
   end
 

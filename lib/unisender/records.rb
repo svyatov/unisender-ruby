@@ -241,11 +241,51 @@ module Unisender
       text!("content")
     end
 
+    def user_id
+      self["user_id"].nil? ? nil : identifier!("user_id")
+    end
+
+    def subscriber_id
+      self["subscriber_id"].nil? ? nil : identifier!("subscriber_id")
+    end
+
+    def origin
+      text("origin")
+    end
+
+    # rubocop:disable-next Naming/PredicatePrefix -- Retains the documented field name.
+    def is_pinned
+      value = self["is_pinned"]
+      case value
+      when true, false, nil then value
+      else invalid!("is_pinned")
+      end
+    end
+
+    def created_at
+      text("created_at")
+    end
+
+    def updated_at
+      text("updated_at")
+    end
+
+    def pinned_at
+      text("pinned_at")
+    end
+
     protected
 
     def normalize
       super
       @values["content"] = content
+      user_id
+      subscriber_id
+      origin
+      is_pinned
+      created_at
+      updated_at
+      pinned_at
     end
   end
 
@@ -257,6 +297,35 @@ module Unisender
 
     def content
       result.content
+    end
+
+    def user_id
+      result.user_id
+    end
+
+    def subscriber_id
+      result.subscriber_id
+    end
+
+    def origin
+      result.origin
+    end
+
+    # rubocop:disable-next Naming/PredicatePrefix -- Retains the documented field name.
+    def is_pinned
+      result.is_pinned
+    end
+
+    def created_at
+      result.created_at
+    end
+
+    def updated_at
+      result.updated_at
+    end
+
+    def pinned_at
+      result.pinned_at
     end
   end
 
@@ -312,12 +381,17 @@ module Unisender
       text!("status")
     end
 
+    def count
+      integer("count")
+    end
+
     protected
 
     def normalize
       super
       @values["campaign_id"] = campaign_id
       @values["status"] = status
+      @values["count"] = count if @values.key?("count")
     end
   end
 
@@ -329,6 +403,10 @@ module Unisender
 
     def status
       result.status
+    end
+
+    def count
+      result.count
     end
   end
 
@@ -491,6 +569,46 @@ module Unisender
 
     def file_to_download
       result.file_to_download
+    end
+  end
+
+  # An identifier omitted by legacy empty mutation responses.
+  class OptionalIdentifier < Record
+    def id
+      self["id"].nil? ? nil : identifier!("id")
+    end
+
+    protected
+
+    def normalize
+      id
+    end
+  end
+
+  # Transport metadata and an optional mutation identifier.
+  class OptionalIdentifierResponse < ObjectResponse
+    def id
+      result.id
+    end
+  end
+
+  # A service notice returned after a test send.
+  class MessageNotice < Record
+    def message
+      text("message")
+    end
+
+    protected
+
+    def normalize
+      message
+    end
+  end
+
+  # Transport metadata and a service notice.
+  class MessageNoticeResponse < ObjectResponse
+    def message
+      result.message
     end
   end
 end

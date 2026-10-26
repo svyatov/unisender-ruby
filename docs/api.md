@@ -53,7 +53,7 @@ The offline contract cases are in `test/fixtures/operations.json` and run throug
 | [`get_web_version`](#get_web_version) | [`getWebVersion`](https://www.unisender.com/ru/support/api/messages/getwebversion/) | `campaign_id` | None | `WebVersionResponse` |
 | [`send_email`](#send_email) | [`sendEmail`](https://www.unisender.com/ru/support/api/messages/sendemail/) | `email`, `subject`, `body`, `list_id`; sender defaults | `sender_name`, `sender_email`, `attachments`, `lang`, `track_read`, `track_links`, `cc`, `headers`, `images_as`, `ref_key`, `error_checking`, `metadata` | `SendResponse` |
 | [`send_sms`](#send_sms) | [`sendSms`](https://www.unisender.com/ru/support/api/messages/sendsms/) | `phone`, `sender`, `text` | None | `SmsReceiptResponse | CollectionResponse[SmsReceipt]` |
-| [`send_test_email`](#send_test_email) | [`sendTestEmail`](https://www.unisender.com/ru/support/api/messages/sendtestemail/) | `email`, `id` | None | `ObjectResponse[Record]` |
+| [`send_test_email`](#send_test_email) | [`sendTestEmail`](https://www.unisender.com/ru/support/api/messages/sendtestemail/) | `email`, `id` | None | `MessageNoticeResponse` |
 | [`update_email_message`](#update_email_message) | [`updateEmailMessage`](https://www.unisender.com/ru/support/api/messages/updateemailmessage/) | `id` | `sender_name`, `sender_email`, `subject`, `body`, `list_id`, `text_body`, `lang`, `categories` | `MessageCreatedResponse` |
 | [`update_opt_in_email`](#update_opt_in_email) | [`updateOptInEmail`](https://www.unisender.com/ru/support/api/messages/updateoptinemail/) | `sender_name`, `sender_email`, `subject`, `body`, `list_id` | None | `ObjectResponse[Record]` |
 | [`get_sender_domain_list`](#get_sender_domain_list) | [`getSenderDomainList`](https://www.unisender.com/ru/support/api/messages/getsenderdomainlist/) | `username` | `domain`, `limit`, `offset` | `PageResponse[SenderDomainGroup]` |
@@ -77,7 +77,7 @@ The offline contract cases are in `test/fixtures/operations.json` and run throug
 | [`delete_tag`](#delete_tag) | [`deleteTag`](https://www.unisender.com/ru/support/api/inputs/deletetag/) | `id` | None | `ObjectResponse[Record]` |
 | [`get_fields`](#get_fields) | [`getFields`](https://www.unisender.com/ru/support/api/inputs/getfields/) | None | None | `CollectionResponse[Field]` |
 | [`get_tags`](#get_tags) | [`getTags`](https://www.unisender.com/ru/support/api/inputs/gettags/) | None | None | `CollectionResponse[Tag]` |
-| [`update_field`](#update_field) | [`updateField`](https://www.unisender.com/ru/support/api/inputs/updatefield/) | `id`, `name` | `public_name` | `ObjectResponse[Record]` |
+| [`update_field`](#update_field) | [`updateField`](https://www.unisender.com/ru/support/api/inputs/updatefield/) | `id`, `name` | `public_name` | `OptionalIdentifierResponse` |
 | [`get_contact_field_values`](#get_contact_field_values) | [`getContactFieldValues`](https://www.unisender.com/ru/support/api/inputs/getcontactfieldvalues/) | `email`, `field_ids` | None | `ContactFieldsResponse` |
 | [`create_subscriber_note`](#create_subscriber_note) | [`createSubscriberNote`](https://www.unisender.com/ru/support/api/notes/createsubscibernote/) | `subscriber_id`, `content` | None | `IdentifierRecordResponse` |
 | [`update_subscriber_note`](#update_subscriber_note) | [`updateSubscriberNote`](https://www.unisender.com/ru/support/api/notes/updatesubcribernote/) | `id`, `content` | None | `IdentifierRecordResponse` |
@@ -1062,12 +1062,13 @@ Object responses expose their result readers directly. Collection elements expos
 | Result | Readers |
 | --- | --- |
 | `Campaign` | `status`, `subject`, `id` |
-| `CampaignCreated` | `campaign_id`, `status` |
+| `CampaignCreated` | `count`, `campaign_id`, `status` |
 | `CampaignStats` | `total`, `sent`, `delivered`, `read_unique`, `read_all`, `clicked_unique`, `clicked_all`, `unsubscribed`, `spam` |
-| `Contact` | `email` |
+| `Contact` | `email`, `email_address`, `phone`, `phone_number`, `lists`, `fields` |
 | `ContactCount` | `count` |
 | `ContactFields` | `field_values` |
-| `EmailContact` | `email`, `status`, `availability` |
+| `ContactList` | `status`, `added_at`, `id` |
+| `EmailContact` | `email`, `status`, `availability`, `added_at`, `last_send_datetime`, `last_delivery_datetime`, `last_read_datetime`, `last_click_datetime`, `rating` |
 | `EmailDelivery` | `id`, `status` |
 | `EventResult` | `complete?`, `partial?`, `uncertain?`, `failures` |
 | `Failure` | `index`, `code`, `message`, `warning?`, `with_offset` |
@@ -1077,8 +1078,11 @@ Object responses expose their result readers directly. Collection elements expos
 | `List` | `title`, `id` |
 | `Message` | `subject`, `body`, `sender_name`, `sender_email`, `id` |
 | `MessageCreated` | `message_id` |
+| `MessageNotice` | `message` |
 | `MessageVersion` | `message_id`, `actual_version_id` |
-| `Note` | `content`, `id` |
+| `Note` | `user_id`, `subscriber_id`, `origin`, `is_pinned`, `created_at`, `updated_at`, `pinned_at`, `content`, `id` |
+| `OptionalIdentifier` | `id` |
+| `PhoneContact` | `phone`, `status`, `availability`, `added_at` |
 | `RecipientResult` | `id`, `index`, `email`, `failures`, `accepted?` |
 | `SendResult` | `recipients`, `email_id`, `complete?`, `partial?`, `uncertain?`, `failures` |
 | `SenderDomain` | `domain`, `status`, `key` |

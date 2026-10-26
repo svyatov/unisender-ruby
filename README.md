@@ -104,6 +104,11 @@ Each example is a standalone Ruby file. Its header lists required environment va
 
 Named operations return typed responses. Collections support `each`, `map`, and other `Enumerable` methods. Object results expose documented fields directly. `result` contains the typed value; `data` preserves the full upstream JSON object. `http_status`, `headers`, and `warnings` retain response metadata. Values are deeply immutable; use `result.to_h` for a mutable object copy. See [the 0.2 migration guide](docs/migration-0.2.md).
 
+Collections also support `length`, `at`, slices, and `fetch` with a default or block.
+Records provide `key?`, `keys`, `values`, and `fetch` with the same missing-value behavior as a Ruby Hash.
+Object responses expose `to_h`. `as_json` and `to_json` serialize the result payload, without HTTP metadata or the response envelope.
+Use `contact.email_address` and `contact.phone_number` for stable address readers; omitted contact details remain `nil`.
+
 Named methods use snake_case and reject unknown keywords. Optional `nil` values are omitted, preserving server defaults. API messages default to English; use `Client.new(api_key: ..., language: :ru)` for Russian. Message-level `lang:` is a separate setting.
 
 Use this error handler in your application's `request.rb`:
@@ -145,6 +150,9 @@ Those are the default transport timeouts in seconds. TLS certificates are verifi
 
 `each_page` and `each_*` helpers return lazy Enumerators. Consume them, or supply a block to a named iterator, to make requests. Batch command methods execute immediately and return a `BatchReport`. Stopping enumeration prevents subsequent requests. A fetched page exposes `each_page` and `auto_each`; ordinary `each` only visits that page. `each_page` yields responses, accepts a supported Ruby method name, and raises `PaginationError` at `max_pages`. `wait_for_task` polls an existing job; its deadline is checked between requests. See [helper limits and recovery behavior](docs/api.md#convenience-operations) and [upstream rate limits](https://www.unisender.com/ru/support/api/common/api-limits/).
 
+All page iterators accept blocks. Fetched pages expose `offset`, `limit`, and `next_offset` for explicit checkpoints.
+Task handles provide `completed?`, `failed?`, and `pending?`. Calling `wait` on a completed handle returns it without another request.
+
 ## Low-level access and types
 
 `client.request("getLists", params: {})` accepts exact upstream names. It handles authentication, encoding, and failures, but does not perform operation-specific conversions. Comma-separated fields must already be strings; nested arrays and hashes become bracketed form fields. Credentials and JSON format cannot be overridden.
@@ -170,6 +178,9 @@ See [application testing](docs/testing.md), [Rails integration](docs/rails.md), 
 ## Optional workflow helpers
 
 Use connection reuse for repeated calls and close clients when their lifetime ends:
+
+`Unisender::Client.open(api_key: ..., persistent: true) { |client| ... }` closes owned resources when the block exits, including after an exception.
+It returns the block's result and never closes an injected transport.
 
 ```ruby
 client = Unisender::Client.from_env(

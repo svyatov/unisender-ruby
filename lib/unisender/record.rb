@@ -22,8 +22,24 @@ module Unisender
       @values[key.to_s]
     end
 
-    def fetch(key)
-      @values.fetch(key.to_s)
+    def fetch(key, *defaults, &block)
+      raise ArgumentError, "Expected at most one default" if defaults.size > 1
+      return @values.fetch(key.to_s) { yield(key) } if block
+      return @values.fetch(key.to_s) if defaults.empty?
+
+      @values.fetch(key.to_s, defaults.fetch(0))
+    end
+
+    def key?(key)
+      @values.key?(key.to_s)
+    end
+
+    def keys
+      @values.keys
+    end
+
+    def values
+      @values.values
     end
 
     def dig(key, *path)
@@ -31,10 +47,18 @@ module Unisender
     end
 
     def to_h
-      @values.transform_values { |value| copy(value) }
+      @values.transform_values { |value| Record.copy(value) }
     end
 
     alias to_hash to_h
+
+    def as_json(_options = nil)
+      to_h
+    end
+
+    def to_json(state = nil)
+      as_json.to_json(state)
+    end
 
     def ==(other)
       case other
@@ -46,6 +70,15 @@ module Unisender
 
     def inspect
       "#<#{self.class}>"
+    end
+
+    def self.copy(value)
+      case value
+      when Record then value.to_h
+      when Array then value.map { |item| copy(item) }
+      when Hash then value.transform_values { |item| copy(item) }
+      else value.dup
+      end
     end
 
     protected
@@ -92,16 +125,6 @@ module Unisender
     def invalid!(name)
       raise InvalidResponseError, "Invalid result field: #{name}", cause: nil
     end
-
-    private
-
-    def copy(value)
-      case value
-      when Record then value.to_h
-      when Array then value.map { |item| copy(item) }
-      else value.dup
-      end
-    end
   end
 
   # A fetched collection; Enumerable never makes further requests.
@@ -114,17 +137,35 @@ module Unisender
       result.each(&block)
     end
 
-    def [](index)
-      result[index]
+    def [](index, length = nil)
+      if length
+        raise TypeError, "A slice offset must be an Integer" unless index.is_a?(Integer)
+
+        result[index, length]
+      elsif index.is_a?(Integer)
+        result.at(index)
+      else
+        result[index]
+      end
     end
 
-    def fetch(index)
-      result.fetch(index)
+    def at(index)
+      result.at(index)
+    end
+
+    def fetch(index, *defaults, &block)
+      raise ArgumentError, "Expected at most one default" if defaults.size > 1
+      return result.fetch(index, &block) if block
+      return result.fetch(index) if defaults.empty?
+
+      result.fetch(index, defaults.fetch(0))
     end
 
     def size
       result.size
     end
+
+    alias length size
 
     def empty?
       result.empty?
@@ -137,8 +178,12 @@ module Unisender
       result[key]
     end
 
-    def fetch(key)
-      result.fetch(key)
+    def fetch(key, *defaults, &)
+      result.fetch(key, *defaults, &)
+    end
+
+    def to_h
+      result.to_h
     end
 
     def dig(key, *path)

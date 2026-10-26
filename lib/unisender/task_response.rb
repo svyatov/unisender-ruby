@@ -12,7 +12,24 @@ module Unisender
     end
 
     def wait(interval: 1, timeout: 60, clock: nil, sleeper: nil, &)
+      if completed?
+        yield self if block_given?
+        return self
+      end
+
       @client.wait_for_task(task_uuid:, interval:, timeout:, clock:, sleeper:, &)
+    end
+
+    def completed?
+      status == "completed"
+    end
+
+    def failed?
+      status == "failed"
+    end
+
+    def pending?
+      TaskWaiter::PENDING.include?(status)
     end
 
     def download_to(io, max_bytes:, downloader: Downloader.new)

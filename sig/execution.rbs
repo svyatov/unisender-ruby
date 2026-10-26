@@ -39,7 +39,10 @@ module Unisender
     @method: String
     @params: params
     def initialize: (CollectionResponse[Item], client: Client, method: String, params: params) -> void
-    def each_page: (?max_pages: Integer) -> Enumerator[PageResponse[Item], void]
-    def auto_each: (?max_pages: Integer) -> Enumerator[Item, void]
+    def each_page: (?max_pages: Integer) ?{ (PageResponse[Item]) -> void } -> Enumerator[PageResponse[Item], void]
+    def auto_each: (?max_pages: Integer) ?{ (Item) -> void } -> Enumerator[Item, void]
+    def offset: () -> Integer
+    def limit: () -> Integer
+    def next_offset: () -> Integer
   end
 end

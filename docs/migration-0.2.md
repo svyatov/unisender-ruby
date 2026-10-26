@@ -4,6 +4,10 @@ Named operations return typed records and collections. `request` retains raw JSO
 
 ## Result access
 
+`JSON.generate(response)` serializes the typed payload. Use `response.data` when you need the upstream envelope.
+Collections support slices and fetch defaults; object responses provide `to_h`.
+Contact address strings are available through `email_address` and `phone_number`, independent of nested detail shapes.
+
 ```ruby
 # Before
 client.get_lists.result.each { |list| puts list.fetch("title") }
@@ -32,6 +36,10 @@ The response-returning `is_contact_in_lists` method remains available.
 Count fields use integers. Tabular visited-link results become enumerable records keyed by the returned column names.
 
 ## Execution and pagination
+
+Page iterators now execute supplied blocks. Avoid passing a block unless you intend to consume the iterator immediately.
+Successful pages expose checkpoint metadata through `offset`, `limit`, and `next_offset`.
+Completed task handles return immediately from `wait`; a supplied callback receives the existing handle once.
 
 `import_contacts_in_batches` and `track_events_in_batches` execute immediately and return a `BatchReport`.
 Use `each_import_batch` and `each_event_batch` for lazy execution. Each accepts a block or returns an Enumerator.

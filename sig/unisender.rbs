@@ -28,6 +28,8 @@ module Unisender
     def initialize: (data: Hash[String, json], status: Integer, headers: Hash[String, String], ?result: value) -> void
     def result: () -> Result
     def warnings: () -> json
+    def as_json: (?json) -> json
+    def to_json: (?JSON::State?) -> String
     def inspect: () -> String
     private
     def immutable: (json) -> json
@@ -254,10 +256,11 @@ module Unisender
     def initialize: (api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?, ?persistent: bool, ?rate_limiter: RateLimiter?) -> void
     def self.from_env: (?env: _Environment, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?, ?persistent: bool, ?rate_limiter: RateLimiter?) -> Client
     def close: () -> void
+    def self.open: [Result] (api_key: String, **config_value) { (Client) -> Result } -> Result
     def with: (?api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?, ?persistent: bool, ?rate_limiter: RateLimiter?) -> Client
     def request: (String, ?params: params) -> Response[json]
     def track_events: (events: Array[params]) -> EventResponse
-    def each_page: (String | Symbol, ?page_size: Integer, ?max_pages: Integer, **parameter) -> Enumerator[PageResponse[Record], void]
+    def each_page: (String | Symbol, ?page_size: Integer, ?max_pages: Integer, **parameter) ?{ (PageResponse[Record]) -> void } -> Enumerator[PageResponse[Record], void]
     def import_contacts_in_batches: (?field_names: Array[String]?, ?data: Enumerable[Array[parameter]]?, ?records: Enumerable[params]?, ?batch_size: Integer, ?overwrite_tags: flag?, ?overwrite_lists: flag?, ?telegram_bot_channel_id: String?) -> BatchReport
     def each_import_batch: (?field_names: Array[String]?, ?data: Enumerable[Array[parameter]]?, ?records: Enumerable[params]?, ?batch_size: Integer, ?overwrite_tags: flag?, ?overwrite_lists: flag?, ?telegram_bot_channel_id: String?) ?{ (Response) -> void } -> Enumerator[Response, void]
     def track_events_in_batches: (events: Enumerable[params], ?batch_size: Integer) -> BatchReport

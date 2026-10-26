@@ -3,8 +3,8 @@
 module Unisender
   # Explicit helpers for multiple requests.
   class Client
-    def each_page(method, page_size: 100, max_pages: 1000, **params)
-      Pagination.new(self, method, page_size, max_pages, params).each
+    def each_page(method, page_size: 100, max_pages: 1000, **params, &)
+      Iteration.call(Pagination.new(self, method, page_size, max_pages, params).each, &)
     end
 
     # rubocop:disable-next Metrics/ParameterLists -- Includes the documented import options.
