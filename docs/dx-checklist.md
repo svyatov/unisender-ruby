@@ -28,8 +28,9 @@ This work implements the [2026-10-26 audit](dx-audit-2026-10-26.md) in the appro
 | P1: reference and installation | DX01, DX02, DX28 | Implemented; generated reference checks pass |
 | P2: response ergonomics | DX03, DX09-DX15, DX18, DX20 | Implemented; independent public-interface QA passed |
 | P3: validation and outcomes | DX04-DX08, DX16, DX17, DX19 | Implemented; full validation passes |
-| P4: consumer support | DX21, DX22, DX26, DX29-DX32 | Pending |
-| P5: execution and retention | DX23-DX25 | Pending |
-| P6: webhooks | DX27, DX32 | Pending |
+| P4: consumer support | DX21, DX22, DX26, DX29-DX32 | Implemented; examples, signature discovery, negative input types, and harness guards pass |
+| P5: execution and retention | DX23-DX25 | Implemented; independent replay, budget, cancellation, and retention QA passed |
+| P6: webhooks | DX27, DX32 | Implemented; independent offline authentication and decoding QA passed |
 
 Publishing and live account operations require separate authorization. Offline evidence does not establish live compatibility.
+The staging harness is implemented but has not been run against a live account. DX32's live service validation remains unverified.

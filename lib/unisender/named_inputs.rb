@@ -7,6 +7,7 @@ module Unisender
     empty = {}
     EMPTY_ENUMS = empty.freeze
     FLAGS = {
+      "setHook" => %i[single_event],
       "getContact" => %i[include_lists include_fields include_details],
       "createCampaign" => %i[track_read track_links track_ga],
       "createEmailMessage" => %i[generate_text], "sendEmail" => %i[track_read track_links error_checking],
@@ -14,6 +15,7 @@ module Unisender
       "getSubscriberNotes" => %i[is_pinned]
     }.transform_values(&:freeze).freeze
     ENUMS = {
+      "setHook" => { event_format: %w[json_post json_post_gzip http_get], status: %w[active disabled] },
       "getTemplates" => { type: %w[user system].freeze }.freeze,
       "listTemplates" => { type: %w[user system].freeze }.freeze,
       "exclude" => { contact_type: %w[email phone].freeze }.freeze,

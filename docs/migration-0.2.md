@@ -1,5 +1,7 @@
 # Migrating to 0.2
 
+All changes on this branch remain unreleased. Execution scopes, summary retention, and webhooks are opt-in. `RequestEvent` adds a `request_id` field. Full batch history remains the default; summary mode discards successful payloads and successful row-warning details. See [execution](execution.md) and [webhooks](webhooks.md).
+
 Named operations return typed records and collections. `request` retains raw JSON results.
 
 ## Result access

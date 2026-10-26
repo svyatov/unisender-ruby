@@ -84,6 +84,9 @@ The offline contract cases are in `test/fixtures/operations.json` and run throug
 | [`delete_subscriber_note`](#delete_subscriber_note) | [`deleteSubscriberNote`](https://www.unisender.com/ru/support/api/notes/deletesubscribernote/) | `id` | None | `ObjectResponse[Record]` |
 | [`get_subscriber_note`](#get_subscriber_note) | [`getSubscriberNote`](https://www.unisender.com/ru/support/api/notes/getsubscribernote/) | `id` | None | `NoteResponse` |
 | [`get_subscriber_notes`](#get_subscriber_notes) | [`getSubscriberNotes`](https://www.unisender.com/ru/support/api/notes/getsubscribernotes/) | `subscriber_id` | `limit`, `offset`, `order_type`, `order_by`, `is_pinned` | `PageResponse[Note]` |
+| [`set_hook`](#set_hook) | [`setHook`](https://www.unisender.com/ru/support/api/common/sistema-uvedomlenij-o-sobytiyah-webhooks/) | `hook_url`, `events` | `event_format`, `max_parallel`, `single_event`, `status` | `Response[json]` |
+| [`list_hooks`](#list_hooks) | [`listHooks`](https://www.unisender.com/ru/support/api/common/sistema-uvedomlenij-o-sobytiyah-webhooks/) | None | None | `CollectionResponse[Hook]` |
+| [`remove_hook`](#remove_hook) | [`removeHook`](https://www.unisender.com/ru/support/api/common/sistema-uvedomlenij-o-sobytiyah-webhooks/) | `hook_url` | None | `Response[json]` |
 | `track_events` | [Event Tracking](https://www.unisender.com/ru/support/api/event-tracking-api/) | `events` | None | `EventResponse` |
 
 ## Reading the contracts
@@ -143,7 +146,7 @@ The title must be unique within the account. `sub_user_rights` maps user IDs to 
 | `phone` | `String?` | Alternative contact selector; requires list_ids |
 | `list_ids` | `String \| Array[id] \| nil` | Optional, omitted |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization. Removes membership in the selected lists.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape. Removes membership in the selected lists.
 
 `contact_type` is `"email"` or `"phone"`. Omitted `list_ids` applies the upstream account-wide behavior; provide explicit IDs when intending to affect selected lists only.
 
@@ -273,7 +276,7 @@ Supply `email:` directly or include email in `fields:`; custom names are case-se
 | `after_subscribe_url` | `String \| nil` | Optional, omitted |
 | `sub_user_rights` | `params \| nil` | Optional, omitted |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape.
 
 </details>
 
@@ -326,7 +329,7 @@ Supply `email:` directly or include email in `fields:`; custom names are case-se
 | `phone` | `String?` | Alternative contact selector; requires list_ids |
 | `list_ids` | `String \| Array[id] \| nil` | Optional, omitted |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization. Unsubscribes the specified contact from the selected lists.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape. Unsubscribes the specified contact from the selected lists.
 
 `contact_type` is `"email"` or `"phone"`. Omitted `list_ids` applies the upstream account-wide behavior; provide explicit IDs when intending to affect selected lists only.
 
@@ -460,7 +463,7 @@ Supply nonempty `subject` and `body`, or select `template_id` / `system_template
 | --- | --- | --- |
 | `message_id` | `id` | Required |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape.
 
 </details>
 
@@ -592,7 +595,7 @@ Use the international phone format and an approved sender. Sending is never auto
 | `body` | `String` | Required |
 | `list_id` | `id` | Required |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization. Updates the list confirmation message.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape. Updates the list confirmation message.
 
 </details>
 
@@ -787,7 +790,7 @@ Date filters use UTC `YYYY-MM-DD HH:MM`. `limit` is 1 to 100 (default 50), and `
 | --- | --- | --- |
 | `template_id` | `id` | Required |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape.
 
 </details>
 
@@ -894,7 +897,7 @@ Provide `template_id` or `system_template_id`; neither is required individually,
 | --- | --- | --- |
 | `id` | `id` | Required |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape.
 
 </details>
 
@@ -908,7 +911,7 @@ Provide `template_id` or `system_template_id`; neither is required individually,
 | --- | --- | --- |
 | `id` | `id` | Required |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape.
 
 </details>
 
@@ -1007,7 +1010,7 @@ No operation arguments.
 | --- | --- | --- |
 | `id` | `id` | Required |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape.
 
 </details>
 
@@ -1080,6 +1083,7 @@ Object responses expose their result readers directly. Collection elements expos
 | `EventResult` | `complete?`, `partial?`, `uncertain?`, `failures` |
 | `Failure` | `index`, `code`, `message`, `warning?`, `with_offset` |
 | `Field` | `name`, `type`, `id` |
+| `Hook` | `url`, `event_format`, `max_parallel`, `single_event`, `status`, `events`, `id` |
 | `IdentifierRecord` | `id` |
 | `ImportResult` | `row_warnings`, `inserted`, `updated`, `deleted`, `new_emails`, `total`, `invalid`, `complete?`, `partial?`, `uncertain?`, `failures` |
 | `List` | `title`, `id` |
@@ -1102,6 +1106,9 @@ Object responses expose their result readers directly. Collection elements expos
 | `Template` | `title`, `subject`, `body`, `id` |
 | `TotalContacts` | `total` |
 | `WebVersion` | `letter_id`, `web_letter_link` |
+| `WebhookEvent` | `event_name`, `event_time`, `event_data` |
+| `WebhookNotification` | `users`, `events` |
+| `WebhookUser` | `login`, `events` |
 
 Report responses also expose `raise_for_partial_failure!`.
 A `BatchReport` exposes `responses`, `completed_batches`, `total`, `invalid`, `failures`, `complete?`, `partial?`, and `uncertain?`.
@@ -1109,6 +1116,34 @@ Its totals return `nil` when the outcome does not provide reliable import counts
 Task handles expose `task_uuid`, `wait`, and `download_to`; their result retains the original task fields. Polling request errors keep their original error class and expose `task_uuid` plus `last_response` (nil before any observed task state).
 
 ## Documentation decisions
+
+### Webhook management
+
+<a id="set_hook"></a>
+#### `set_hook`
+
+| Keyword | Ruby type | Presence |
+| --- | --- | --- |
+| `hook_url` | `String` | Required |
+| `events` | `Hash[String \| Symbol, String \| Array[String \| Integer]]` | Required |
+| `event_format` | `:json_post \| :json_post_gzip \| :http_get \| String` | Optional, omitted |
+| `max_parallel` | `Integer?` | Optional, omitted |
+| `single_event` | `flag` | Optional, omitted |
+| `status` | `:active \| :disabled \| String` | Optional, omitted |
+
+<a id="list_hooks"></a>
+#### `list_hooks`
+
+No operation arguments.
+
+<a id="remove_hook"></a>
+#### `remove_hook`
+
+| Keyword | Ruby type | Presence |
+| --- | --- | --- |
+| `hook_url` | `String` | Required |
+
+See the [receiver guide](webhooks.md) for registration behavior and bounded verification.
 
 Successful `sendTestEmail` and `updateField` examples omit the `result` envelope. These two operations also accept their documented top-level success fields. Other operations still require `result`, and `error` always takes precedence.
 
@@ -1135,6 +1170,8 @@ Successful `sendTestEmail` and `updateField` examples omit the `result` envelope
 Pagination additionally requires a positive integer page size within the method's documented limit, a positive integer `max_pages`, and a nonnegative integer `offset`. Named paginated reads use the same local validation for `limit` and `offset`. Each yielded response preserves its warnings and metadata.
 
 Batch helper failures raise `BatchError`. Its `completed_responses` contains earlier successful batches, `failed_range` is the zero-based, end-exclusive input range with an uncertain or failed outcome, and `error` contains the original failure. A failed batch can still contain accepted records. Helpers do not replay batches or roll back earlier changes. Source exceptions also retain completed responses; an unknown unsent source range can be empty at the next offset.
+
+All batch helpers accept `retention: :full | :summary` and `on_progress:`. Full history is the default. Summary mode retains counts and failed-response details, not successful payloads. `client.with_execution(timeout:, cancellation:, instrumentation:)` creates a cooperative budget for related work. See [execution and recovery](execution.md) for checkpoint and lifetime contracts.
 
 ## Optional workflow helpers
 

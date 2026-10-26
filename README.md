@@ -169,7 +169,7 @@ RBS signatures ship with the gem. `Response[Result]` describes a named operation
 Use `client.with(...)` to create an independent configuration variant.
 `message_defaults:` accepts only `sender_name`, `sender_email`, and `lang`; explicit call arguments take precedence.
 
-An optional `instrumentation:` callable receives operation, attempt, duration, HTTP status, outcome, and error category.
+An optional `instrumentation:` callable receives operation, attempt, duration, HTTP status, outcome, error category, and upstream request ID when available.
 It receives no request payload. Exceptions raised by the callback do not change the operation's result.
 
 Errors expose `category`, `recovery_hint`, `request_id` when supplied, `transient?`, and `safe_to_retry?`.
@@ -183,6 +183,10 @@ The `records:` input accepts arrays in documented list/tag cells and Time values
 `get_contact_count(list_id:, contact_type: :email, search:, tag_id:)` builds filters; the existing `params:` form remains available separately.
 
 See [application testing](docs/testing.md), [Rails integration](docs/rails.md), and the [migration guide](docs/migration-0.2.md).
+The [execution guide](docs/execution.md) covers lazy consumption, checkpoints, shared request budgets, cancellation, and summary retention. The [webhook guide](docs/webhooks.md) covers hook management and authenticated receivers. [Staging contract checks](docs/live-contracts.md) are explicitly opt-in.
+
+Use `client.with_execution(timeout: 30, cancellation: token) { |scoped| ... }` for one cooperative budget across related operations. `token` is a `Unisender::CancellationToken`; calling `cancel` stops work at the next boundary. In-flight IO and callbacks are not interrupted.
+For large imports, `import_contacts_in_batches(records:, retention: :summary, on_progress:)` returns counts without retaining successful response bodies. Full report retention remains the default.
 
 ## Optional workflow helpers
 

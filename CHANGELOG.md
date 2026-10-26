@@ -4,6 +4,14 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Add cooperative execution scopes and cancellation across retries, pacing, polling, and batch boundaries, with separate execution timing events and request IDs on request events.
+- Add opt-in summary retention and progress checkpoints for import and Event Tracking batches, preserving known source offsets for row diagnostics.
+- Add hook management and bounded JSON/gzip webhook authentication with typed notification readers.
+- Add fake-transport queue verification and JSON request access, durable export recovery examples, and opt-in staging contract probes.
+
+- Validate malformed contact fields and count filters locally, and preserve operation names and import column paths in validation errors.
+- Correct reference descriptions of legacy empty-result normalization.
+
 - Standardize input diagnostics, validate named flags and choices, and preserve wrapper failure context.
 - Normalize structured import cells and expose typed row warnings with known global indices.
 - Add scoped email/phone removal inputs and explicit contact-count filters.

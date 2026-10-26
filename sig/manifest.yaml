@@ -7,3 +7,5 @@ dependencies:
   - name: ipaddr
   - name: socket
   - name: timeout
+  - name: zlib
+  - name: stringio
