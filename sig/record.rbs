@@ -40,8 +40,11 @@ module Unisender
 
   module Results
     MODELS: Hash[String, [singleton(Record), singleton(ObjectResponse)]]
+    COLLECTION_OPERATIONS: Array[String]
     EMPTY_OPERATIONS: Array[String]
     def self.build: (String, Response[json]) -> Response
+    def self.boolean: (Response[json]) -> Response[json]
+    def self.validate_container: (String, json) -> void
     def self.object: (singleton(Record), json) -> Record
     def self.normalize: (String, json) -> json
     def self.single_message: (json) -> json

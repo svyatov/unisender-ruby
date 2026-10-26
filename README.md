@@ -30,7 +30,7 @@ Run `ruby quickstart.rb`. It prints one title per list, or nothing if the accoun
 For a Bundler project, add the gem to your application's Gemfile:
 
 ```ruby
-gem "unisender-ruby", "~> 0.1.1", require: "unisender"
+gem "unisender-ruby", "~> 0.2.0", require: "unisender"
 ```
 
 Then run `bundle install`. The package is named `unisender-ruby`; load it with `require "unisender"`.
@@ -58,7 +58,7 @@ set +a
 bundle exec ruby examples/check_connection.rb
 ```
 
-The check prints only the HTTP status and list count, including zero for an empty account. Failures exit with status 1. It does not print list names or IDs. The gem itself reads neither environment variables nor `.env`; application code passes the key explicitly.
+The check prints only the HTTP status and list count, including zero for an empty account. Failures exit with status 1. It does not print list names or IDs. `Client.new` takes an explicit key. `Client.from_env` reads `UNISENDER_API_KEY`; neither loads `.env`.
 
 The `quickstart.rb` example above only reads lists. It does not create contacts or send messages. In a Bundler project, run it with `bundle exec ruby quickstart.rb`. A missing environment variable raises `KeyError` before any request. To try the client without an account or network access, run `bundle exec ruby examples/offline.rb` from this checkout.
 
@@ -75,12 +75,12 @@ require "unisender"
 client = Unisender::Client.new(api_key: ENV.fetch("UNISENDER_API_KEY"))
 response = client.subscribe(
   list_ids: [ENV.fetch("UNISENDER_LIST_ID")],
-  fields: { email: ENV.fetch("UNISENDER_CONTACT_EMAIL") }
+  email: ENV.fetch("UNISENDER_CONTACT_EMAIL")
 )
-puts response.result.fetch("person_id")
+puts response.person_id
 ```
 
-The contact must confirm before receiving campaigns. Use `double_optin: 3` only when you already have consent; it adds the contact without sending the confirmation email. `overwrite: 0` preserves existing fields and tags, `1` replaces them and list membership, and `2` updates supplied fields. See the [upstream subscription rules](https://www.unisender.com/ru/support/api/contacts/subscribe/).
+The contact must confirm before receiving campaigns. Use `double_optin: :already_confirmed` only when you already have consent; it adds the contact without sending the confirmation email. `overwrite: :preserve` preserves existing fields and tags, `:replace` replaces them and list membership, and `:update` updates supplied fields. See the [upstream subscription rules](https://www.unisender.com/ru/support/api/contacts/subscribe/).
 
 ## Complete workflows
 
@@ -138,7 +138,7 @@ client = Unisender::Client.new(
 )
 ```
 
-Those are the default transport timeouts in seconds. TLS certificates are verified, redirects are rejected, and calls do not share connections. **Retries default to zero.** The opt-in policy retries only explicitly identified read-only operations, at most twice, with backoff, jitter, and `Retry-After`. Sends, mutations, imports, exports, events, and unknown methods are never retried automatically. The elapsed retry budget is not a hard request deadline; in-flight requests use transport timeouts.
+Those are the default transport timeouts in seconds. TLS certificates are verified and redirects are rejected. Connections are separate by default; `persistent: true` enables reuse. **Retries default to zero.** The opt-in policy retries only explicitly identified read-only operations, at most twice, with backoff, jitter, and `Retry-After`. Sends, mutations, imports, exports, events, and unknown methods are never retried automatically. The elapsed retry budget is not a hard request deadline; in-flight requests use transport timeouts.
 
 `each_page` and `each_*` helpers return lazy Enumerators. Consume them, or supply a block to a named iterator, to make requests. Batch command methods execute immediately and return a `BatchReport`. Stopping enumeration prevents subsequent requests. A fetched page exposes `each_page` and `auto_each`; ordinary `each` only visits that page. `each_page` yields responses, accepts a supported Ruby method name, and raises `PaginationError` at `max_pages`. `wait_for_task` polls an existing job; its deadline is checked between requests. See [helper limits and recovery behavior](docs/api.md#convenience-operations) and [upstream rate limits](https://www.unisender.com/ru/support/api/common/api-limits/).
 
@@ -163,6 +163,39 @@ Import and send reports expose `complete?`, `partial?`, `uncertain?`, and `failu
 These describe acceptance, not final message delivery.
 
 See [application testing](docs/testing.md), [Rails integration](docs/rails.md), and the [migration guide](docs/migration-0.2.md).
+
+## Optional workflow helpers
+
+Use connection reuse for repeated calls and close clients when their lifetime ends:
+
+```ruby
+client = Unisender::Client.from_env(
+  persistent: true,
+  rate_limiter: Unisender::RateLimiter.unisender
+)
+begin
+  client.get_lists.each { |list| puts list.title }
+ensure
+  client.close
+end
+```
+
+Pacing is opt-in, process-local, and separate from retries. Share a limiter between clients that share an account budget. The built-in preset covers marketing requests; Event Tracking has a separate budget. An injected transport remains caller-owned. Create clients after forking where possible; persistent transports discard inherited connections on a PID change.
+
+`Attachment.from_path(path)` and `Attachment.from_io(io, filename:)` read binary data into an immutable snapshot. Pass one attachment, an array, or the existing filename-to-bytes hash as `attachments:`. The helper never closes a caller-owned IO.
+
+`send_campaign(message: {...}, campaign: {...})` validates both steps before creating the message and returns `receipt.message` and `receipt.campaign`. If campaign creation fails, `CampaignWorkflowError#message_response` preserves the created message. The workflow cannot roll back account changes.
+
+Completed export tasks can stream into a caller-owned IO:
+
+```ruby
+completed = client.export_contacts(list_id: 123).wait
+File.open("contacts.csv", "wb") do |file|
+  completed.download_to(file, max_bytes: 20 * 1024 * 1024)
+end
+```
+
+Downloads are explicit, use a separate connection without API credentials, and accept only public HTTPS destinations on port 443. Redirects are rejected. Set a byte limit; `DownloadError#bytes_written` reports confirmed partial output, which remains in your IO. See [helper contracts](docs/api.md#optional-workflow-helpers) for configuration and failure details.
 
 ## Project information
 

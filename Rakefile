@@ -32,8 +32,8 @@ end
 
 desc "Validate RBS signatures, type-check the library, and require 100% typed calls"
 task typecheck: :type_coverage do
-  sh "bundle", "exec", "rbs", "-r", "net-http", "-r", "json", "-r", "uri", "-r", "openssl", "-r", "time", "-I", "sig",
-     "validate"
+  sh "bundle", "exec", "rbs", "-r", "net-http", "-r", "json", "-r", "uri", "-r", "openssl",
+     "-r", "time", "-r", "ipaddr", "-I", "sig", "validate"
   sh "bundle", "exec", "steep", "check", "--jobs=2", "--severity-level=warning"
 end
 

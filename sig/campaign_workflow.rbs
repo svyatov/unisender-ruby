@@ -1,0 +1,19 @@
+module Unisender
+  class CampaignReceipt < Data
+    attr_reader message: MessageCreatedResponse
+    attr_reader campaign: CampaignCreatedResponse
+    def self.new: (message: MessageCreatedResponse, campaign: CampaignCreatedResponse) -> CampaignReceipt
+  end
+  class CampaignWorkflowError < Error
+    attr_reader message_response: MessageCreatedResponse
+    attr_reader error: StandardError
+    def initialize: (MessageCreatedResponse, StandardError) -> void
+  end
+  class Client
+    def send_campaign: (message: Hash[Symbol, parameter], ?campaign: Hash[Symbol, parameter]) -> CampaignReceipt
+    private
+    def campaign_parameters: (Hash[Symbol, parameter], Hash[Symbol, parameter]) -> [params, params]
+    def workflow_keys!: (params, Symbol) -> void
+    def finish_campaign: (MessageCreatedResponse, params) -> CampaignReceipt
+  end
+end

@@ -4,6 +4,10 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Add opt-in persistent HTTPS connections, lifecycle controls, and shared process-local request pacing.
+- Add binary attachment snapshots and a preflighted create-message/send-campaign workflow.
+- Add explicit, bounded export downloads without forwarding API credentials.
+
 - Add direct timeout and retry options, environment construction, immutable variants, and message defaults.
 - Add safe request instrumentation, structured error categories, recovery hints, and retry-safety checks.
 - Ship optional test transport support and application integration guides.

@@ -5,7 +5,7 @@ require_relative "support/scripted_transport"
 
 class ValidationTest < Minitest::Test
   def setup
-    replies = Array.new(20) { ScriptedTransport.reply }
+    replies = Array.new(20) { ScriptedTransport.reply({ "result" => { "message_id" => 1, "person_id" => 1 } }) }
     @transport = ScriptedTransport.new(*replies)
     @client = Unisender::Client.new(api_key: "test-key", transport: @transport)
   end

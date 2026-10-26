@@ -2,24 +2,26 @@
 
 module Unisender
   # Immutable options; injected transports remain owned by the caller.
+  # rubocop:disable-next Metrics/ClassLength -- Owns the complete public configuration and resource lifetime.
   class Configuration
     DEFAULT_KEYS = %i[sender_name sender_email lang].freeze
-    TIMEOUT_KEYS = %i[open_timeout read_timeout write_timeout].freeze
+    TIMEOUT_KEYS = %i[open_timeout read_timeout write_timeout persistent].freeze
     RETRY_KEYS = %i[max_retries max_elapsed].freeze
-    attr_reader :api_key, :language, :transport, :retry_policy, :message_defaults, :instrumentation
+    attr_reader :api_key, :language, :transport, :retry_policy, :message_defaults, :instrumentation, :rate_limiter
 
     # rubocop:disable-next Metrics/ParameterLists -- Public configuration options are explicit keywords.
     def initialize(api_key:, language: :en, transport: nil, retry_policy: nil, open_timeout: nil,
                    read_timeout: nil, write_timeout: nil, max_retries: nil, max_elapsed: nil,
-                   message_defaults: {}, instrumentation: nil)
+                   message_defaults: {}, instrumentation: nil, persistent: false, rate_limiter: nil)
       @api_key, @language = credentials(api_key, language)
       @message_defaults = defaults(message_defaults)
       @instrumentation = instrumentation
-      @transport = build_transport(transport, open_timeout, read_timeout, write_timeout)
+      @transport = build_transport(transport, open_timeout, read_timeout, write_timeout, persistent)
       @retry_policy = build_retry(retry_policy, max_retries, max_elapsed)
+      initialize_resources(rate_limiter, transport)
       @options = { api_key: @api_key, language: @language, transport:, retry_policy:, open_timeout:,
                    read_timeout:, write_timeout:, max_retries:, max_elapsed:, message_defaults: @message_defaults,
-                   instrumentation: }.freeze
+                   instrumentation:, persistent:, rate_limiter: }.freeze
       freeze
     end
 
@@ -46,6 +48,21 @@ module Unisender
       "#<Unisender::Configuration>"
     end
 
+    def check_open!
+      @state.check_open!
+    end
+
+    def close
+      @state.close do
+        transport = @transport
+        if @owns_transport
+          case transport
+          when PersistentTransport then transport.close
+          end
+        end
+      end
+    end
+
     private
 
     def clear_alternative(options, changes, object, settings)
@@ -56,11 +73,26 @@ module Unisender
       end
     end
 
-    def build_transport(transport, open_timeout, read_timeout, write_timeout)
+    def build_transport(transport, open_timeout, read_timeout, write_timeout, persistent)
       validate_conflicts(transport, [open_timeout, read_timeout, write_timeout])
-      transport || Transport.new(open_timeout: open_timeout.nil? ? 5 : open_timeout,
-                                 read_timeout: read_timeout.nil? ? 60 : read_timeout,
-                                 write_timeout: write_timeout.nil? ? 30 : write_timeout)
+      raise ArgumentError, "Persistent mode conflicts with an explicit transport" if transport && persistent
+
+      factory = persistent ? PersistentTransport : Transport
+      transport || factory.new(**timeout_options(open_timeout, read_timeout, write_timeout))
+    end
+
+    def initialize_resources(limiter, transport)
+      @rate_limiter = limiter
+      @owns_transport = case transport
+                        when nil then true
+                        else false
+                        end
+      @state = ClientState.new
+    end
+
+    def timeout_options(open_timeout, read_timeout, write_timeout)
+      defaults = { open_timeout: 5, read_timeout: 60, write_timeout: 30 }
+      defaults.merge({ open_timeout:, read_timeout:, write_timeout: }.compact)
     end
 
     def build_retry(policy, max_retries, max_elapsed)

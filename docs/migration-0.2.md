@@ -84,3 +84,13 @@ Neither enables retries automatically.
 
 The optional instrumentation callback receives safe metadata for each attempt.
 See [application testing](testing.md) for deterministic responses and failure scenarios.
+
+## Optional helpers
+
+Use `persistent: true` for connection reuse and `client.close` when the client is no longer needed.
+An injected transport remains caller-owned. Request pacing is opt-in through `rate_limiter:` and is independent of retry settings.
+
+
+Attachments accept `Attachment.from_path`, `Attachment.from_io`, one attachment, or an array, alongside existing hashes.
+`send_campaign(message:, campaign:)` returns both responses and retains a created message if the campaign step fails.
+Completed tasks expose `download_to(io, max_bytes:)`. Downloads never happen automatically; errors retain confirmed partial byte counts.

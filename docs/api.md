@@ -2,7 +2,7 @@
 
 Contract audit: 2026-10-25. The [official UniSender documentation](https://www.unisender.com/ru/support/category/api/) is the source of truth. Tests use deterministic, artificial responses and do not establish live account compatibility.
 
-All methods return `Unisender::Response`; named operations declare their result type as `Response[Result]`. Required arguments are Ruby keywords. Optional keywords default to omission, preserving the service's defaults. RBS signatures ship with the gem. Identifiers accept integers or strings; flags accept booleans or 0/1. Timestamp arguments accept strings or Ruby `Time` values. Time values use the method's documented UTC format.
+Named HTTP operations return typed `Unisender::Response` subclasses. Required arguments are Ruby keywords. Optional keywords default to omission, preserving the service's defaults. RBS signatures ship with the gem. Identifiers accept integers or strings; flags accept booleans or 0/1. Timestamp arguments accept strings or Ruby `Time` values. Time values use the method's documented UTC format.
 
 Arrays supplied to comma-separated fields are joined only by named methods. For other array or hash arguments, the form encoder emits explicit bracket indices. `request(method, params: {})` accepts the exact wire method and parameters; it does not perform method-specific conversions or validation.
 
@@ -125,7 +125,7 @@ The title must be unique within the account. `sub_user_rights` maps user IDs to 
 | --- | --- | --- |
 | `list_id` | `id` | Required |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization. Deletes the list; review the upstream consequences before use.
+**Result:** Empty JSON result on success. An empty legacy array is normalized to an empty record; `data` retains the original shape. Deletes the list; review the upstream consequences before use.
 
 </details>
 
@@ -411,7 +411,7 @@ No operation arguments.
 | `text_body` | `String` | Optional, omitted |
 | `generate_text` | `flag` | Optional, omitted |
 | `tag` | `String` | Optional, omitted |
-| `attachments` | `Hash[String, String]` | Optional, omitted |
+| `attachments` | `Hash[String, String] \| Attachment \| Array[Attachment]` | Optional, omitted |
 | `lang` | `String` | Optional, omitted |
 | `template_id` | `id` | Optional, omitted |
 | `system_template_id` | `id` | Optional, omitted |
@@ -497,7 +497,7 @@ Supply nonempty `subject` and `body`, or select `template_id` / `system_template
 | `subject` | `String` | Required |
 | `body` | `String` | Required |
 | `list_id` | `id` | Required |
-| `attachments` | `Hash[String, String]` | Optional, omitted |
+| `attachments` | `Hash[String, String] \| Attachment \| Array[Attachment]` | Optional, omitted |
 | `lang` | `String` | Optional, omitted |
 | `track_read` | `flag` | Optional, omitted |
 | `track_links` | `flag` | Optional, omitted |
@@ -597,7 +597,7 @@ Use the international phone format and an approved sender. Sending is never auto
 | --- | --- | --- |
 | `username` | `String` | Required |
 | `domain` | `String` | Optional, omitted |
-| `limit` | `Integer` | Optional, omitted |
+| `limit` | `Integer` | Optional, defaults to 100 |
 | `offset` | `Integer` | Optional, omitted |
 
 **Result:** Array of groups containing `status` and `domains`; each domain has fields such as `Domain` and `Status`. Preserve the upstream capitalization. Pagination counts domains, not groups.
@@ -659,7 +659,7 @@ Use the international phone format and an approved sender. Sending is never auto
 | --- | --- | --- |
 | `date_from` | `String` | Required |
 | `date_to` | `String` | Required |
-| `limit` | `Integer` | Optional, omitted |
+| `limit` | `Integer` | Optional, defaults to 100 |
 | `offset` | `Integer` | Optional, omitted |
 
 **Result:** Array of message objects, including identifiers, content, sender information, and version metadata. Field availability depends on email versus SMS.
@@ -693,7 +693,7 @@ Date filters use UTC `YYYY-MM-DD HH:MM`. `limit` is 1 to 100 (default 50), and `
 | --- | --- | --- |
 | `date_from` | `String` | Required |
 | `date_to` | `String` | Required |
-| `limit` | `Integer` | Optional, omitted |
+| `limit` | `Integer` | Optional, defaults to 100 |
 | `offset` | `Integer` | Optional, omitted |
 
 **Result:** Array of message summary objects. Use `get_message` when message content is needed.
@@ -712,7 +712,7 @@ Date filters use UTC `YYYY-MM-DD HH:MM`. `limit` is 1 to 100 (default 50), and `
 | --- | --- | --- |
 | `from` | `String` | Required |
 | `to` | `String` | Optional, omitted |
-| `limit` | `Integer` | Optional, omitted |
+| `limit` | `Integer` | Optional, defaults to 100 |
 | `offset` | `Integer` | Optional, omitted |
 
 **Result:** Array of campaign objects with identifiers and campaign metadata. Supports offset pagination.
@@ -810,7 +810,7 @@ Provide `template_id` or `system_template_id`; neither is required individually,
 | `type` | `String` | Optional, omitted |
 | `date_from` | `String` | Optional, omitted |
 | `date_to` | `String` | Optional, omitted |
-| `limit` | `Integer` | Optional, omitted |
+| `limit` | `Integer` | Optional, defaults to 100 |
 | `offset` | `Integer` | Optional, omitted |
 
 **Result:** Array of template objects with identifiers, titles, content, and metadata. User-only fields include `body`; system templates can provide preview URLs instead.
@@ -830,7 +830,7 @@ Provide `template_id` or `system_template_id`; neither is required individually,
 | `type` | `String` | Optional, omitted |
 | `date_from` | `String` | Optional, omitted |
 | `date_to` | `String` | Optional, omitted |
-| `limit` | `Integer` | Optional, omitted |
+| `limit` | `Integer` | Optional, defaults to 100 |
 | `offset` | `Integer` | Optional, omitted |
 
 **Result:** Array of template summary objects. Use `get_template` for a selected template.
@@ -1025,7 +1025,7 @@ No operation arguments.
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
 | `subscriber_id` | `id` | Required |
-| `limit` | `Integer` | Optional, omitted |
+| `limit` | `Integer` | Optional, defaults to 100 |
 | `offset` | `Integer` | Optional, omitted |
 | `order_type` | `String` | Optional, omitted |
 | `order_by` | `String` | Optional, omitted |
@@ -1093,7 +1093,7 @@ Object responses expose their result readers directly. Collection elements expos
 Report responses also expose `raise_for_partial_failure!`.
 A `BatchReport` exposes `responses`, `completed_batches`, `total`, `invalid`, `failures`, `complete?`, `partial?`, and `uncertain?`.
 Its totals return `nil` when the outcome does not provide reliable import counts.
-Task handles expose `task_uuid` and `wait`; their result retains the original task fields.
+Task handles expose `task_uuid`, `wait`, and `download_to`; their result retains the original task fields.
 
 ## Documentation decisions
 
@@ -1101,7 +1101,7 @@ Successful `sendTestEmail` and `updateField` examples omit the `result` envelope
 
 
 1. **D1:** The supplied [OpenAPI repository](https://gitflic.ru/project/unisender/unigo-openapi) targets UniSender Go, which has a different host and protocol. This gem does not use that specification.
-2. **D2:** Contact exports and delivery reports use `async/exportContacts` and `async/getCampaignDeliveryStats`. Both share `async/getTaskResult`. The gem returns the download URL without requesting it or forwarding credentials to it.
+2. **D2:** Contact exports and delivery reports use `async/exportContacts` and `async/getCampaignDeliveryStats`. Both share `async/getTaskResult`. The gem returns the download URL. Only an explicit `download_to` requests it, using a separate connection without API credentials.
 3. **D3:** Note page titles misspell create and update operations. Their request examples use `createSubscriberNote` and `updateSubscriberNote`; the gem follows those request URLs.
 4. **D4:** Event Tracking's endpoint definition specifies `https://event.unisender.com/v1/events/`, but its examples omit `/v1`. The gem follows the endpoint definition. The page also shows both a string `error` and structured `details`; `EventError#details` accepts either representation. HTTP 400 can mean partial acceptance.
 5. **D5:** The create-email page allows templates to supply subject and body. Both template selectors satisfy this alternative; the gem does not invent precedence if both are supplied. Its syntax lists `categories`, although its argument table omits it; the gem accepts that documented keyword.
@@ -1114,11 +1114,26 @@ Successful `sendTestEmail` and `updateField` examples omit the `result` envelope
 | --- | --- |
 | `each_page(method, page_size: 100, max_pages: 1000, **params)` | Lazy Enumerator of responses for `get_campaigns`, `get_messages`, `list_messages`, `get_templates`, `list_templates`, `get_sender_domain_list`, and `get_subscriber_notes`. An optional `offset` starts iteration. Stops at a short or empty page; raises at the page bound. Offset pagination is not a server snapshot. |
 | `import_contacts_in_batches(field_names:, data:, batch_size: 500, ...)` | Immediate sequential import returning a `BatchReport`; `each_import_batch` is the lazy equivalent. Accepts `overwrite_tags`, `overwrite_lists`, and `telegram_bot_channel_id`. Stops on request failures or a nonzero `invalid` count. |
-| `track_events_in_batches(events:, batch_size: 25)` | Immediate sequential event batches returning a `BatchReport`; `each_event_batch` is the lazy equivalent. Each request must also meet the 130 KiB payload limit. Use a smaller batch size for large events. |
+| `track_events_in_batches(events:, batch_size: 25)` | Immediate sequential event batches returning a `BatchReport`; `each_event_batch` is the lazy equivalent. Each request must also meet the 130 KiB payload limit. Batches also split automatically when the next event would exceed the byte limit. |
 | `wait_for_task(task_uuid:, interval: 1, timeout: 60)` | Polls existing tasks until completion, with a monotonic deadline. Raises on an unknown task state. Deadlines are checked between requests; an in-flight request remains bounded by transport timeouts. |
 
 `each_page` accepts the same operation keywords as the corresponding named method, except that `page_size` replaces `limit`. Unknown keywords, non-symbol keys, and missing or empty required values raise `ArgumentError` when the iterator is constructed, before any request. Direct named calls reject invalid arguments immediately. The low-level `request` method retains its existing parameter handling.
 
-Pagination additionally requires a positive integer page size within the method's documented limit, a positive integer `max_pages`, and a nonnegative integer `offset`. These are helper controls; direct named calls retain the service's validation of their `limit` and `offset` values. Each yielded response preserves its warnings and metadata.
+Pagination additionally requires a positive integer page size within the method's documented limit, a positive integer `max_pages`, and a nonnegative integer `offset`. Named paginated reads use the same local validation for `limit` and `offset`. Each yielded response preserves its warnings and metadata.
 
 Batch helper failures raise `BatchError`. Its `completed_responses` contains earlier successful batches, `failed_range` is the zero-based, end-exclusive input range with an uncertain or failed outcome, and `error` contains the original failure. A failed batch can still contain accepted records. Helpers do not replay batches or roll back earlier changes.
+
+## Optional workflow helpers
+
+| Helper | Contract |
+| --- | --- |
+| `Client.new(persistent: true)` | Reuses verified TLS connections to the marketing and Event Tracking origins. Requests on one transport are serialized. Idle connections expire after 30 seconds. A PID change discards inherited connections. Failed requests are not replayed by the transport. |
+| `client.close` | Idempotent. Rejects subsequent client requests and closes owned persistent connections. It does not close an injected transport. |
+| `RateLimiter.new(global: [count, seconds], methods: { "wireName" => [count, seconds] })` | Sliding windows apply before every marketing attempt, including retries. Share the instance to share a process-local budget. The injected `clock:` and `sleeper:` are optional. Event Tracking bypasses this limiter. |
+| `RateLimiter.unisender` | Uses the global and method-specific limits documented at the linked [request limits page](https://www.unisender.com/ru/support/api/common/api-limits/). It is opt-in and cannot account for requests from other processes. |
+| `Attachment.new(filename:, bytes:)` | Immutable binary snapshot. `from_path(path, filename:)` defaults to the basename. `from_io(io, filename:)` reads from the current position and leaves the IO open. Duplicate filenames and invalid form-field delimiters are rejected. |
+| `send_campaign(message:, campaign: {})` | Validates keyword sets and required values before either request. `message:` takes create-email options; `campaign:` takes create-campaign options except `message_id`. Returns `CampaignReceipt(message:, campaign:)`. A second-step failure raises `CampaignWorkflowError` with `message_response` and the underlying `error`. No rollback or automatic replay. |
+| `completed.download_to(io, max_bytes:, downloader: Downloader.new)` | Requires a completed task with a download URL. Returns `DownloadReceipt` with `bytes_written` and `http_status`. Never closes the IO or polls implicitly. |
+| `Downloader.new(open_timeout: 5, read_timeout: 60, write_timeout: 30)` | Separate credential-free HTTPS GET, no redirects or retries. Resolves once, rejects private or mixed public/private answers, and pins the chosen address while retaining hostname certificate verification. Downloads stream within the caller's byte limit; timeout values bound connection and IO operations, not the total transfer duration. |
+
+`DownloadError` exposes `reason`, `bytes_written`, and optional `http_status`. Reasons include `invalid_url`, `blocked_destination`, `http_error`, `too_large`, `incomplete`, `write_failed`, and `transport`. Signed URLs do not appear in error messages. Failed downloads can leave partial data in the caller's IO. The caller decides whether to discard or keep it. Custom downloader `resolver:` and `http_factory:` callbacks are trusted test seams and must preserve destination validation and TLS verification in production.

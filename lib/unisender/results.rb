@@ -4,11 +4,27 @@ module Unisender
   # Operation-specific decoding leaves the low-level request path unchanged.
   module Results
     def self.build(method, response)
-      return response if method == "isContactInLists"
+      return boolean(response) if method == "isContactInLists"
 
       value = normalize(method, response.result)
+      validate_container(method, value)
       model, wrapper = MODELS.fetch(method) { [Record, ObjectResponse] }
       wrap(value, model, wrapper, response)
+    end
+
+    def self.boolean(response)
+      raise InvalidResponseError, "Expected boolean result" unless [true, false].include?(response.result)
+
+      response
+    end
+
+    def self.validate_container(method, value)
+      return if method == "sendSms"
+
+      collection = COLLECTION_OPERATIONS.include?(method)
+      return if collection == value.is_a?(Array)
+
+      raise InvalidResponseError, "Unexpected result container"
     end
 
     def self.normalize(method, value)

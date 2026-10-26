@@ -12,6 +12,9 @@ module Unisender
     MINUTES: Array[String]
     SECONDS: Array[String]
     DATES: Array[Symbol]
+    def self.attachments: (parameter) -> parameter
+    def self.attachment_parameters: (params) -> params
+    def self.attachment_items: (parameter) -> Array[Attachment]
     def self.normalize: (String, params) -> params
     def self.timestamp_format: (String) -> String?
     def self.mode: (parameter, Hash[Symbol, Integer], Symbol) -> Integer?

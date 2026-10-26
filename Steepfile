@@ -4,7 +4,7 @@ target :unisender do
   check "lib"
   signature "sig"
 
-  library "net-http", "json", "uri", "openssl", "time"
+  library "net-http", "json", "uri", "openssl", "time", "ipaddr"
 
   configure_code_diagnostics(Steep::Diagnostic::Ruby.strict)
 end
@@ -14,7 +14,7 @@ target :consumer do
   signature "sig"
   signature "test/consumer"
 
-  library "net-http", "json", "uri", "openssl", "time"
+  library "net-http", "json", "uri", "openssl", "time", "ipaddr"
 
   configure_code_diagnostics(Steep::Diagnostic::Ruby.strict)
 end

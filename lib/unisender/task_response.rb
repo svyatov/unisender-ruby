@@ -14,6 +14,15 @@ module Unisender
     def wait(interval: 1, timeout: 60, clock: nil, sleeper: nil, &)
       @client.wait_for_task(task_uuid:, interval:, timeout:, clock:, sleeper:, &)
     end
+
+    def download_to(io, max_bytes:, downloader: Downloader.new)
+      raise TaskError, self unless status == "completed"
+
+      url = file_to_download
+      raise InvalidResponseError, "Missing task download URL" unless url
+
+      downloader.download(url, io, max_bytes:)
+    end
   end
 
   class TaskFailedError < TaskError; end

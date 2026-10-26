@@ -1,0 +1,9 @@
+dependencies:
+  - name: net-http
+  - name: json
+  - name: uri
+  - name: openssl
+  - name: time
+  - name: ipaddr
+  - name: socket
+  - name: timeout

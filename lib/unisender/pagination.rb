@@ -77,8 +77,7 @@ module Unisender
     end
 
     def page_length(response)
-      result = response.result
-      raise InvalidResponseError, "Expected paginated result array" unless result.is_a?(Array)
+      result = response.result # : Array[Record]
       return result.size unless @method == "get_sender_domain_list"
 
       result.sum do |group|

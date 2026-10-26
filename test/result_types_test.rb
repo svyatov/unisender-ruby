@@ -39,7 +39,7 @@ class ResultTypesTest < Minitest::Test
   def definition_builder
     loader = RBS::EnvironmentLoader.new
     loader.add(path: Pathname.new(File.expand_path("../sig", __dir__)))
-    %w[net-http json uri openssl time].each { |name| loader.add(library: name) }
+    %w[net-http json uri openssl time ipaddr].each { |name| loader.add(library: name) }
     RBS::DefinitionBuilder.new(env: RBS::Environment.from_loader(loader).resolve_type_names)
   end
 end

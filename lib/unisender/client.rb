@@ -6,6 +6,8 @@ module Unisender
     RESERVED_PARAMETERS = %w[api_key format].freeze
     TASK_METHODS = %w[async/exportContacts async/getCampaignDeliveryStats async/getTaskResult].freeze
     UNSET = :__unisender_unset__
+    EMAIL_REQUIRED = %w[sender_name sender_email list_id].freeze
+    CAMPAIGN_REQUIRED = %w[message_id].freeze
 
     # @type method initialize: (api_key: String, **config_value) -> void
     def initialize(api_key:, **)
@@ -15,29 +17,6 @@ module Unisender
       @transport = @configuration.transport
       @retry_policy = @configuration.retry_policy
       freeze
-    end
-
-    class << self
-      # rubocop:disable-next Metrics/ParameterLists -- Mirrors the constructor options for typed forwarding.
-      def from_env(env: ENV, language: :en, transport: nil, retry_policy: nil, open_timeout: nil,
-                   read_timeout: nil, write_timeout: nil, max_retries: nil, max_elapsed: nil,
-                   message_defaults: {}, instrumentation: nil)
-        key = env["UNISENDER_API_KEY"]
-        raise ArgumentError, "UNISENDER_API_KEY is required" unless key
-
-        new(api_key: key, language:, transport:, retry_policy:, open_timeout:, read_timeout:, write_timeout:,
-            max_retries:, max_elapsed:, message_defaults:, instrumentation:)
-      end
-    end
-
-    # @type method with: (**config_value) -> Client
-    def with(**options)
-      settings = @configuration.options_for(options)
-      key = settings.delete(:api_key)
-      case key
-      when String then Client.new(api_key: key, **settings)
-      else raise ArgumentError, "api_key must be a string"
-      end
     end
 
     def request(method, params: {})
@@ -67,6 +46,9 @@ module Unisender
 
     # rubocop:disable-next Metrics/MethodLength -- Start the clock outside request failure handling.
     def exchange(operation, uri, headers:, body:, attempt: 1)
+      @configuration.check_open!
+      limiter = @configuration.rate_limiter
+      limiter.acquire(operation) if limiter && operation != "track_events"
       started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       response = nil
       begin
@@ -95,6 +77,14 @@ module Unisender
     # The wire response stays JSON; each named operation declares the documented result type.
     # @type method invoke: (String, params, ?required: Array[String], ?comma: Array[String]) -> Response
     def invoke(method, params, required: [], comma: [])
+      params = prepare(method, params, required:, comma:)
+      response = Results.build(method, request(method, params:))
+      bind_task(method, response, params)
+    rescue Error => e
+      raise e.with_operation(method), cause: nil
+    end
+
+    def prepare(method, params, required: [], comma: [])
       params = message_defaults(params)
       params = Inputs.normalize(method, params)
       Validation.required!(params, required)
@@ -103,8 +93,7 @@ module Unisender
         value = params[name.to_sym]
         params[name.to_sym] = Validation.comma_list(value) if value.is_a?(Array)
       end
-      response = Results.build(method, request(method, params:))
-      bind_task(method, response, params)
+      params
     end
 
     def message_defaults(params)
@@ -116,12 +105,12 @@ module Unisender
 
     def bind_task(method, response, params)
       return response unless TASK_METHODS.include?(method)
-      raise InvalidResponseError, "Expected task result" unless response.is_a?(TaskResultResponse)
 
-      uuid = params[:task_uuid] || response.task_uuid
+      task = response # : TaskResultResponse
+      uuid = params[:task_uuid] || task.task_uuid
       raise InvalidResponseError, "Missing task UUID" unless uuid.is_a?(String)
 
-      TaskResponse.new(response, client: self, task_uuid: uuid)
+      TaskResponse.new(task, client: self, task_uuid: uuid)
     end
   end
 end

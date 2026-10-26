@@ -29,12 +29,12 @@ module Unisender
       params = { message_id:, start_time:, timezone:, track_read:, track_links:, contacts:, contacts_url:,
                  track_ga:, payment_limit:, payment_currency:, ga_medium:, ga_source:, ga_campaign:,
                  ga_content:, ga_term: }
-      invoke("createCampaign", params, required: %w[message_id], comma: %w[contacts])
+      invoke("createCampaign", params, required: CAMPAIGN_REQUIRED, comma: %w[contacts])
     end
 
     # https://www.unisender.com/ru/support/api/messages/createemailmessage/
     # rubocop:disable Layout/LineLength -- The static annotation mirrors the complete keyword signature.
-    # @type method create_email_message: (?sender_name: (String | Symbol)?, ?sender_email: (String | Symbol)?, list_id: id, ?subject: String | nil, ?body: String | nil, ?text_body: String | nil, ?generate_text: flag | nil, ?tag: String | nil, ?attachments: Hash[String, String] | nil, ?lang: String | Symbol | nil, ?template_id: id | nil, ?system_template_id: id | nil, ?wrap_type: String | nil, ?categories: String | Array[id] | nil) -> MessageCreatedResponse
+    # @type method create_email_message: (?sender_name: (String | Symbol)?, ?sender_email: (String | Symbol)?, list_id: id, ?subject: String | nil, ?body: String | nil, ?text_body: String | nil, ?generate_text: flag | nil, ?tag: String | nil, ?attachments: Hash[String, String] | Attachment | Array[Attachment] | nil, ?lang: String | Symbol | nil, ?template_id: id | nil, ?system_template_id: id | nil, ?wrap_type: String | nil, ?categories: String | Array[id] | nil) -> MessageCreatedResponse
     # rubocop:enable Layout/LineLength
     # rubocop:disable-next Metrics/ParameterLists -- Mirrors the documented operation.
     def create_email_message(list_id:, sender_name: UNSET, sender_email: UNSET, subject: nil, body: nil, text_body: nil,
@@ -43,7 +43,7 @@ module Unisender
                              wrap_type: nil, categories: nil)
       params = { sender_name:, sender_email:, list_id:, subject:, body:, text_body:, generate_text:, tag:,
                  attachments:, lang:, template_id:, system_template_id:, wrap_type:, categories: }
-      invoke("createEmailMessage", params, required: %w[sender_name sender_email list_id], comma: %w[categories])
+      invoke("createEmailMessage", params, required: EMAIL_REQUIRED, comma: %w[categories])
     end
 
     # https://www.unisender.com/ru/support/api/messages/createsmsmessage/

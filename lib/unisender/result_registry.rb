@@ -61,6 +61,9 @@ module Unisender
       "getSubscriberNotes" => [Note, NoteResponse]
     }
     MODELS = models.freeze
+    COLLECTION_OPERATIONS = %w[getLists checkEmail getSenderDomainList getMessages listMessages
+                               getCampaigns getVisitedLinks getTemplates listTemplates getFields getTags
+                               getSubscriberNotes].freeze
     EMPTY_OPERATIONS = %w[deleteList exclude updateList unsubscribe cancelCampaign deleteMessage
                           sendTestEmail updateField updateOptInEmail deleteTemplate deleteField
                           deleteTag deleteSubscriberNote].freeze

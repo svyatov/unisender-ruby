@@ -16,7 +16,6 @@ module Unisender
       @read_timeout = read_timeout
       @write_timeout = write_timeout
       @http_factory = http_factory || ->(uri) { Net::HTTP.new(uri.hostname.to_s, uri.port) }
-      freeze
     end
 
     def post(uri, headers:, body:)
@@ -34,9 +33,13 @@ module Unisender
     def exchange(uri, headers:, body:)
       request = Net::HTTP::Post.new(uri, headers)
       request.body = body
-      response = configured_http(uri).request(request)
+      response = perform(uri, request)
       headers = response.to_hash.transform_values { |items| items.join(", ") }
       HTTPResponse.new(status: response.code.to_i, headers:, body: response.body.to_s)
+    end
+
+    def perform(uri, request)
+      configured_http(uri).request(request)
     end
 
     def configured_http(uri)

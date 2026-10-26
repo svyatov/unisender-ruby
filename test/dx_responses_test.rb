@@ -34,6 +34,14 @@ class DxResponsesTest < Minitest::Test
     refute client(false).contact_in_lists?(email: "a@b.test", list_ids: [1], condition: :all)
   end
 
+  def test_named_responses_reject_the_wrong_container_type
+    assert_raises(Unisender::InvalidResponseError) { client({ "id" => 1, "title" => "News" }).get_lists }
+    assert_raises(Unisender::InvalidResponseError) { client([{ "id" => 1 }]).create_list(title: "News") }
+    assert_raises(Unisender::InvalidResponseError) do
+      client("false").is_contact_in_lists(email: "a@b.test", list_ids: [1], condition: "all")
+    end
+  end
+
   def test_message_read_is_singular
     response = client([{ "id" => 1, "subject" => "News" }]).get_message(id: 1)
 

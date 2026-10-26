@@ -2,7 +2,7 @@ module Unisender
   VERSION: String
 
   type json = nil | bool | Integer | Float | String | Array[json] | Hash[String, json]
-  type parameter = nil | bool | Integer | Float | String | Symbol | Time | Array[parameter] | Hash[String | Symbol | Integer, parameter]
+  type parameter = nil | bool | Integer | Float | String | Symbol | Time | Attachment | Array[parameter] | Hash[String | Symbol | Integer, parameter]
   type params = Hash[String | Symbol | Integer, parameter]
   type duration = Integer | Float
   type value = json | Record | Array[value]
@@ -230,20 +230,24 @@ module Unisender
     private
     def configured_http: (URI::Generic) -> Net::HTTP
     def exchange: (URI::Generic, headers: Hash[String, String], body: String) -> HTTPResponse
+    def perform: (URI::Generic, Net::HTTPRequest) -> Net::HTTPResponse
   end
 
   class Client
     RESERVED_PARAMETERS: Array[String]
     TASK_METHODS: Array[String]
     UNSET: Symbol
+    EMAIL_REQUIRED: Array[String]
+    CAMPAIGN_REQUIRED: Array[String]
     @configuration: Configuration
     @api_key: String
     @language: String
     @transport: _Transport
     @retry_policy: RetryPolicy
-    def initialize: (api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?) -> void
-    def self.from_env: (?env: _Environment, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?) -> Client
-    def with: (?api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?) -> Client
+    def initialize: (api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?, ?persistent: bool, ?rate_limiter: RateLimiter?) -> void
+    def self.from_env: (?env: _Environment, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?, ?persistent: bool, ?rate_limiter: RateLimiter?) -> Client
+    def close: () -> void
+    def with: (?api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?, ?persistent: bool, ?rate_limiter: RateLimiter?) -> Client
     def request: (String, ?params: params) -> Response[json]
     def track_events: (events: Array[params]) -> EventResponse
     def each_page: (String | Symbol, ?page_size: Integer, ?max_pages: Integer, **parameter) -> Enumerator[PageResponse[Record], void]
@@ -262,6 +266,7 @@ module Unisender
     def bind_task: (String, Response, params) -> Response
     def import_source: (Array[String]?, Enumerable[Array[parameter]]?, Enumerable[params]?) -> (RecordRows | Enumerable[Array[parameter]])
     def parse_event_response: (HTTPResponse) -> EventResponse
+    def prepare: (String, params, ?required: Array[String], ?comma: Array[String]) -> params
     def invoke: [Result] (String, params, ?required: Array[String], ?comma: Array[String]) -> Result
     def validate_request: (String, params) -> void
   end

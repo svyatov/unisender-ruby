@@ -25,13 +25,42 @@ module Unisender
     DATES = %i[date_from date_to from to start_time changed_since].freeze
 
     def self.normalize(method, params)
-      result = params.dup
+      result = attachment_parameters(params)
       MODES.each { |key, modes| result[key] = mode(result[key], modes, key) } if method == "subscribe"
       format = timestamp_format(method)
       return result unless format
 
       DATES.each { |key| result[key] = timestamp(result[key], format, key) if result.key?(key) }
       result
+    end
+
+    def self.attachment_parameters(params)
+      result = params.dup
+      result[:attachments] = attachments(result[:attachments]) if result.key?(:attachments)
+      result
+    end
+
+    def self.attachments(value)
+      return value if value.nil? || value.is_a?(Hash)
+
+      output = {} # : Hash[String, parameter]
+      attachment_items(value).each do |item|
+        raise ValidationError.new(field: "attachments", code: :duplicate_filename) if output.key?(item.filename)
+
+        output[item.filename] = item.bytes
+      end
+      output
+    end
+
+    def self.attachment_items(value)
+      items = value.is_a?(Attachment) ? [value] : value
+      raise ValidationError.new(field: "attachments", code: :invalid_type) unless items.is_a?(Array)
+
+      items.map do |item|
+        raise ValidationError.new(field: "attachments", code: :invalid_type) unless item.is_a?(Attachment)
+
+        item
+      end
     end
 
     def self.timestamp_format(method)
