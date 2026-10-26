@@ -111,6 +111,8 @@ Use `contact.email_address` and `contact.phone_number` for stable address reader
 
 Named methods use snake_case and reject unknown keywords. Optional `nil` values are omitted, preserving server defaults. API messages default to English; use `Client.new(api_key: ..., language: :ru)` for Russian. Message-level `lang:` is a separate setting.
 
+Campaign `Time` values use explicit UTC and minute precision. String timestamps retain the specified or account-default timezone.
+
 Library-detected input failures raise `ValidationError`, an `ArgumentError` subclass with `field`, `code`, and `operation`.
 Known flags accept only booleans or 0/1. Template types and note ordering also accept documented Symbol choices.
 `send_email` requests detailed recipient acceptance by default; set `error_checking: false` for the legacy response or `nil` to omit it.

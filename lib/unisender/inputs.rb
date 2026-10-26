@@ -41,18 +41,29 @@ module Unisender
       double_optin: { request_confirmation: 0, already_confirmed: 3, confirm_if_needed: 4 }.freeze,
       overwrite: { preserve: 0, replace: 1, update: 2 }.freeze
     }.freeze
-    MINUTES = %w[getMessages listMessages getTemplates listTemplates].freeze
-    SECONDS = %w[getCampaigns createCampaign async/getCampaignDeliveryStats].freeze
+    MINUTES = %w[getMessages listMessages getTemplates listTemplates createCampaign].freeze
+    SECONDS = %w[getCampaigns async/getCampaignDeliveryStats].freeze
     DATES = %i[date_from date_to from to start_time changed_since].freeze
 
     def self.normalize(method, params)
       result = NamedInputs.normalize(method, attachment_parameters(params))
+      schedule_timezone!(result) if method == "createCampaign"
       MODES.each { |key, modes| result[key] = mode(result[key], modes, key) } if method == "subscribe"
       format = timestamp_format(method)
       return result unless format
 
       DATES.each { |key| result[key] = timestamp(result[key], format, key) if result.key?(key) }
       result
+    end
+
+    def self.schedule_timezone!(params)
+      return unless params[:start_time].is_a?(Time)
+
+      unless params[:timezone].nil? || params[:timezone] == "UTC"
+        raise ValidationError.new(field: "timezone", code: :conflicting_input)
+      end
+
+      params[:timezone] = "UTC"
     end
 
     def self.attachment_parameters(params)

@@ -55,6 +55,9 @@ Pagination errors expose `next_offset` and `completed_pages` for recovery. Direc
 
 ## Inputs and tasks
 
+Campaign `Time` inputs use UTC with `timezone: "UTC"`. Seconds are truncated to the API's minute precision.
+Conflicting timezone arguments raise `ValidationError`. String inputs retain their explicit or account-default timezone.
+
 Named flags reject values outside booleans and 0/1 before networking. Known closed choices reject unsupported values.
 Library validation failures expose structured fields through `ValidationError`, while remaining rescuable as `ArgumentError`.
 `send_email` defaults `error_checking` to true. Use recipient results for IDs; explicit false retains the legacy format.

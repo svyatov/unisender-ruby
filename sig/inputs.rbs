@@ -21,6 +21,7 @@ module Unisender
   end
 
   module Inputs
+    def self.schedule_timezone!: (params) -> void
     MODES: Hash[Symbol, Hash[Symbol, Integer]]
     MINUTES: Array[String]
     SECONDS: Array[String]
