@@ -3,6 +3,7 @@
 module Unisender
   # Synchronous client for the documented UniSender API.
   class Client
+    USER_AGENT = "unisender-ruby/#{VERSION} Ruby/#{RUBY_VERSION}".freeze
     RESERVED_PARAMETERS = %w[api_key format].freeze
     TASK_METHODS = %w[async/exportContacts async/getCampaignDeliveryStats async/getTaskResult].freeze
     UNSET = :__unisender_unset__

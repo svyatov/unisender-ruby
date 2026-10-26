@@ -34,7 +34,7 @@ module Unisender
     def request_values(method, params)
       validate_request(method, params)
       uri = URI("https://api.unisender.com/#{@language}/api/#{method}")
-      headers = { "Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8" }
+      headers = { "Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8", "User-Agent" => USER_AGENT }
       body = Form.encode(params.merge("api_key" => @api_key, "format" => "json"))
       [uri, headers, body]
     end

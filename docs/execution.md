@@ -28,6 +28,19 @@ One `RateLimiter` coordinates clients in one Ruby process. It cannot coordinate 
 
 Give each worker an explicit client and close it when the worker stops. Inject the client into application services. Do not construct persistent clients before forking. Keep contact data and raw error details out of logs; log the operation, category, and request ID instead.
 
+### Client ownership
+
+| Client or resource | Lifetime and sharing |
+| --- | --- |
+| Default client | Creates a separate connection for each request; close it when its application owner stops. |
+| Persistent client | Serializes requests on its built-in transport. Sharing one client does not increase request concurrency. |
+| `client.with(...)` | Creates an independent client lifetime. An injected transport remains shared and caller-owned. |
+| `with_execution` client | Borrows its parent's transport and expires when the block ends. Close the parent at its normal lifetime boundary. |
+| Injected transports and callbacks | The application supplies any synchronization their implementation needs. |
+| Forked worker | Construct clients after forking. Built-in persistent transports discard inherited connections on a PID change. |
+
+Both API protocols send a User-Agent containing the gem and Ruby versions, without account or host information.
+
 ## Cooperative execution scopes
 
 ```ruby

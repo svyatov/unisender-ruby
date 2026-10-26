@@ -5,7 +5,8 @@ module Unisender
   class Client
     def track_events(events:)
       body = EventPayload.encode(events)
-      headers = { "Content-Type" => "application/json", "Authorization" => "Bearer #{@api_key}" }
+      headers = { "Content-Type" => "application/json", "Authorization" => "Bearer #{@api_key}",
+                  "User-Agent" => USER_AGENT }
       exchange("track_events", URI("https://event.unisender.com/v1/events/"), headers:, body:) do |http|
         parse_event_response(http)
       end

@@ -1,4 +1,7 @@
 module Unisender
+  class Client
+    USER_AGENT: String
+  end
   type config_value = bool | RateLimiter | String | Symbol | duration | _Transport | RetryPolicy | Hash[String | Symbol, String?] | Hash[Symbol, String] | (^(RequestEvent) -> void) | nil
 
   interface _Environment

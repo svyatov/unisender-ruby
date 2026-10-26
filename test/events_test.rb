@@ -22,7 +22,8 @@ class EventsTest < Minitest::Test
 
     assert_equal [{ "success" => true }, "https://event.unisender.com/v1/events/"],
                  [response.as_json, request[:uri].to_s]
-    assert_equal({ "Content-Type" => "application/json", "Authorization" => "Bearer test-key" }, request[:headers])
+    assert_equal({ "Content-Type" => "application/json", "Authorization" => "Bearer test-key",
+                   "User-Agent" => Unisender::Client::USER_AGENT }, request[:headers])
     assert_equal EXPECTED, JSON.parse(request[:body])
   end
 

@@ -4,6 +4,8 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Identify API requests with the gem and Ruby versions and document client ownership across variants, threads, and forks.
+
 - Add redacted error diagnostics, structural field paths, expected and actual types, and request context on malformed responses.
 
 - Add an independent optional Event Tracking rate limiter and validate message-default containers locally.
