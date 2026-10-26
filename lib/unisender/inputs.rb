@@ -3,14 +3,27 @@
 module Unisender
   # Local structural failures omit parameter values from diagnostics.
   class ValidationError < ArgumentError
-    attr_reader :field, :code, :operation, :index
+    attr_reader :field, :code, :operation, :index, :expected_type, :actual_type
 
-    def initialize(field:, code:, operation: nil, index: nil)
-      @field = field
+    # rubocop:disable-next Metrics/ParameterLists -- Structured diagnostic fields remain explicit.
+    def initialize(field:, code:, operation: nil, index: nil, expected_type: nil, actual_type: nil)
+      @field = Diagnostics.input_path(field)
       @code = code
       @operation = operation
       @index = index
-      super("Invalid parameter #{field}: #{code}")
+      @expected_type = expected_type
+      @actual_type = actual_type
+      super("Invalid parameter #{@field}: #{code}")
+    end
+
+    alias path field
+
+    def diagnostics
+      Diagnostics.for_error(self)
+    end
+
+    def documentation_url
+      Diagnostics::URLS[@operation.to_s]
     end
 
     def with_operation(operation)
@@ -41,18 +54,37 @@ module Unisender
       double_optin: { request_confirmation: 0, already_confirmed: 3, confirm_if_needed: 4 }.freeze,
       overwrite: { preserve: 0, replace: 1, update: 2 }.freeze
     }.freeze
-    MINUTES = %w[getMessages listMessages getTemplates listTemplates].freeze
-    SECONDS = %w[getCampaigns createCampaign async/getCampaignDeliveryStats].freeze
+    MINUTES = %w[getMessages listMessages getTemplates listTemplates createCampaign].freeze
+    SECONDS = %w[getCampaigns async/getCampaignDeliveryStats].freeze
     DATES = %i[date_from date_to from to start_time changed_since].freeze
 
     def self.normalize(method, params)
-      result = NamedInputs.normalize(method, attachment_parameters(params))
-      MODES.each { |key, modes| result[key] = mode(result[key], modes, key) } if method == "subscribe"
+      result = operation_values(method, NamedInputs.normalize(method, attachment_parameters(params)))
       format = timestamp_format(method)
       return result unless format
 
       DATES.each { |key| result[key] = timestamp(result[key], format, key) if result.key?(key) }
       result
+    end
+
+    def self.operation_values(method, result)
+      case method
+      when "sendSms" then result[:phone] = SmsInputs.phone(result[:phone])
+      when "sendEmail" then result = MailInputs.normalize(result)
+      when "createCampaign" then schedule_timezone!(result)
+      when "subscribe" then MODES.each { |key, modes| result[key] = mode(result[key], modes, key) }
+      end
+      result
+    end
+
+    def self.schedule_timezone!(params)
+      return unless params[:start_time].is_a?(Time)
+
+      unless params[:timezone].nil? || params[:timezone] == "UTC"
+        raise ValidationError.new(field: "timezone", code: :conflicting_input)
+      end
+
+      params[:timezone] = "UTC"
     end
 
     def self.attachment_parameters(params)
@@ -107,6 +139,7 @@ module Unisender
     end
 
     def self.contact_fields(fields, email)
+      validate_email_alias(email)
       unless fields.nil? || fields.is_a?(Hash)
         raise ValidationError.new(field: "fields", code: :invalid_type, operation: "subscribe")
       end
@@ -119,6 +152,13 @@ module Unisender
       merge_email(result, email) if email
       validate_email(result)
       result
+    end
+
+    def self.validate_email_alias(email)
+      return if email.nil? || email.is_a?(String)
+
+      raise ValidationError.new(field: "email", code: :invalid_type, operation: "subscribe",
+                                expected_type: "String", actual_type: Diagnostics.type_name(email))
     end
 
     def self.merge_email(result, email)
@@ -136,6 +176,23 @@ module Unisender
       return if address.is_a?(String) && !address.empty?
 
       raise ValidationError.new(field: "fields.email", code: :required, operation: "subscribe")
+    end
+  end
+
+  # SMS numbers remain strings and share one bounded recipient list.
+  module SmsInputs
+    def self.phone(value)
+      text = case value
+             when Array then Validation.comma_list(value, field: "phone")
+             when String then value
+             else raise ValidationError.new(field: "phone", code: :invalid_type)
+             end
+      phones = text.split(",", -1)
+      unless (1..150).cover?(phones.size) && phones.none? { |phone| phone.strip.empty? }
+        raise ValidationError.new(field: "phone", code: :invalid_count)
+      end
+
+      text
     end
   end
 
@@ -166,6 +223,7 @@ module Unisender
     end
 
     def self.count_filters(params, tag_id, contact_type, search)
+      params = filter_container(params)
       validate_filters(tag_id, search)
       if params && [tag_id, contact_type, search].any?
         raise ValidationError.new(field: "params", code: :conflicting_input, operation: "getContactCount")
@@ -176,6 +234,12 @@ module Unisender
       raise ValidationError.new(field: "contact_type", code: :required, operation: "getContactCount") if search && !type
 
       { tagId: tag_id, type:, search: }.compact
+    end
+
+    def self.filter_container(value)
+      return value if value.nil? || value.is_a?(Hash)
+
+      raise ValidationError.new(field: "params", code: :invalid_type, operation: "getContactCount")
     end
 
     def self.validate_filters(tag_id, search)

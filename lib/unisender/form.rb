@@ -10,7 +10,7 @@ module Unisender
     end
 
     def self.pairs(value, prefix, depth)
-      raise ValidationError.new(field: "parameters", code: :too_deep) if depth > 32
+      raise ValidationError.new(field: prefix.to_s, code: :too_deep) if depth > 32
 
       case value
       when Hash
@@ -44,29 +44,31 @@ module Unisender
     def self.scalar(value, name)
       case value
       when String
-        name.start_with?("attachments[") ? value.b : text(value)
+        name.start_with?("attachments[") ? value.b : text(value, name)
       when true then "1"
       when false then "0"
       when nil then ""
-      else numeric(value)
+      else numeric(value, name)
       end
     end
 
-    def self.text(value)
-      raise ValidationError.new(field: "parameters", code: :invalid_encoding) unless value.valid_encoding?
+    def self.text(value, field = "parameters")
+      raise ValidationError.new(field:, code: :invalid_encoding) unless value.valid_encoding?
 
       value.encode(Encoding::UTF_8)
+    rescue EncodingError
+      raise ValidationError.new(field:, code: :invalid_encoding), cause: nil
     end
 
-    def self.numeric(value)
+    def self.numeric(value, field = "parameters")
       case value
       when Integer then value.to_s
       when Float
-        raise ValidationError.new(field: "parameters", code: :invalid_number) unless value.finite?
+        raise ValidationError.new(field:, code: :invalid_number) unless value.finite?
 
         value.to_s
       else
-        raise ValidationError.new(field: "parameters", code: :invalid_type)
+        raise ValidationError.new(field:, code: :invalid_type, actual_type: Diagnostics.type_name(value))
       end
     end
   end

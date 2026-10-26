@@ -18,12 +18,14 @@ module Unisender
       # rubocop:disable-next Metrics/ParameterLists -- Mirrors the constructor options for typed forwarding.
       def from_env(env: ENV, language: :en, transport: nil, retry_policy: nil, open_timeout: nil,
                    read_timeout: nil, write_timeout: nil, max_retries: nil, max_elapsed: nil,
-                   message_defaults: {}, instrumentation: nil, persistent: false, rate_limiter: nil)
+                   message_defaults: {}, instrumentation: nil, persistent: false, rate_limiter: nil,
+                   event_rate_limiter: nil, acceptance_instrumentation: nil)
         key = env["UNISENDER_API_KEY"]
         raise ArgumentError, "UNISENDER_API_KEY is required" unless key
 
         new(api_key: key, language:, transport:, retry_policy:, open_timeout:, read_timeout:, write_timeout:,
-            max_retries:, max_elapsed:, message_defaults:, instrumentation:, persistent:, rate_limiter:)
+            max_retries:, max_elapsed:, message_defaults:, instrumentation:, persistent:, rate_limiter:,
+            event_rate_limiter:, acceptance_instrumentation:)
       end
     end
 

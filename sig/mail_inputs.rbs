@@ -1,0 +1,8 @@
+module Unisender
+  module MailInputs
+    def self.normalize: (params) -> params
+    def self.headers: (params) -> Hash[String, String]
+    def self.header: (parameter) -> String?
+    def self.merge: (parameter, Hash[String, String]) -> params
+  end
+end

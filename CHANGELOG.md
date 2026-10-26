@@ -4,6 +4,37 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Parse diagnostic bracket fields without regex substitution while preserving index paths and redaction.
+
+- Add campaign lifecycle and durable import examples, a complete Rails integration, verified Cursor setup, and shorter task-oriented documentation.
+
+- Keep offline pagination validation aligned with execution and report indexed event and response-shape errors.
+- Mark acceptance as uncertain when responses omit inputs or return inconsistent counts; enforce false JSON expectations.
+
+- Add optional fixture builders and redacted subset assertions for queued form and JSON requests.
+
+- Add optional acceptance instrumentation with separate accepted, rejected, and unknown counts for sends, imports, and events.
+
+- Identify API requests with the gem and Ruby versions and document client ownership across variants, threads, and forks.
+
+- Add redacted error diagnostics, structural field paths, expected and actual types, and request context on malformed responses.
+
+- Add an independent optional Event Tracking rate limiter and validate message-default containers locally.
+
+- Add named mail headers, image-mode symbols, and explicit accepted, rejected, and unknown recipient views.
+
+- Accept SMS phone arrays and always return a typed receipt collection.
+
+- Give records class-sensitive value equality, forward object lookup, and avoid polling failed task handles.
+
+- Honor top-level `only` and `except` JSON filters and reject unsupported serialization options.
+
+- Validate named argument types locally and expose offline `Client#validate!` with shared normalization and encoding.
+
+- Bound direct imports to 501 inspected records and add optional byte limits to attachment reads.
+
+- Schedule Time inputs in explicit UTC with minute precision; reject conflicting timezones.
+
 - Document the accepted MD5 exception required by UniSender's webhook protocol.
 
 - Scan webhook JSON tokens without regular-expression backtracking and reject unterminated strings.

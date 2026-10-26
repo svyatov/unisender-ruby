@@ -11,19 +11,26 @@ module Unisender
     def dig: (String | Symbol, *(String | Integer)) -> value
     def to_h: () -> Hash[String, json]
     alias to_hash to_h
-    def as_json: (?json) -> Hash[String, json]
-    def to_json: (?JSON::State?) -> String
+    def as_json: (?serialization_options?) -> Hash[String, json]
+    def to_json: (?(serialization_options | JSON::State)?) -> String
     def self.copy: (value) -> json
     def ==: (BasicObject) -> bool
+    def eql?: (BasicObject) -> bool
+    def hash: () -> Integer
     def inspect: () -> String
     def normalize: () -> void
+    def child: (singleton(EmailContact), Hash[String, json], String) -> EmailContact
+             | (singleton(PhoneContact), Hash[String, json], String) -> PhoneContact
+             | (singleton(ContactList), Hash[String, json], String) -> ContactList
+             | (singleton(SenderDomain), Hash[String, json], String) -> SenderDomain
+             | (singleton(RecipientResult), Hash[String, json], String) -> RecipientResult
     def text: (String) -> String?
     def text!: (String) -> String
     def identifier!: (String) -> id
     def integer!: (String) -> Integer
     def integer: (String) -> Integer?
     def number: (String) -> (Integer | Float)?
-    def invalid!: (String) -> bot
+    def invalid!: (String, ?expected_type: String) -> bot
   end
 
   class CollectionResponse[out Item = Record] < Response[Array[Item]]
@@ -41,6 +48,9 @@ module Unisender
   end
 
   class ObjectResponse[out Result < Record = Record] < Response[Result]
+    def key?: (String | Symbol) -> bool
+    def keys: () -> Array[String]
+    def values: () -> Array[value]
     def []: (String | Symbol) -> value
     def fetch: [Fallback] (String | Symbol, *Fallback) ?{ (String | Symbol) -> Fallback } -> (value | Fallback)
     def to_h: () -> Hash[String, json]
@@ -54,12 +64,14 @@ module Unisender
     def self.build: (String, Response[json]) -> Response
     def self.boolean: (Response[json]) -> Response[json]
     def self.validate_container: (String, json) -> void
-    def self.object: (singleton(Record), json) -> Record
+    def self.object: (singleton(Record), json, ?String) -> Record
     def self.normalize: (String, json) -> json
+    def self.normalize_send: (String, json) -> json
     def self.single_message: (json) -> json
     def self.wrap: (json, singleton(Record), singleton(ObjectResponse), Response[json]) -> Response
     def self.rows: (json) -> Array[Hash[String, json]]
     def self.field_names: (Array[json]) -> Array[String]
-    def self.row_object: (Array[String], json) -> Hash[String, json]
+    def self.row_object: (Array[String], json, Integer) -> Hash[String, json]
+    def self.shape_error: (String, json, String) -> bot
   end
 end

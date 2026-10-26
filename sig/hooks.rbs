@@ -13,6 +13,6 @@ module Unisender
     def list_hooks: () -> CollectionResponse[Hook]
     def remove_hook: (hook_url: String) -> Response[json]
     private
-    def hook_events: (params, parameter) -> params
+    def hook_events: (parameter, parameter) -> params
   end
 end

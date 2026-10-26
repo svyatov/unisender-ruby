@@ -6,8 +6,12 @@ Named operations return typed records and collections. `request` retains raw JSO
 
 ## Result access
 
+`send_sms` always returns a collection. Replace `response.sms_id` with `response.fetch(0).sms_id` for a single recipient.
+Phone arrays are accepted; the raw upstream object or array remains available through `response.data`.
+
 `JSON.generate(response)` serializes the typed payload. Use `response.data` when you need the upstream envelope.
 Collections support slices and fetch defaults; object responses provide `to_h`.
+`as_json` and `to_json` honor top-level `only:` and `except:` filters and reject unsupported options.
 Contact address strings are available through `email_address` and `phone_number`, independent of nested detail shapes.
 
 ```ruby
@@ -22,6 +26,8 @@ client.create_list(title: "News").id
 
 Use `response.result` for the typed result and `response.data` for the original JSON envelope.
 Records retain string-key lookup and unknown fields. `to_h` returns a detached mutable copy.
+Record equality requires the same concrete class. Use `to_h` when comparing a record with a Hash.
+Equivalent records work as Hash keys and in Sets. Object responses also expose `key?`, `keys`, and `values`.
 
 ## HTTP metadata
 
@@ -42,6 +48,7 @@ Count fields use integers. Tabular visited-link results become enumerable record
 Page iterators now execute supplied blocks. Avoid passing a block unless you intend to consume the iterator immediately.
 Successful pages expose checkpoint metadata through `offset`, `limit`, and `next_offset`.
 Completed task handles return immediately from `wait`; a supplied callback receives the existing handle once.
+Failed handles also invoke the callback once, then raise `TaskFailedError` without another request.
 
 `import_contacts_in_batches` and `track_events_in_batches` execute immediately and return a `BatchReport`.
 Use `each_import_batch` and `each_event_batch` for lazy execution. Each accepts a block or returns an Enumerator.
@@ -55,9 +62,20 @@ Pagination errors expose `next_offset` and `completed_pages` for recovery. Direc
 
 ## Inputs and tasks
 
+Named methods reject wrong scalar and collection types before a request. Use arrays or comma-separated strings for list IDs and field IDs.
+`client.validate!(operation, **arguments)` checks a named request, Event Tracking, or a campaign workflow without networking.
+It applies the same defaults and structural rules as execution. Import validation consumes its source; recreate an enumerable before sending.
+
+Campaign `Time` inputs use UTC with `timezone: "UTC"`. Seconds are truncated to the API's minute precision.
+Conflicting timezone arguments raise `ValidationError`. String inputs retain their explicit or account-default timezone.
+
 Named flags reject values outside booleans and 0/1 before networking. Known closed choices reject unsupported values.
 Library validation failures expose structured fields through `ValidationError`, while remaining rescuable as `ArgumentError`.
+`error.diagnostics` provides safe structured context for validation, transport, API, task, and batch failures.
+Paths identify documented fields and row positions. Dynamic field names are masked; raw payload access remains explicit.
 `send_email` defaults `error_checking` to true. Use recipient results for IDs; explicit false retains the legacy format.
+`accepted_ids` works with both formats. Recipient views retain rejected and unknown outcomes separately.
+Named `reply_to:` and `priority:` headers reject conflicts. Unsupported `images_as` values fail locally.
 List/tag arrays in import records become comma-separated scalar cells. Subscription-time arrays retain their list-ID order.
 
 Supply `email:` directly to `subscribe`, or continue using `fields:`.

@@ -4,6 +4,16 @@ require "test_helper"
 require_relative "support/scripted_transport"
 
 class OutcomeReportsTest < Minitest::Test
+  def test_legacy_email_result_remains_available
+    transport = ScriptedTransport.new(ScriptedTransport.reply({ "result" => { "email_id" => 123 } }))
+    client = Unisender::Client.new(api_key: "test", transport:)
+    response = client.send_email(email: "a@example.test", sender_name: "News", sender_email: "b@example.test",
+                                 subject: "Hi", body: "Hi", list_id: 1, error_checking: false)
+
+    assert_equal 123, response.email_id
+    assert_predicate response, :complete?
+  end
+
   def test_import_report_exposes_partial_failure
     result = { "total" => 2, "invalid" => 1, "log" => [{ "index" => "1", "code" => "e_email_invalid" }] }
     transport = ScriptedTransport.new(ScriptedTransport.reply({ "result" => result }))

@@ -3,6 +3,7 @@
 module Unisender
   # Synchronous client for the documented UniSender API.
   class Client
+    USER_AGENT = "unisender-ruby/#{VERSION} Ruby/#{RUBY_VERSION}".freeze
     RESERVED_PARAMETERS = %w[api_key format].freeze
     TASK_METHODS = %w[async/exportContacts async/getCampaignDeliveryStats async/getTaskResult].freeze
     UNSET = :__unisender_unset__
@@ -37,7 +38,9 @@ module Unisender
     end
 
     def prepare(method, params, required: [], comma: [])
+      params = preparation_defaults(method).merge(params)
       params = message_defaults(params)
+      OperationContracts.validate!(method, params)
       params = Inputs.normalize(method, params)
       Validation.required!(params, required)
       Validation.operation!(method, params)
@@ -46,10 +49,22 @@ module Unisender
       raise e.with_operation(method), cause: nil
     end
 
+    def preparation_defaults(method)
+      case method
+      when "createEmailMessage", "sendEmail"
+        # @type var values: params
+        values = { sender_name: UNSET, sender_email: UNSET, lang: UNSET }
+        values[:error_checking] = true if method == "sendEmail"
+        values
+      when "setHook" then { event_format: :json_post_gzip, single_event: false, status: :active }
+      else {}
+      end
+    end
+
     def comma_parameters(params, comma)
       comma.each do |name|
         value = params[name.to_sym]
-        params[name.to_sym] = Validation.comma_list(value) if value.is_a?(Array)
+        params[name.to_sym] = Validation.comma_list(value, field: name) if value.is_a?(Array)
       end
       params
     end

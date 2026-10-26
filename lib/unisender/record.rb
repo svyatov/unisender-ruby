@@ -18,9 +18,7 @@ module Unisender
       end
     end
 
-    def [](key)
-      @values[key.to_s]
-    end
+    def [](key) = @values[key.to_s]
 
     def fetch(key, *defaults, &block)
       raise ArgumentError, "Expected at most one default" if defaults.size > 1
@@ -30,17 +28,11 @@ module Unisender
       @values.fetch(key.to_s, defaults.fetch(0))
     end
 
-    def key?(key)
-      @values.key?(key.to_s)
-    end
+    def key?(key) = @values.key?(key.to_s)
 
-    def keys
-      @values.keys
-    end
+    def keys = @values.keys
 
-    def values
-      @values.values
-    end
+    def values = @values.values
 
     def dig(key, *path)
       @values.dig(key.to_s, *path)
@@ -52,25 +44,31 @@ module Unisender
 
     alias to_hash to_h
 
-    def as_json(_options = nil)
-      to_h
+    def as_json(options = nil)
+      Serialization.payload(self, options)
     end
 
     def to_json(state = nil)
-      as_json.to_json(state)
+      Serialization.json(self, state)
     end
 
     def ==(other)
       case other
-      when Record then to_h == other.to_h
-      when Hash then to_h == other
+      when Record then self.class == other.class && to_h == other.to_h
       else false
       end
     end
 
-    def inspect
-      "#<#{self.class}>"
+    def eql?(other)
+      case other
+      when Record then self.class == other.class && to_h.eql?(other.to_h)
+      else false
+      end
     end
+
+    def hash = [self.class, to_h].hash
+
+    def inspect = "#<#{self.class}>"
 
     def self.copy(value)
       case value
@@ -83,24 +81,30 @@ module Unisender
 
     protected
 
+    def child(model, data, path)
+      model.new(data)
+    rescue InvalidResponseError => e
+      raise e.prepend_path(path), cause: nil
+    end
+
     def normalize; end
 
     def text(name)
       value = self[name]
       return value if value.nil? || value.is_a?(String)
 
-      invalid!(name)
+      invalid!(name, expected_type: "String or nil")
     end
 
     def text!(name)
-      text(name) || invalid!(name)
+      text(name) || invalid!(name, expected_type: "String")
     end
 
     def identifier!(name)
       value = self[name]
       return value if value.is_a?(String) || value.is_a?(Integer)
 
-      invalid!(name)
+      invalid!(name, expected_type: "String or Integer")
     end
 
     def integer!(name)
@@ -108,7 +112,7 @@ module Unisender
       return value if value.is_a?(Integer)
       return Integer(value, 10) if value.is_a?(String) && value.match?(/\A\d+\z/)
 
-      invalid!(name)
+      invalid!(name, expected_type: "Integer")
     end
 
     def integer(name)
@@ -119,11 +123,12 @@ module Unisender
       value = self[name]
       return value if value.nil? || value.is_a?(Integer) || value.is_a?(Float)
 
-      invalid!(name)
+      invalid!(name, expected_type: "Number or nil")
     end
 
-    def invalid!(name)
-      raise InvalidResponseError, "Invalid result field: #{name}", cause: nil
+    def invalid!(name, expected_type: "documented value")
+      raise InvalidResponseError.new("Invalid result field", path: name, expected_type:,
+                                                             actual_type: Diagnostics.type_name(self[name])), cause: nil
     end
   end
 
@@ -174,6 +179,18 @@ module Unisender
 
   # A typed object with explicit field readers supplied by its subclass.
   class ObjectResponse < Response
+    def key?(key)
+      result.key?(key)
+    end
+
+    def keys
+      result.keys
+    end
+
+    def values
+      result.values
+    end
+
     def [](key)
       result[key]
     end

@@ -106,7 +106,7 @@ module Unisender
     def email
       value = self["email"]
       return value if value.nil? || value.is_a?(String)
-      return EmailContact.new(value.to_h) if value.is_a?(Record)
+      return child(EmailContact, value.to_h, "email") if value.is_a?(Record)
 
       invalid!("email")
     end
@@ -119,7 +119,7 @@ module Unisender
     def phone
       value = self["phone"]
       return value if value.nil? || value.is_a?(String)
-      return PhoneContact.new(value.to_h) if value.is_a?(Record)
+      return child(PhoneContact, value.to_h, "phone") if value.is_a?(Record)
 
       invalid!("phone")
     end
@@ -133,7 +133,9 @@ module Unisender
       value = self["lists"]
       return nil if value.nil?
 
-      Outcomes.records(value).map { |item| ContactList.new(item.to_h) }.freeze
+      Outcomes.records(value, "lists").each_with_index.map do |item, index|
+        child(ContactList, item.to_h, "lists[#{index}]")
+      end.freeze
     end
 
     def fields
@@ -210,7 +212,9 @@ module Unisender
     end
 
     def domains
-      Outcomes.records(self["domains"]).map { |item| SenderDomain.new(item.to_h) }.freeze
+      Outcomes.records(self["domains"], "domains").each_with_index.map do |item, index|
+        child(SenderDomain, item.to_h, "domains[#{index}]")
+      end.freeze
     end
 
     protected

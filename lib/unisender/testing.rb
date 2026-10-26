@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 require_relative "../unisender"
+require_relative "testing/assertions"
+require_relative "testing/fixtures"
 
 module Unisender
   # Optional deterministic transport support for application tests.
   module Testing
     Request = Data.define(:uri, :headers, :body)
-    Reply = Data.define(:operation, :response)
+    Reply = Data.define(:operation, :response, :expected_form, :expected_json)
 
     # Explicit body access is private data; inspection and form access redact credentials.
     class Request
@@ -36,13 +38,15 @@ module Unisender
         @requests = []
       end
 
-      def enqueue(data:, http_status: 200, headers: {}, operation: nil)
+      # rubocop:disable-next Metrics/ParameterLists -- Expectations belong to their queued response.
+      def enqueue(data:, http_status: 200, headers: {}, operation: nil, expected_form: nil, expected_json: nil)
         reply = HTTPResponse.new(status: http_status, headers:, body: JSON.generate(data))
-        enqueue_response(reply, operation:)
+        enqueue_response(reply, operation:, expected_form:, expected_json:)
       end
 
-      def enqueue_response(response, operation: nil)
-        @replies << Reply.new(operation:, response:)
+      def enqueue_response(response, operation: nil, expected_form: nil, expected_json: nil)
+        Assertions.validate(expected_form, expected_json)
+        @replies << Reply.new(operation:, response:, expected_form:, expected_json:)
         self
       end
 
@@ -79,6 +83,7 @@ module Unisender
           raise "Unexpected request: expected #{expected}, received #{actual}"
         end
 
+        Assertions.check(request, reply.expected_form, reply.expected_json)
         reply.response
       end
     end

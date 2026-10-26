@@ -28,8 +28,8 @@ module Unisender
     def initialize: (data: Hash[String, json], status: Integer, headers: Hash[String, String], ?result: value) -> void
     def result: () -> Result
     def warnings: () -> json
-    def as_json: (?json) -> json
-    def to_json: (?JSON::State?) -> String
+    def as_json: (?serialization_options?) -> json
+    def to_json: (?(serialization_options | JSON::State)?) -> String
     def inspect: () -> String
     private
     def immutable: (json) -> json
@@ -118,8 +118,10 @@ module Unisender
   end
 
   module PaginatedOperations
+    def self.supports?: (String | Symbol) -> bool
     DEFINITIONS: Hash[String, [String, Array[Symbol], Array[Symbol], Integer?]]
     def self.call: (Client, String | Symbol, params) -> PageResponse[Record]
+    def self.prepare: (String | Symbol, params) -> params
     def self.validate: (String | Symbol, params) -> String
     def self.page_limit: (String | Symbol) -> Integer?
     def self.wire_name: (String | Symbol) -> String
@@ -175,14 +177,14 @@ module Unisender
 
   module EventPayload
     MAX_BYTES: Integer
-    def self.encode: (Array[params]) -> String
-    def self.serialize: (Array[params]) -> String
+    def self.encode: (parameter) -> String
+    def self.serialize: (Array[parameter]) -> String
     def self.with_timestamp: (parameter) -> parameter
-    def self.validate: (json) -> Hash[String, json]
-    def self.validate_name: (json) -> void
-    def self.validate_email: (json) -> void
-    def self.normalize: (parameter, Integer) -> json
-    def self.normalize_hash: (params, Integer) -> Hash[String, json]
+    def self.validate: (json, String) -> Hash[String, json]
+    def self.validate_name: (json, String) -> void
+    def self.validate_email: (json, String) -> void
+    def self.normalize: (parameter, Integer, String) -> json
+    def self.normalize_hash: (params, Integer, String) -> Hash[String, json]
   end
 
   class RetryPolicy
@@ -213,8 +215,8 @@ module Unisender
     def self.hash_pairs: (params, String?, Integer) -> Array[[String, String]]
     def self.key_name: (String | Symbol | Integer) -> String
     def self.scalar: (parameter, String) -> String
-    def self.numeric: (parameter) -> String
-    def self.text: (String) -> String
+    def self.numeric: (parameter, ?String) -> String
+    def self.text: (String, ?String) -> String
   end
 
   module Validation
@@ -226,7 +228,7 @@ module Unisender
     def self.rows!: (parameter, Integer) -> void
     def self.required!: (params, Array[String]) -> void
     def self.missing?: (parameter) -> bool
-    def self.comma_list: (Array[parameter]) -> String
+    def self.comma_list: (Array[parameter], ?field: String) -> String
   end
 
   interface _Transport
@@ -262,11 +264,11 @@ module Unisender
     @language: String
     @transport: _Transport
     @retry_policy: RetryPolicy
-    def initialize: (api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?, ?persistent: bool, ?rate_limiter: RateLimiter?) -> void
-    def self.from_env: (?env: _Environment, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?, ?persistent: bool, ?rate_limiter: RateLimiter?) -> Client
+    def initialize: (api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?, ?persistent: bool, ?rate_limiter: RateLimiter?, ?event_rate_limiter: RateLimiter?, ?acceptance_instrumentation: (^(AcceptanceEvent) -> void)?) -> void
+    def self.from_env: (?env: _Environment, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?, ?persistent: bool, ?rate_limiter: RateLimiter?, ?event_rate_limiter: RateLimiter?, ?acceptance_instrumentation: (^(AcceptanceEvent) -> void)?) -> Client
     def close: () -> void
     def self.open: [Result] (api_key: String, **config_value) { (Client) -> Result } -> Result
-    def with: (?api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?, ?persistent: bool, ?rate_limiter: RateLimiter?) -> Client
+    def with: (?api_key: String, ?language: String | Symbol, ?transport: _Transport?, ?retry_policy: RetryPolicy?, ?open_timeout: duration?, ?read_timeout: duration?, ?write_timeout: duration?, ?max_retries: Integer?, ?max_elapsed: duration?, ?message_defaults: Hash[String | Symbol, String?], ?instrumentation: (^(RequestEvent) -> void)?, ?persistent: bool, ?rate_limiter: RateLimiter?, ?event_rate_limiter: RateLimiter?, ?acceptance_instrumentation: (^(AcceptanceEvent) -> void)?) -> Client
     def request: (String, ?params: params) -> Response[json]
     def track_events: (events: Array[params]) -> EventResponse
     def each_page: (String | Symbol, ?page_size: Integer, ?max_pages: Integer, **parameter) ?{ (PageResponse[Record]) -> void } -> Enumerator[PageResponse[Record], void]
@@ -290,10 +292,11 @@ module Unisender
     def acquire_limit: (String) -> void
     def decode_response: (HTTPResponse, String, params, bool) -> Response
     def observe: (String, Integer, Float, HTTPResponse?, Exception?) -> void
-    def exchange: [Result] (String, URI::Generic, headers: Hash[String, String], body: String, ?attempt: Integer) { (HTTPResponse) -> Result } -> Result
+    def exchange: [Result] (String, URI::Generic, headers: Hash[String, String], body: String, ?attempt: Integer, ?input_count: Integer?) { (HTTPResponse) -> Result } -> Result
     def bind_task: (String, Response, params) -> Response
     def import_source: (Array[String]?, Enumerable[Array[parameter]]?, Enumerable[params]?) -> (RecordRows | Enumerable[Array[parameter]])
     def parse_event_response: (HTTPResponse) -> EventResponse
+    def decode_event_response: (HTTPResponse, Integer) -> EventResponse
     def prepare: (String, params, ?required: Array[String], ?comma: Array[String]) -> params
     def comma_parameters: (params, Array[String]) -> params
     public

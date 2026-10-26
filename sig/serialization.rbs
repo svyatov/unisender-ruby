@@ -1,0 +1,13 @@
+module Unisender
+  type serialization_fields = String | Symbol | Array[String | Symbol]
+  type serialization_options = Hash[String | Symbol, serialization_fields]
+  module Serialization
+    OPTIONS: Array[String]
+    def self.payload: (Record, ?serialization_options?) -> Hash[String, json]
+                    | (value, ?serialization_options?) -> json
+    def self.json: (value, ?(serialization_options | JSON::State)?) -> String
+    def self.options_for: (serialization_options?) -> Hash[Symbol, Array[String]]
+    def self.field_names: (serialization_fields) -> Array[String]
+    def self.filter: (json, Hash[Symbol, Array[String]]) -> json
+  end
+end

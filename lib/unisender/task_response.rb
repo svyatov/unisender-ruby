@@ -12,8 +12,10 @@ module Unisender
     end
 
     def wait(interval: 1, timeout: 60, clock: nil, sleeper: nil, &)
-      if completed?
+      if completed? || failed?
         yield self if block_given?
+        raise TaskFailedError.new(self).with_task(task_uuid:, last_response: self) if failed?
+
         return self
       end
 

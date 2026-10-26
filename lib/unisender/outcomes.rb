@@ -3,15 +3,31 @@
 module Unisender
   # Shared decoding for error records inside successful envelopes.
   module Outcomes
-    def self.records(value)
+    def self.records(value, path)
       return [] if value.nil?
-      raise InvalidResponseError, "Expected result records" unless value.is_a?(Array)
-
-      value.map do |item|
-        raise InvalidResponseError, "Expected result record" unless item.is_a?(Record)
-
-        item
+      unless value.is_a?(Array)
+        raise InvalidResponseError.new("Expected result records", path:, expected_type: "Array",
+                                                                  actual_type: Diagnostics.type_name(value))
       end
+
+      value.each_with_index.map { |item, index| record(item, "#{path}[#{index}]") }
+    end
+
+    def self.record(item, path)
+      return item if item.is_a?(Record)
+
+      raise InvalidResponseError.new("Expected result record", path:, expected_type: "Hash",
+                                                               actual_type: Diagnostics.type_name(item))
+    end
+
+    def self.failures(value, path, overrides = {})
+      records(value, path).each_with_index.map { |item, index| failure(item, "#{path}[#{index}]", overrides) }
+    end
+
+    def self.failure(item, path, overrides)
+      Failure.new(item.to_h.merge(overrides))
+    rescue InvalidResponseError => e
+      raise e.prepend_path(path), cause: nil
     end
   end
 
@@ -79,11 +95,11 @@ module Unisender
     end
 
     def failures
-      Outcomes.records(self["log"]).map { |item| Failure.new(item.to_h) }.reject(&:warning?)
+      Outcomes.failures(self["log"], "log").reject(&:warning?)
     end
 
     def row_warnings
-      Outcomes.records(self["log"]).map { |item| Failure.new(item.to_h) }.select(&:warning?)
+      Outcomes.failures(self["log"], "log").select(&:warning?)
     end
 
     def complete?
@@ -124,7 +140,7 @@ module Unisender
     end
 
     def failures
-      Outcomes.records(self["errors"]).map { |item| Failure.new(item.to_h.merge("index" => index)) }
+      Outcomes.failures(self["errors"], "errors", { "index" => index })
     end
 
     def accepted?
@@ -143,8 +159,27 @@ module Unisender
 
   # Handles both documented sendEmail result formats.
   class SendResult < Record
+    def accepted_recipients
+      recipients.select(&:accepted?).freeze
+    end
+
+    def rejected_recipients
+      recipients.reject { |recipient| recipient.failures.empty? }.freeze
+    end
+
+    def unknown_recipients
+      recipients.reject { |recipient| recipient.accepted? || !recipient.failures.empty? }.freeze
+    end
+
+    def accepted_ids
+      legacy = email_id
+      (legacy ? [legacy] : accepted_recipients.filter_map(&:id)).freeze
+    end
+
     def recipients
-      Outcomes.records(self["recipients"]).map { |item| RecipientResult.new(item.to_h) }
+      Outcomes.records(self["recipients"], "recipients").each_with_index.map do |item, index|
+        child(RecipientResult, item.to_h, "recipients[#{index}]")
+      end
     end
 
     def email_id
@@ -256,6 +291,22 @@ module Unisender
 
   # Per-recipient send acceptance.
   class SendResponse < OutcomeResponse
+    def accepted_recipients
+      result.accepted_recipients
+    end
+
+    def rejected_recipients
+      result.rejected_recipients
+    end
+
+    def unknown_recipients
+      result.unknown_recipients
+    end
+
+    def accepted_ids
+      result.accepted_ids
+    end
+
     def recipients
       result.recipients
     end

@@ -19,6 +19,32 @@ module Unisender
 
     attr_reader :operation, :next_offset, :completed_pages, :last_response
 
+    def diagnostics
+      Diagnostics.for_error(self)
+    end
+
+    def documentation_url
+      Diagnostics::URLS[@operation.to_s]
+    end
+
+    def with_http(status:, request_id:)
+      @context_http_status = status
+      @context_request_id = request_id&.dup&.freeze
+      self
+    end
+
+    def http_status
+      response = diagnostic_response
+      @context_http_status || response&.http_status
+    end
+
+    def diagnostic_response
+      error = self # : Error
+      case error
+      when APIError, HTTPError, PartialFailure, TaskError, TaskTimeoutError then error.response
+      end
+    end
+
     def bytes_written
       @download_bytes_written
     end
@@ -69,6 +95,11 @@ module Unisender
 
     attr_reader :response, :code, :details
 
+    def safe_code
+      code = @code
+      code if code.is_a?(String) && SAFE_CODES.include?(code)
+    end
+
     def initialize(response)
       @response = response
       @code = response.data["code"]
@@ -87,7 +118,26 @@ module Unisender
     end
   end
 
-  class InvalidResponseError < Error; end
+  # A malformed response with optional safe structural context.
+  class InvalidResponseError < Error
+    attr_reader :path, :expected_type, :actual_type
+
+    def initialize(message = "Invalid response", path: nil, expected_type: nil, actual_type: nil)
+      @path = path
+      @expected_type = expected_type
+      @actual_type = actual_type
+      super(message)
+    end
+
+    def prepend_path(prefix)
+      @path = @path ? "#{prefix}.#{@path}".freeze : prefix.dup.freeze
+      self
+    end
+
+    def to_s
+      @path ? "#{super} at #{@path}" : super
+    end
+  end
 
   # Network or TLS failure with no complete HTTP response.
   class TransportError < Error

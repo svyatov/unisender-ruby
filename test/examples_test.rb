@@ -54,6 +54,21 @@ class ExamplesTest < Minitest::Test
     assert_equal "12", URI.decode_www_form(transport.requests.last.fetch(:body)).to_h.fetch("message_id")
   end
 
+  # rubocop:disable-next Metrics/AbcSize -- Check the five-step sequence and both identifier types together.
+  def test_campaign_lifecycle_keeps_message_and_campaign_ids_separate
+    lifecycle_environment
+    transport, output, = run_example("campaign_lifecycle", { "result" => { "message_id" => 12 } },
+                                     { "result" => [{ "id" => 12, "subject" => "News" }] },
+                                     { "result" => { "message" => "sent" } },
+                                     { "result" => { "campaign_id" => 34, "status" => "scheduled" } },
+                                     { "result" => { "status" => "scheduled" } })
+    forms = transport.requests.map { |request| URI.decode_www_form(request.fetch(:body)).to_h }
+
+    assert_equal %w[12 12 12 34], [forms[1]["id"], forms[2]["id"], forms[3]["message_id"], forms[4]["campaign_id"]]
+    assert_equal ["2099-01-01 09:30", "UTC"], forms[3].values_at("start_time", "timezone")
+    assert_includes output, "Campaign status: scheduled"
+  end
+
   def test_export_persists_the_task_and_downloads_without_printing_the_private_link
     transport, output, = run_export({ "result" => { "task_uuid" => "task", "status" => "new" } },
                                     { "result" => { "status" => "completed",
@@ -123,6 +138,14 @@ class ExamplesTest < Minitest::Test
   end
 
   private
+
+  def lifecycle_environment
+    { "UNISENDER_TEST_EMAIL" => "test@example.test",
+      "UNISENDER_START_TIME" => "2099-01-01T12:30:59+03:00" }.each do |key, value|
+      @previous[key] = ENV.fetch(key, nil)
+      ENV[key] = value
+    end
+  end
 
   def run_export(*replies)
     downloader = Object.new

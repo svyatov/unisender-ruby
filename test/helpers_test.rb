@@ -12,7 +12,7 @@ class HelpersTest < Minitest::Test
     pages = client.each_page(:get_campaigns, from: "2026-01-01 00:00:00", page_size: 2)
 
     assert_empty transport.requests
-    assert_equal [[{ "id" => 1 }, { "id" => 2 }], [{ "id" => 3 }]], pages.map(&:result)
+    assert_equal [[{ "id" => 1 }, { "id" => 2 }], [{ "id" => 3 }]], pages.map(&:as_json)
     assert_equal(%w[0 2], transport.requests.map { |r| URI.decode_www_form(r[:body]).to_h["offset"] })
   end
 
@@ -26,7 +26,7 @@ class HelpersTest < Minitest::Test
     assert_empty transport.requests
     error = assert_raises(Unisender::BatchError) { batches.to_a }
     assert_equal [500...501, [{ "total" => 500, "invalid" => 0 }]],
-                 [error.failed_range, error.completed_responses.map(&:result)]
+                 [error.failed_range, error.completed_responses.map(&:as_json)]
   end
 
   def test_event_batches_stop_after_partial_acceptance

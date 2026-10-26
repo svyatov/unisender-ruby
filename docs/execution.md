@@ -28,6 +28,19 @@ One `RateLimiter` coordinates clients in one Ruby process. It cannot coordinate 
 
 Give each worker an explicit client and close it when the worker stops. Inject the client into application services. Do not construct persistent clients before forking. Keep contact data and raw error details out of logs; log the operation, category, and request ID instead.
 
+### Client ownership
+
+| Client or resource | Lifetime and sharing |
+| --- | --- |
+| Default client | Creates a separate connection for each request; close it when its application owner stops. |
+| Persistent client | Serializes requests on its built-in transport. Sharing one client does not increase request concurrency. |
+| `client.with(...)` | Creates an independent client lifetime. An injected transport remains shared and caller-owned. |
+| `with_execution` client | Borrows its parent's transport and expires when the block ends. Close the parent at its normal lifetime boundary. |
+| Injected transports and callbacks | The application supplies any synchronization their implementation needs. |
+| Forked worker | Construct clients after forking. Built-in persistent transports discard inherited connections on a PID change. |
+
+Both API protocols send a User-Agent containing the gem and Ruby versions, without account or host information.
+
 ## Cooperative execution scopes
 
 ```ruby
@@ -44,6 +57,22 @@ The timeout is one monotonic budget for the scope. Requests, retry delays, pacin
 Cancellation and deadlines are cooperative. They do not forcibly interrupt an in-flight request, callback, or custom transport. Built-in downloads check between streamed chunks and preserve confirmed bytes in the error. Successful in-flight mutations return their result; the next boundary stops further work. Built-in socket timeouts are reduced to the remaining budget before IO. Do not use this scope as a hard wall-clock timeout. `CancelledError` and `DeadlineExceededError` have separate categories. Batch failures retain completed work, including when cancellation occurs before another batch.
 
 The scope's instrumentation emits payload-free `ExecutionEvent` values for `workflow`, `retry_wait`, `rate_limit_wait`, and `poll_wait`. Existing request instrumentation measures individual network attempts and includes the upstream request ID when available. Observer exceptions do not change the operation's result. Progress callbacks are application work, so their exceptions stop the job with completed-work context.
+
+## Acceptance metrics
+
+Pass `acceptance_instrumentation: ->(event) { record_acceptance(event) }` when constructing a client.
+The callback receives an immutable `AcceptanceEvent` for each attempted named send, import, or Event Tracking request.
+Reads and offline validation do not emit acceptance events.
+
+Events contain `operation`, `outcome`, `input_count`, `accepted_count`, `rejected_count`, `unknown_count`, `row_warning_count`, and `request_id`.
+Counts unavailable from the response are `nil`. They are not inferred from HTTP success.
+An Event Tracking HTTP 400 response can mean partial acceptance, with unknown counts.
+Transport failures also leave acceptance counts unknown. HTTP 401 rejects the event batch.
+Outcomes are `:complete`, `:partial`, `:rejected`, or `:uncertain`.
+
+Acceptance describes provider acknowledgement, not delivery to a recipient.
+Request `instrumentation:` separately reports network attempts and can report success when acceptance is rejected.
+Callbacks receive no payload, contact address, credential, or response body. Callback exceptions do not change operation results.
 
 ## Retaining large jobs
 

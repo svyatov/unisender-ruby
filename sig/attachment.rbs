@@ -1,13 +1,15 @@
 module Unisender
   interface _Readable
-    def read: () -> String?
+    def read: (?Integer) -> String?
   end
   class Attachment
     attr_reader filename: String
     attr_reader bytes: String
     def initialize: (filename: String, bytes: String) -> void
-    def self.from_path: (String, ?filename: String) -> Attachment
-    def self.from_io: (_Readable, filename: String) -> Attachment
+    def self.from_path: (String, ?filename: String, ?max_bytes: Integer?) -> Attachment
+    def self.from_io: (_Readable, filename: String, ?max_bytes: Integer?) -> Attachment
     def inspect: () -> String
+    private
+    def self.read_size: (Integer?) -> Integer?
   end
 end

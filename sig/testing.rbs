@@ -14,20 +14,41 @@ module Unisender
     class Reply < Data
       attr_reader operation: String?
       attr_reader response: HTTPResponse | StandardError
-      def self.new: (operation: String?, response: HTTPResponse | StandardError) -> Reply
+      attr_reader expected_form: Hash[String, String]?
+      attr_reader expected_json: json?
+      def self.new: (operation: String?, response: HTTPResponse | StandardError, expected_form: Hash[String, String]?, expected_json: json?) -> Reply
     end
     class Transport
       @replies: Array[Reply]
       @requests: Array[Request]
       def initialize: () -> void
-      def enqueue: (data: Hash[String, json], ?http_status: Integer, ?headers: Hash[String, String], ?operation: String?) -> self
-      def enqueue_response: (HTTPResponse | StandardError, ?operation: String?) -> self
+      def enqueue: (data: Hash[String, json], ?http_status: Integer, ?headers: Hash[String, String], ?operation: String?, ?expected_form: Hash[String, String]?, ?expected_json: json?) -> self
+      def enqueue_response: (HTTPResponse | StandardError, ?operation: String?, ?expected_form: Hash[String, String]?, ?expected_json: json?) -> self
       def requests: () -> Array[Request]
       def verify!: () -> self
       def post: (URI::Generic, headers: Hash[String, String], body: String) -> HTTPResponse
       def inspect: () -> String
       private
       def next_response: (Request) -> (HTTPResponse | StandardError)
+    end
+  end
+end
+
+module Unisender
+  module Testing
+    module Fixtures
+      def self.list: (id: id, title: String) -> Hash[String, json]
+      def self.import_result: (total: Integer, ?invalid: Integer, ?log: Array[Hash[String, json]]) -> Hash[String, json]
+      def self.task: (status: String, task_uuid: String, ?file_to_download: String?) -> Hash[String, json]
+      def self.recipient: (index: Integer, email: String, ?id: id?, ?errors: Array[Hash[String, json]]) -> Hash[String, json]
+    end
+    module Assertions
+      def self.check: (Request, Hash[String, String]?, json?) -> void
+      def self.validate: (Hash[String, String]?, json?) -> void
+      def self.subset!: (json, json, String) -> void
+      def self.hash!: (json, Hash[String, json], String) -> void
+      def self.array!: (json, Array[json], String) -> void
+      def self.mismatch!: (String) -> bot
     end
   end
 end

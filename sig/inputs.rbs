@@ -12,7 +12,12 @@ module Unisender
     attr_reader code: Symbol
     attr_reader operation: String?
     attr_reader index: Integer?
-    def initialize: (field: String, code: Symbol, ?operation: String?, ?index: Integer?) -> void
+    attr_reader expected_type: String?
+    attr_reader actual_type: String?
+    alias path field
+    def diagnostics: () -> Hash[Symbol, json]
+    def documentation_url: () -> String?
+    def initialize: (field: String, code: Symbol, ?operation: String?, ?index: Integer?, ?expected_type: String?, ?actual_type: String?) -> void
     def with_operation: (String) -> self
     def category: () -> Symbol
     def recovery_hint: () -> String
@@ -21,6 +26,8 @@ module Unisender
   end
 
   module Inputs
+    def self.operation_values: (String, params) -> params
+    def self.schedule_timezone!: (params) -> void
     MODES: Hash[Symbol, Hash[Symbol, Integer]]
     MINUTES: Array[String]
     SECONDS: Array[String]
@@ -32,20 +39,27 @@ module Unisender
     def self.timestamp_format: (String) -> String?
     def self.mode: (parameter, Hash[Symbol, Integer], Symbol) -> Integer?
     def self.timestamp: (parameter, String, Symbol) -> String?
-    def self.contact_fields: (params?, String?) -> params
-    def self.merge_email: (params, String) -> parameter
+    def self.contact_fields: (parameter, parameter) -> params
+    def self.validate_email_alias: (parameter) -> void
+    def self.merge_email: (params, parameter) -> parameter
     def self.validate_email: (params) -> void
   end
 
   module ContactInputs
+    def self.filter_container: (parameter) -> params?
     def self.contact_selector: (params, String) -> params
     def self.validate_selector: (params, params, String) -> void
-    def self.count_filters: (params?, id?, contact_type | "address" | nil, String?) -> params
+    def self.count_filters: (parameter, parameter, parameter, parameter) -> params
     def self.count_contact_type: (parameter) -> String?
     def self.validate_filters: (parameter, parameter) -> void
   end
 
+  module SmsInputs
+    def self.phone: (parameter) -> String
+  end
+
   class RecordRows
+    def self.bounded: (Enumerable[params]) -> RecordRows
     include Enumerable[Array[parameter]]
     @records: Enumerable[params]
     @rows: Array[Array[parameter]]?

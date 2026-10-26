@@ -27,7 +27,7 @@ module Unisender
       "getActualMessageVersion" => [MessageVersion, MessageVersionResponse],
       "getWebVersion" => [WebVersion, WebVersionResponse],
       "sendEmail" => [SendResult, SendResponse],
-      "sendSms" => [SmsReceipt, SmsReceiptResponse],
+      "sendSms" => [SmsReceipt, ObjectResponse],
       "sendTestEmail" => [MessageNotice, MessageNoticeResponse],
       "updateEmailMessage" => [MessageCreated, MessageCreatedResponse],
       "updateOptInEmail" => [Record, ObjectResponse],
@@ -62,7 +62,7 @@ module Unisender
       "listHooks" => [Hook, ObjectResponse]
     }
     MODELS = models.freeze
-    COLLECTION_OPERATIONS = %w[getLists checkEmail getSenderDomainList getMessages listMessages
+    COLLECTION_OPERATIONS = %w[getLists checkEmail sendSms getSenderDomainList getMessages listMessages
                                getCampaigns getVisitedLinks getTemplates listTemplates getFields getTags
                                getSubscriberNotes listHooks].freeze
     EMPTY_OPERATIONS = %w[deleteList exclude updateList unsubscribe cancelCampaign deleteMessage
