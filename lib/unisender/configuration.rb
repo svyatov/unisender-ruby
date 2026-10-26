@@ -8,22 +8,23 @@ module Unisender
     TIMEOUT_KEYS = %i[open_timeout read_timeout write_timeout persistent].freeze
     RETRY_KEYS = %i[max_retries max_elapsed].freeze
     attr_reader :api_key, :language, :transport, :retry_policy, :message_defaults, :instrumentation, :rate_limiter,
-                :event_rate_limiter
+                :event_rate_limiter, :acceptance_instrumentation
 
-    # rubocop:disable-next Metrics/ParameterLists -- Public configuration options are explicit keywords.
+    # rubocop:disable-next Metrics/ParameterLists, Metrics/MethodLength -- Keep immutable public options together.
     def initialize(api_key:, language: :en, transport: nil, retry_policy: nil, open_timeout: nil,
                    read_timeout: nil, write_timeout: nil, max_retries: nil, max_elapsed: nil,
                    message_defaults: {}, instrumentation: nil, persistent: false, rate_limiter: nil,
-                   event_rate_limiter: nil)
+                   event_rate_limiter: nil, acceptance_instrumentation: nil)
       @api_key, @language = credentials(api_key, language)
       @message_defaults = defaults(message_defaults)
       @instrumentation = instrumentation
       @transport = build_transport(transport, open_timeout, read_timeout, write_timeout, persistent)
       @retry_policy = build_retry(retry_policy, max_retries, max_elapsed)
-      initialize_resources(rate_limiter, transport, event_rate_limiter)
+      initialize_resources(rate_limiter, transport, event_rate_limiter, acceptance_instrumentation)
       @options = { api_key: @api_key, language: @language, transport:, retry_policy:, open_timeout:,
                    read_timeout:, write_timeout:, max_retries:, max_elapsed:, message_defaults: @message_defaults,
-                   instrumentation:, persistent:, rate_limiter:, event_rate_limiter: }.freeze
+                   instrumentation:, persistent:, rate_limiter:, event_rate_limiter:,
+                   acceptance_instrumentation: }.freeze
       freeze
     end
 
@@ -83,9 +84,10 @@ module Unisender
       transport || factory.new(**timeout_options(open_timeout, read_timeout, write_timeout))
     end
 
-    def initialize_resources(limiter, transport, event_limiter)
+    def initialize_resources(limiter, transport, event_limiter, acceptance_callback)
       @rate_limiter = limiter
       @event_rate_limiter = event_limiter
+      @acceptance_instrumentation = acceptance_callback
       @owns_transport = case transport
                         when nil then true
                         else false

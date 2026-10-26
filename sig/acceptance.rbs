@@ -1,0 +1,28 @@
+module Unisender
+  class AcceptanceEvent < Data
+    attr_reader operation: String
+    attr_reader outcome: Symbol
+    attr_reader input_count: Integer
+    attr_reader accepted_count: Integer?
+    attr_reader rejected_count: Integer?
+    attr_reader unknown_count: Integer?
+    attr_reader row_warning_count: Integer?
+    attr_reader request_id: String?
+    def self.new: (operation: String, outcome: Symbol, input_count: Integer, accepted_count: Integer?, rejected_count: Integer?, unknown_count: Integer?, row_warning_count: Integer?, request_id: String?) -> AcceptanceEvent
+  end
+  module Acceptance
+    def self.input_count: (String, params) -> Integer?
+    def self.event: (String, Integer, Response?, StandardError?) -> AcceptanceEvent
+    def self.warning_count: (Response?) -> Integer?
+    def self.counts: (Integer, Response?, StandardError?) -> [Integer?, Integer?, Integer?]
+    def self.send_counts: (Integer, SendResponse) -> [Integer, Integer, Integer]
+    def self.import_counts: (Integer, ImportResponse) -> [Integer?, Integer, Integer?]
+    def self.state: (Response?, StandardError?, Integer?) -> Symbol
+    def self.result_state: (OutcomeResponse) -> Symbol
+    def self.emit: (^(AcceptanceEvent) -> void, AcceptanceEvent) -> void
+  end
+  class Client
+    private
+    def observe_acceptance: (String, Integer?, Response?, StandardError?) -> void
+  end
+end

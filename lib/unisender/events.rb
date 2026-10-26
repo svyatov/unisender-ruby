@@ -7,14 +7,21 @@ module Unisender
       body = EventPayload.encode(events)
       headers = { "Content-Type" => "application/json", "Authorization" => "Bearer #{@api_key}",
                   "User-Agent" => USER_AGENT }
-      exchange("track_events", URI("https://event.unisender.com/v1/events/"), headers:, body:) do |http|
-        parse_event_response(http)
+      exchange("track_events", URI("https://event.unisender.com/v1/events/"), headers:, body:,
+                                                                              input_count: events.size) do |http|
+        decode_event_response(http, events.size)
       end
     rescue Error, ValidationError => e
       raise e.with_operation("track_events"), cause: nil
     end
 
     private
+
+    def decode_event_response(http, count)
+      response = parse_event_response(http)
+      observe_acceptance("track_events", count, response, nil)
+      response
+    end
 
     def parse_event_response(http)
       response = Response.new(data: Protocol.decode(http), status: http.status, headers: http.headers)

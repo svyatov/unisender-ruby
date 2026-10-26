@@ -9,12 +9,14 @@ module Unisender
 
     private
 
+    # rubocop:disable-next Metrics/MethodLength -- One attempt owns request construction, decoding, and error context.
     def perform_request(method, params, named:)
       uri, headers, body = request_values(method, params)
       attempt = 0
       with_retries(method) do
         attempt += 1
-        exchange(method, uri, headers:, body:, attempt:) do |http|
+        exchange(method, uri, headers:, body:, attempt:,
+                              input_count: named ? Acceptance.input_count(method, params) : nil) do |http|
           decode_response(http, method, params, named)
         end
       end
@@ -43,11 +45,13 @@ module Unisender
       response = Protocol.parse(http, method:)
       return response unless named
 
-      bind_task(method, Results.build(method, response), params)
+      result = bind_task(method, Results.build(method, response), params)
+      observe_acceptance(method, Acceptance.input_count(method, params), result, nil)
+      result
     end
 
-    # rubocop:disable-next Metrics/MethodLength -- Start the clock outside request failure handling.
-    def exchange(operation, uri, headers:, body:, attempt: 1)
+    # rubocop:disable-next Metrics/MethodLength, Metrics/ParameterLists -- Keep attempt metadata with its exchange.
+    def exchange(operation, uri, headers:, body:, attempt: 1, input_count: nil)
       check_execution!
       acquire_limit(operation)
       check_execution!
@@ -58,6 +62,7 @@ module Unisender
         result = yield response
       rescue StandardError => e
         e.with_http(status: response&.status, request_id: response&.headers&.[]("x-request-id")) if e.is_a?(Error)
+        observe_acceptance(operation, input_count, nil, e)
         observe(operation, attempt, started, response, e)
         raise
       end

@@ -58,6 +58,22 @@ Cancellation and deadlines are cooperative. They do not forcibly interrupt an in
 
 The scope's instrumentation emits payload-free `ExecutionEvent` values for `workflow`, `retry_wait`, `rate_limit_wait`, and `poll_wait`. Existing request instrumentation measures individual network attempts and includes the upstream request ID when available. Observer exceptions do not change the operation's result. Progress callbacks are application work, so their exceptions stop the job with completed-work context.
 
+## Acceptance metrics
+
+Pass `acceptance_instrumentation: ->(event) { record_acceptance(event) }` when constructing a client.
+The callback receives an immutable `AcceptanceEvent` for each attempted named send, import, or Event Tracking request.
+Reads and offline validation do not emit acceptance events.
+
+Events contain `operation`, `outcome`, `input_count`, `accepted_count`, `rejected_count`, `unknown_count`, `row_warning_count`, and `request_id`.
+Counts unavailable from the response are `nil`. They are not inferred from HTTP success.
+An Event Tracking HTTP 400 response can mean partial acceptance, with unknown counts.
+Transport failures also leave acceptance counts unknown. HTTP 401 rejects the event batch.
+Outcomes are `:complete`, `:partial`, `:rejected`, or `:uncertain`.
+
+Acceptance describes provider acknowledgement, not delivery to a recipient.
+Request `instrumentation:` separately reports network attempts and can report success when acceptance is rejected.
+Callbacks receive no payload, contact address, credential, or response body. Callback exceptions do not change operation results.
+
 ## Retaining large jobs
 
 Full `BatchReport` history remains the default. For large imports or event streams, select `retention: :summary` on either an immediate or lazy batch helper. Immediate calls return a non-enumerable `BatchSummary`; lazy calls still yield each response but retain no successful response bodies internally.
