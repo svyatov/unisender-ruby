@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "tmpdir"
 require_relative "support/scripted_transport"
 
+# Executable examples share isolated environment and transport setup.
+# rubocop:disable-next Metrics/ClassLength
 class ExamplesTest < Minitest::Test
   ROOT = File.expand_path("..", __dir__)
   ENVIRONMENT = {
@@ -12,10 +15,17 @@ class ExamplesTest < Minitest::Test
 
   def setup
     @previous = ENVIRONMENT.to_h { |key, value| [key, ENV.fetch(key, nil)].tap { ENV[key] = value } }
+    @directory = Dir.mktmpdir("unisender-export")
+    %w[STATE PATH].each do |suffix|
+      key = "UNISENDER_EXPORT_#{suffix}"
+      @previous[key] = ENV.fetch(key, nil)
+      ENV[key] = File.join(@directory, suffix.downcase)
+    end
   end
 
   def teardown
     @previous.each { |key, value| ENV[key] = value }
+    FileUtils.remove_entry(@directory)
   end
 
   def test_quickstart_only_reads_lists
@@ -44,14 +54,22 @@ class ExamplesTest < Minitest::Test
     assert_equal "12", URI.decode_www_form(transport.requests.last.fetch(:body)).to_h.fetch("message_id")
   end
 
-  def test_export_polls_without_downloading_or_printing_the_private_link
-    transport, output, = run_example("export", { "result" => { "task_uuid" => "task", "status" => "new" } },
-                                     { "result" => { "status" => "completed",
-                                                     "file_to_download" => "https://example.test/secret" } })
+  def test_export_persists_the_task_and_downloads_without_printing_the_private_link
+    transport, output, = run_export({ "result" => { "task_uuid" => "task", "status" => "new" } },
+                                    { "result" => { "status" => "completed",
+                                                    "file_to_download" => "https://example.test/secret" } })
 
-    assert_equal "Export ready at host: example.test\n", output
+    assert_equal "Export saved\n", output
     assert_equal 2, transport.requests.size
-    refute_includes output, "/secret"
+    assert_equal "export bytes", File.read(ENV.fetch("UNISENDER_EXPORT_PATH"))
+  end
+
+  def test_export_resumes_saved_task_without_starting_another
+    File.write(ENV.fetch("UNISENDER_EXPORT_STATE"), "task")
+    transport, = run_export({ "result" => { "status" => "completed", "file_to_download" => "https://example.test" } })
+
+    assert_equal(["/en/api/async/getTaskResult"], transport.requests.map { |r| r.fetch(:uri).path })
+    refute_path_exists ENV.fetch("UNISENDER_EXPORT_STATE")
   end
 
   def test_import_success_consumes_one_batch
@@ -105,6 +123,16 @@ class ExamplesTest < Minitest::Test
   end
 
   private
+
+  def run_export(*replies)
+    downloader = Object.new
+    downloader.define_singleton_method(:download) do |_url, io, max_bytes:|
+      raise "Expected bound" unless max_bytes.positive?
+
+      io.write("export bytes")
+    end
+    replace_method(Unisender::Downloader, :new, -> { downloader }) { run_example("export", *replies) }
+  end
 
   def run_example(name, *replies)
     transport = ScriptedTransport.new(*replies.map do |reply|

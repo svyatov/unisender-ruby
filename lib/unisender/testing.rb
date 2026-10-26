@@ -18,6 +18,10 @@ module Unisender
         URI.decode_www_form(body).to_h.except("api_key")
       end
 
+      def json
+        JSON.parse(body) # : json
+      end
+
       def inspect
         "#<Unisender::Testing::Request>"
       end
@@ -46,6 +50,12 @@ module Unisender
         @requests.dup.freeze
       end
 
+      def verify!
+        raise "#{@replies.size} queued response(s) were not consumed" unless @replies.empty?
+
+        self
+      end
+
       def post(uri, headers:, body:)
         request = Request.new(uri: uri.dup.freeze, headers: headers.dup.freeze, body: body.dup.freeze)
         @requests << request
@@ -63,7 +73,11 @@ module Unisender
 
       def next_response(request)
         reply = @replies.shift or raise "Unexpected request: no queued response"
-        raise "Unexpected request operation" if reply.operation && reply.operation != request.operation
+        if reply.operation && reply.operation != request.operation
+          expected = Error.safe_operation(reply.operation) || "request"
+          actual = Error.safe_operation(request.operation) || "request"
+          raise "Unexpected request: expected #{expected}, received #{actual}"
+        end
 
         reply.response
       end

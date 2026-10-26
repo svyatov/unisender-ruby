@@ -8,6 +8,7 @@ module Unisender
       alias to_s inspect
       def operation: () -> String
       def form: () -> Hash[String, String]
+      def json: () -> json
       def inspect: () -> String
     end
     class Reply < Data
@@ -22,6 +23,7 @@ module Unisender
       def enqueue: (data: Hash[String, json], ?http_status: Integer, ?headers: Hash[String, String], ?operation: String?) -> self
       def enqueue_response: (HTTPResponse | StandardError, ?operation: String?) -> self
       def requests: () -> Array[Request]
+      def verify!: () -> self
       def post: (URI::Generic, headers: Hash[String, String], body: String) -> HTTPResponse
       def inspect: () -> String
       private
