@@ -34,11 +34,16 @@ class RecoverableImport
     state["in_flight"] = batch.map { |row| row.fetch("id") }
     save(state) # Durable intent precedes the remote mutation.
     records = batch.map { |row| row.fetch("fields") }
-    @client.import_contacts(records:).raise_for_partial_failure!
+    import_records(records)
     state["next_index"] = offset + batch.size
     state.delete("in_flight")
     save(state) # Crash before this write requires reconciliation, not replay.
     offset + batch.size
+  end
+
+  def import_records(records)
+    response = @client.import_contacts(records:).raise_for_partial_failure!
+    raise Unisender::PartialFailure, response unless response.total == records.size
   end
 
   def read_state(rows)

@@ -23,6 +23,8 @@ For concurrent workers or transactional guarantees, use a database job row and l
 Every row must contain the same API field keys. Application IDs are not sent to UniSender.
 
 The example writes intent before sending each batch. It advances the completed index only after complete acceptance.
+The response must report zero invalid rows and a total equal to the submitted batch size.
+Missing or inconsistent totals preserve the in-flight marker for reconciliation.
 A restart with an in-flight marker refuses to send. This covers a timeout, partial response, callback failure, or process crash after sending.
 
 1. Read the persisted application IDs and the original source. Keep the source order unchanged.

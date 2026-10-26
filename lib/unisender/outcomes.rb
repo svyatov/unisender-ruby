@@ -3,15 +3,31 @@
 module Unisender
   # Shared decoding for error records inside successful envelopes.
   module Outcomes
-    def self.records(value)
+    def self.records(value, path)
       return [] if value.nil?
-      raise InvalidResponseError, "Expected result records" unless value.is_a?(Array)
-
-      value.map do |item|
-        raise InvalidResponseError, "Expected result record" unless item.is_a?(Record)
-
-        item
+      unless value.is_a?(Array)
+        raise InvalidResponseError.new("Expected result records", path:, expected_type: "Array",
+                                                                  actual_type: Diagnostics.type_name(value))
       end
+
+      value.each_with_index.map { |item, index| record(item, "#{path}[#{index}]") }
+    end
+
+    def self.record(item, path)
+      return item if item.is_a?(Record)
+
+      raise InvalidResponseError.new("Expected result record", path:, expected_type: "Hash",
+                                                               actual_type: Diagnostics.type_name(item))
+    end
+
+    def self.failures(value, path, overrides = {})
+      records(value, path).each_with_index.map { |item, index| failure(item, "#{path}[#{index}]", overrides) }
+    end
+
+    def self.failure(item, path, overrides)
+      Failure.new(item.to_h.merge(overrides))
+    rescue InvalidResponseError => e
+      raise e.prepend_path(path), cause: nil
     end
   end
 
@@ -79,11 +95,11 @@ module Unisender
     end
 
     def failures
-      Outcomes.records(self["log"]).map { |item| Failure.new(item.to_h) }.reject(&:warning?)
+      Outcomes.failures(self["log"], "log").reject(&:warning?)
     end
 
     def row_warnings
-      Outcomes.records(self["log"]).map { |item| Failure.new(item.to_h) }.select(&:warning?)
+      Outcomes.failures(self["log"], "log").select(&:warning?)
     end
 
     def complete?
@@ -124,7 +140,7 @@ module Unisender
     end
 
     def failures
-      Outcomes.records(self["errors"]).map { |item| Failure.new(item.to_h.merge("index" => index)) }
+      Outcomes.failures(self["errors"], "errors", { "index" => index })
     end
 
     def accepted?
@@ -161,7 +177,7 @@ module Unisender
     end
 
     def recipients
-      Outcomes.records(self["recipients"]).each_with_index.map do |item, index|
+      Outcomes.records(self["recipients"], "recipients").each_with_index.map do |item, index|
         child(RecipientResult, item.to_h, "recipients[#{index}]")
       end
     end

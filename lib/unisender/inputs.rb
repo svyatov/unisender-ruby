@@ -139,6 +139,7 @@ module Unisender
     end
 
     def self.contact_fields(fields, email)
+      validate_email_alias(email)
       unless fields.nil? || fields.is_a?(Hash)
         raise ValidationError.new(field: "fields", code: :invalid_type, operation: "subscribe")
       end
@@ -151,6 +152,13 @@ module Unisender
       merge_email(result, email) if email
       validate_email(result)
       result
+    end
+
+    def self.validate_email_alias(email)
+      return if email.nil? || email.is_a?(String)
+
+      raise ValidationError.new(field: "email", code: :invalid_type, operation: "subscribe",
+                                expected_type: "String", actual_type: Diagnostics.type_name(email))
     end
 
     def self.merge_email(result, email)

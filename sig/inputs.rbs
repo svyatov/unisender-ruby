@@ -40,6 +40,7 @@ module Unisender
     def self.mode: (parameter, Hash[Symbol, Integer], Symbol) -> Integer?
     def self.timestamp: (parameter, String, Symbol) -> String?
     def self.contact_fields: (parameter, parameter) -> params
+    def self.validate_email_alias: (parameter) -> void
     def self.merge_email: (params, parameter) -> parameter
     def self.validate_email: (params) -> void
   end

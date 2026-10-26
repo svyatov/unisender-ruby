@@ -43,6 +43,17 @@ class ImportRecoveryExampleTest < Minitest::Test
     assert_equal 1, @transport.requests.size
   end
 
+  def test_missing_or_inconsistent_totals_do_not_clear_inflight_rows
+    [nil, 0, 2].each do |total|
+      FileUtils.rm_f(@path)
+      @transport.enqueue(data: { "result" => { "total" => total, "invalid" => 0 }.compact })
+
+      assert_raises(Unisender::PartialFailure) { @job.run(@rows) }
+      assert_equal ["customer-1"], JSON.parse(File.read(@path)).fetch("in_flight")
+      assert_raises(RuntimeError) { @job.run(@rows) }
+    end
+  end
+
   def test_source_change_and_corrupt_checkpoint_are_rejected
     @transport.enqueue(data: { "result" => { "total" => 1, "invalid" => 0 } })
     @job.run(@rows)

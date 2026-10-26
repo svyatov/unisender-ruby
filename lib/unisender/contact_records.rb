@@ -133,7 +133,7 @@ module Unisender
       value = self["lists"]
       return nil if value.nil?
 
-      Outcomes.records(value).each_with_index.map do |item, index|
+      Outcomes.records(value, "lists").each_with_index.map do |item, index|
         child(ContactList, item.to_h, "lists[#{index}]")
       end.freeze
     end
@@ -212,7 +212,7 @@ module Unisender
     end
 
     def domains
-      Outcomes.records(self["domains"]).each_with_index.map do |item, index|
+      Outcomes.records(self["domains"], "domains").each_with_index.map do |item, index|
         child(SenderDomain, item.to_h, "domains[#{index}]")
       end.freeze
     end

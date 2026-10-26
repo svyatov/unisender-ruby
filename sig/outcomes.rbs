@@ -1,6 +1,9 @@
 module Unisender
   module Outcomes
-    def self.records: (value) -> Array[Record]
+    def self.records: (value, String) -> Array[Record]
+    def self.record: (value, String) -> Record
+    def self.failures: (value, String, ?Hash[String, json]) -> Array[Failure]
+    def self.failure: (Record, String, Hash[String, json]) -> Failure
   end
   class Failure < Record
     def index: () -> Integer?

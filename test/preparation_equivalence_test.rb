@@ -24,6 +24,16 @@ class PreparationEquivalenceTest < Minitest::Test
     end
   end
 
+  def test_false_email_alias_cannot_be_discarded_by_existing_fields
+    transport = Unisender::Testing::Transport.new
+    client = Unisender::Client.new(api_key: "test", transport:)
+    params = { email: false, fields: { email: "a@example.test" }, list_ids: [1] }
+
+    assert_matching_diagnostics(client, :subscribe, params)
+
+    assert_empty transport.requests
+  end
+
   def test_result_container_errors_include_http_and_shape
     transport = Unisender::Testing::Transport.new.enqueue(data: { "result" => {} }, headers: { "x-request-id" => "r1" })
     error = assert_raises(Unisender::InvalidResponseError) do

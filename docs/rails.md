@@ -76,7 +76,8 @@ class ImportProcessor
   def call
     while (work = claim)
       batch, offset = work
-      @client.import_contacts(records: batch.map { |row| row.fetch("fields") }).raise_for_partial_failure!
+        response = @client.import_contacts(records: batch.map { |row| row.fetch("fields") }).raise_for_partial_failure!
+        raise Unisender::PartialFailure, response unless response.total == batch.size
       @run.with_lock do
         @run.update!(next_index: offset + batch.size, in_flight: nil, status: "ready")
       end
@@ -90,7 +91,7 @@ class ImportProcessor
 
   def claim
     @run.with_lock do
-      raise "Reconcile in-flight rows before resuming" if @run.in_flight.present?
+        raise "Reconcile in-flight rows before resuming" if @run.in_flight
       batch = @run.source.slice(@run.next_index, 500)
       if batch.empty?
         @run.update!(status: "completed")

@@ -59,7 +59,7 @@ module Unisender
       values = self[key?("events") ? "events" : "Events"]
       raise WebhookError, :unsupported_shape unless values.is_a?(Array)
 
-      Outcomes.records(values).map { |event| WebhookEvent.new(event.to_h) }
+      Outcomes.records(values, "events").map { |event| WebhookEvent.new(event.to_h) }
     end
 
     protected
@@ -75,7 +75,7 @@ module Unisender
   # Authenticated notification payload with typed user and event readers.
   class WebhookNotification < Record
     def users
-      Outcomes.records(self["events_by_user"]).map { |user| WebhookUser.new(user.to_h) }
+      Outcomes.records(self["events_by_user"], "events_by_user").map { |user| WebhookUser.new(user.to_h) }
     end
 
     def events
