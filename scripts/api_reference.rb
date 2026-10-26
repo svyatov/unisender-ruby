@@ -113,6 +113,6 @@ class APIReference
   end
 
   def type_text(type)
-    type.to_s.gsub("|", '\\|')
+    type.to_s.gsub(/[\\|]/) { |character| "\\#{character}" }
   end
 end

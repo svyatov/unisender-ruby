@@ -4,6 +4,7 @@ require_relative "../unisender"
 require "digest"
 require "zlib"
 require "stringio"
+require_relative "webhooks/tokens"
 
 module Unisender
   # Rejected inbound data never appears in exception messages.
@@ -92,8 +93,6 @@ module Unisender
 
   # The documented signature covers original decompressed JSON bytes.
   module Webhooks
-    TOKENS = /"(?:[^"\\]|\\.)*"|[{}\[\]:,]/m
-
     # The token walk rejects duplicate keys even on older JSON parsers.
     class ObjectKeys
       attr_reader :key
@@ -182,7 +181,7 @@ module Unisender
     def self.authenticate(bytes, data, api_key)
       auth = auth_value(data)
       start, finish = auth_span(bytes)
-      signed = bytes[0...start].to_s + JSON.generate(api_key) + bytes[finish..].to_s
+      signed = bytes.byteslice(0...start).to_s + JSON.generate(api_key) + bytes.byteslice(finish..).to_s
       expected = Digest::MD5.hexdigest(signed)
       raise WebhookError, :invalid_auth unless secure_equal?(auth, expected)
     end
@@ -198,30 +197,33 @@ module Unisender
       actual.bytes.zip(expected.bytes).reduce(0) { |memo, (a, b)| memo | (a ^ b.to_i) }.zero?
     end
 
-    # rubocop:disable-next Metrics/MethodLength, Metrics/CyclomaticComplexity, Metrics/AbcSize -- Preserve JSON spans.
+    # rubocop:disable-next Metrics/MethodLength, Metrics/CyclomaticComplexity -- Preserve JSON spans.
     def self.auth_span(bytes)
       # @type var stack: Array[ObjectKeys?]
       stack = []
       # @type var span: [Integer, Integer]?
       span = nil
-      bytes.scan(TOKENS) do
-        match = Regexp.last_match # : MatchData
-        token = match[0]
+      Tokens.new(bytes).each do |token, start, finish|
         case token
         when "{" then stack << ObjectKeys.new
         when "[" then stack << nil
         when "}", "]" then stack.pop
         when "," then stack.last&.next_key
-        when ":" then next
         else
-          frame = stack.last
-          next unless frame
-
-          span = [Integer(match.begin(0)), Integer(match.end(0))] if stack.size == 1 && frame.key == "auth"
-          frame.register(token.to_s)
+          span = register_string(stack, token, start, finish) || span
         end
       end
       span || raise(WebhookError, :invalid_auth)
+    end
+
+    def self.register_string(stack, token, start, finish)
+      frame = stack.last
+      return unless frame
+
+      # @type var span: [Integer, Integer]?
+      span = [start, finish] if stack.size == 1 && frame.key == "auth"
+      frame.register(token)
+      span
     end
   end
 end

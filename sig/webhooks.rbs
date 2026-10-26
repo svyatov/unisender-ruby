@@ -20,7 +20,6 @@ module Unisender
     def normalize: () -> void
   end
   module Webhooks
-    TOKENS: Regexp
     class ObjectKeys
       @seen: Hash[String, bool]
       attr_reader key: String?
@@ -38,6 +37,15 @@ module Unisender
     def self.auth_value: (Hash[String, json]) -> String
     def self.secure_equal?: (String, String) -> bool
     def self.auth_span: (String) -> [Integer, Integer]
+    def self.register_string: (Array[ObjectKeys?], String, Integer, Integer) -> [Integer, Integer]?
+    class Tokens
+      @text: String
+      def initialize: (String) -> void
+      def each: () { (String, Integer, Integer) -> void } -> void
+      private
+      def read: (Integer) -> [String, Integer]
+      def string_end: (Integer) -> Integer
+    end
   end
 end
 

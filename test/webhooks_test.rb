@@ -111,4 +111,19 @@ class WebhooksTest < Minitest::Test
 
     assert_equal %w[one two], notification["future"]
   end
+
+  def test_token_scan_rejects_unterminated_strings_after_auth
+    error = assert_raises(Unisender::WebhookError) do
+      Unisender::Webhooks.auth_span('{"auth":"value","unterminated')
+    end
+
+    assert_equal :malformed_payload, error.reason
+  end
+
+  def test_many_escaped_quotes_preserve_the_auth_span
+    text = "#{'\\"' * 10_000}Привет"
+    extra = "#{JSON.generate('future')}:#{JSON.generate(text)},"
+
+    assert_equal 1, verify(signed(payload(extra:))).events.size
+  end
 end

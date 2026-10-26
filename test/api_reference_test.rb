@@ -44,6 +44,14 @@ class APIReferenceTest < Minitest::Test
     assert(rows.all? { |row| row.scan(/(?<!\\)\|/).size == 6 })
   end
 
+  def test_type_text_escapes_backslashes_before_table_separators
+    reference = APIReference.new(File.expand_path("..", __dir__))
+    slash = "\\"
+
+    assert_equal "path#{slash * 3}|tail #{slash}| other#{slash * 2}",
+                 reference.type_text("path#{slash}|tail | other#{slash}")
+  end
+
   private
 
   def documented_keywords(reference, name)
