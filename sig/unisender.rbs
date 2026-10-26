@@ -118,6 +118,7 @@ module Unisender
   end
 
   module PaginatedOperations
+    def self.supports?: (String | Symbol) -> bool
     DEFINITIONS: Hash[String, [String, Array[Symbol], Array[Symbol], Integer?]]
     def self.call: (Client, String | Symbol, params) -> PageResponse[Record]
     def self.validate: (String | Symbol, params) -> String

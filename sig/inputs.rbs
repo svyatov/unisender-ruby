@@ -33,15 +33,16 @@ module Unisender
     def self.timestamp_format: (String) -> String?
     def self.mode: (parameter, Hash[Symbol, Integer], Symbol) -> Integer?
     def self.timestamp: (parameter, String, Symbol) -> String?
-    def self.contact_fields: (params?, String?) -> params
-    def self.merge_email: (params, String) -> parameter
+    def self.contact_fields: (parameter, parameter) -> params
+    def self.merge_email: (params, parameter) -> parameter
     def self.validate_email: (params) -> void
   end
 
   module ContactInputs
+    def self.filter_container: (parameter) -> params?
     def self.contact_selector: (params, String) -> params
     def self.validate_selector: (params, params, String) -> void
-    def self.count_filters: (params?, id?, contact_type | "address" | nil, String?) -> params
+    def self.count_filters: (parameter, parameter, parameter, parameter) -> params
     def self.count_contact_type: (parameter) -> String?
     def self.validate_filters: (parameter, parameter) -> void
   end

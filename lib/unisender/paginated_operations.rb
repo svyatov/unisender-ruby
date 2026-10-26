@@ -21,6 +21,10 @@ module Unisender
     DEFINITIONS = definitions.transform_values(&:freeze).freeze
     private_constant :DEFINITIONS
 
+    def self.supports?(method)
+      DEFINITIONS.key?(method.to_s)
+    end
+
     def self.call(client, method, params)
       params = params.compact
       params = params.merge(limit: params.fetch(:limit, 100))

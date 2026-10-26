@@ -1158,6 +1158,10 @@ Successful `sendTestEmail` and `updateField` examples omit the `result` envelope
 
 ## Convenience operations
 
+`client.validate!(operation, **arguments)` checks named request arguments, defaults, normalization, and encoding without networking.
+It returns `true` or raises a validation error. It also accepts `:track_events` and `:send_campaign`.
+Low-level requests and multi-request iterators are not supported. Import validation consumes supplied records up to the direct-request bound.
+
 | Helper | Behavior |
 | --- | --- |
 | `each_page(method, page_size: 100, max_pages: 1000, **params)` | Lazy Enumerator of responses for `get_campaigns`, `get_messages`, `list_messages`, `get_templates`, `list_templates`, `get_sender_domain_list`, and `get_subscriber_notes`. An optional `offset` starts iteration. Stops at a short or empty page; raises at the page bound. Offset pagination is not a server snapshot. |

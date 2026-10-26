@@ -37,13 +37,27 @@ module Unisender
     end
 
     def prepare(method, params, required: [], comma: [])
+      params = preparation_defaults(method).merge(params)
       params = message_defaults(params)
+      OperationContracts.validate!(method, params)
       params = Inputs.normalize(method, params)
       Validation.required!(params, required)
       Validation.operation!(method, params)
       comma_parameters(params, comma)
     rescue ValidationError => e
       raise e.with_operation(method), cause: nil
+    end
+
+    def preparation_defaults(method)
+      case method
+      when "createEmailMessage", "sendEmail"
+        # @type var values: params
+        values = { sender_name: UNSET, sender_email: UNSET, lang: UNSET }
+        values[:error_checking] = true if method == "sendEmail"
+        values
+      when "setHook" then { event_format: :json_post_gzip, single_event: false, status: :active }
+      else {}
+      end
     end
 
     def comma_parameters(params, comma)

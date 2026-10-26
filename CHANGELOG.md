@@ -4,6 +4,8 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Validate named argument types locally and expose offline `Client#validate!` with shared normalization and encoding.
+
 - Bound direct imports to 501 inspected records and add optional byte limits to attachment reads.
 
 - Schedule Time inputs in explicit UTC with minute precision; reject conflicting timezones.

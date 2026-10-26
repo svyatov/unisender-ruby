@@ -1,0 +1,28 @@
+module Unisender
+  module OperationContracts
+    DEFINITIONS: Hash[String, [String, Array[String], Hash[String, Array[String]]]]
+    def self.wire_name: (Symbol) -> String
+    def self.validate!: (String, params) -> void
+    def self.validate_keys!: (String, params) -> void
+    def self.comma_fields: (String) -> Array[String]
+  end
+  module InputTypes
+    KINDS: Hash[String, Module]
+    def self.validate!: (parameter, Array[String], String) -> void
+    def self.accepts?: (parameter, String) -> bool
+  end
+  class Client
+    def validate!: (Symbol, ?records: Enumerable[params]?, **parameter) -> true
+    private
+    def validation_dispatch: (Symbol, params) -> true
+    def validate_named: (Symbol, params) -> true
+    def validation_page: (Symbol, params) -> params
+    def validate_campaign: (params) -> true
+    def validation_keywords: (parameter, String) -> Hash[Symbol, parameter]
+    def validate_events: (params) -> true
+    def validation_import: (params, Enumerable[params]) -> params
+    def validation_parameters: (String, params) -> params
+    def validation_count: (params) -> params
+    def preparation_defaults: (String) -> params
+  end
+end

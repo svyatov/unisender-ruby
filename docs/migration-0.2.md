@@ -55,6 +55,10 @@ Pagination errors expose `next_offset` and `completed_pages` for recovery. Direc
 
 ## Inputs and tasks
 
+Named methods reject wrong scalar and collection types before a request. Use arrays or comma-separated strings for list IDs and field IDs.
+`client.validate!(operation, **arguments)` checks a named request, Event Tracking, or a campaign workflow without networking.
+It applies the same defaults and structural rules as execution. Import validation consumes its source; recreate an enumerable before sending.
+
 Campaign `Time` inputs use UTC with `timezone: "UTC"`. Seconds are truncated to the API's minute precision.
 Conflicting timezone arguments raise `ValidationError`. String inputs retain their explicit or account-default timezone.
 

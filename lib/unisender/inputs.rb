@@ -177,6 +177,7 @@ module Unisender
     end
 
     def self.count_filters(params, tag_id, contact_type, search)
+      params = filter_container(params)
       validate_filters(tag_id, search)
       if params && [tag_id, contact_type, search].any?
         raise ValidationError.new(field: "params", code: :conflicting_input, operation: "getContactCount")
@@ -187,6 +188,12 @@ module Unisender
       raise ValidationError.new(field: "contact_type", code: :required, operation: "getContactCount") if search && !type
 
       { tagId: tag_id, type:, search: }.compact
+    end
+
+    def self.filter_container(value)
+      return value if value.nil? || value.is_a?(Hash)
+
+      raise ValidationError.new(field: "params", code: :invalid_type, operation: "getContactCount")
     end
 
     def self.validate_filters(tag_id, search)
