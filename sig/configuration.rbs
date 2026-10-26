@@ -50,5 +50,6 @@ module Unisender
     def default_value: (String?) -> String?
     def validate_conflicts: (_Transport | RetryPolicy | nil, Array[duration?]) -> void
     def defaults: (Hash[String | Symbol, String?]) -> Hash[Symbol, String]
+    def normalize_defaults: (Hash[String | Symbol, String?]) -> Hash[Symbol, String?]
   end
 end

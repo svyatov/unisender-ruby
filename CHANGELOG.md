@@ -4,6 +4,9 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Expose all documented import counters directly and normalize string-keyed default overrides.
+- Validate campaign encoding before creating a message.
+
 - Preserve accepted batches on source exceptions and task context on polling request failures.
 - Validate direct pagination controls and include named-result failures in instrumentation.
 - Reject special-use download addresses and complete Time signatures for iterators.

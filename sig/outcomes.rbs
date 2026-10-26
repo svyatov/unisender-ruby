@@ -17,6 +17,11 @@ module Unisender
     def failures: () -> Array[Failure]
   end
   class ImportResult < Record
+    OPTIONAL_COUNTERS: Array[String]
+    def inserted: () -> Integer?
+    def updated: () -> Integer?
+    def deleted: () -> Integer?
+    def new_emails: () -> Integer?
     def total: () -> Integer?
     def invalid: () -> Integer
     def complete?: () -> bool
@@ -56,6 +61,10 @@ module Unisender
     def raise_for_partial_failure!: () -> self
   end
   class ImportResponse < OutcomeResponse[ImportResult]
+    def inserted: () -> Integer?
+    def updated: () -> Integer?
+    def deleted: () -> Integer?
+    def new_emails: () -> Integer?
     def total: () -> Integer?
     def invalid: () -> Integer
   end

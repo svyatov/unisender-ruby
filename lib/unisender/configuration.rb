@@ -39,7 +39,7 @@ module Unisender
 
       value = changes.fetch(:message_defaults)
       case value
-      when Hash then options[:message_defaults] = @message_defaults.merge(value)
+      when Hash then options[:message_defaults] = @message_defaults.merge(normalize_defaults(value))
       else raise ArgumentError, "Message defaults must be a hash"
       end
     end
@@ -117,12 +117,16 @@ module Unisender
     end
 
     def defaults(values)
+      normalize_defaults(values).compact.freeze
+    end
+
+    def normalize_defaults(values)
       names = values.keys.map(&:to_sym)
       unless names.uniq == names && names.all? { |key| DEFAULT_KEYS.include?(key) }
         raise ArgumentError, "Unknown or duplicate message default"
       end
 
-      values.to_h { |key, value| [key.to_sym, default_value(value)] }.compact.freeze
+      values.to_h { |key, value| [key.to_sym, default_value(value)] }
     end
 
     def default_value(value)

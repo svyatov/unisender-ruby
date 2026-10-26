@@ -45,4 +45,12 @@ class CampaignWorkflowTest < Minitest::Test
     assert_raises(Unisender::APIError) { @client.send_campaign(message: MESSAGE) }
     assert_equal 1, @transport.requests.size
   end
+
+  def test_campaign_encoding_is_checked_before_message_creation
+    [{ payment_limit: Float::NAN }, { payment_currency: "\xFF".b.force_encoding("UTF-8") }].each do |campaign|
+      assert_raises(ArgumentError) { @client.send_campaign(message: MESSAGE, campaign:) }
+    end
+
+    assert_empty @transport.requests
+  end
 end

@@ -2,8 +2,27 @@
 
 require "test_helper"
 require_relative "support/scripted_transport"
+require "unisender/testing"
 
 class ConfigurationTest < Minitest::Test
+  def test_string_default_keys_can_override_inherited_defaults
+    transport = Unisender::Testing::Transport.new.enqueue(data: { "result" => { "message_id" => 1 } })
+    original = Unisender::Client.new(api_key: "test-key", transport:, message_defaults: { "sender_name" => "First" })
+    variant = original.with(message_defaults: { "sender_name" => "Second" })
+    variant.create_email_message(sender_email: "a@b.test", list_id: 1, subject: "News", body: "Hello")
+
+    assert_equal "Second", transport.requests.first.form["sender_name"]
+  end
+
+  def test_string_default_keys_can_remove_inherited_defaults
+    original = Unisender::Client.new(api_key: "test-key", message_defaults: { "sender_name" => "First" })
+    variant = original.with(message_defaults: { "sender_name" => nil })
+
+    assert_raises(ArgumentError) do
+      variant.create_email_message(sender_email: "a@b.test", list_id: 1, subject: "News", body: "Hello")
+    end
+  end
+
   def test_environment_is_explicit_and_validated
     client = Unisender::Client.from_env(env: { "UNISENDER_API_KEY" => "test-key" })
 

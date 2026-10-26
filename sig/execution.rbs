@@ -1,5 +1,6 @@
 module Unisender
   module Iteration
+    def self.items: [Item < Record] (Enumerator[PageResponse[Item], void]) -> Enumerator[Item, void]
     def self.call: [Item] (Enumerator[Item, void]) ?{ (Item) -> void } -> Enumerator[Item, void]
   end
   class BatchReport

@@ -26,16 +26,22 @@ module Unisender
     private
 
     def campaign_parameters(message, campaign)
-      workflow_keys!(message, :create_email_message)
-      workflow_keys!(campaign, :create_campaign)
-      raise ArgumentError, "The workflow supplies message_id" if campaign.key?(:message_id)
+      workflow_options!(message, campaign)
 
       defaults = { sender_name: UNSET, sender_email: UNSET, lang: UNSET }
       message_params = prepare("createEmailMessage", defaults.merge(message), required: EMAIL_REQUIRED,
                                                                               comma: %w[categories])
       campaign_params = prepare("createCampaign", campaign.merge(message_id: 0), required: CAMPAIGN_REQUIRED,
                                                                                  comma: %w[contacts])
+      Form.encode(message_params)
+      Form.encode(campaign_params)
       [message_params, campaign_params]
+    end
+
+    def workflow_options!(message, campaign)
+      workflow_keys!(message, :create_email_message)
+      workflow_keys!(campaign, :create_campaign)
+      raise ArgumentError, "The workflow supplies message_id" if campaign.key?(:message_id)
     end
 
     def workflow_keys!(params, operation)

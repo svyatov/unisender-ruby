@@ -19,8 +19,7 @@ module Unisender
 
     # @type method auto_each: (?max_pages: Integer) -> Enumerator[Record, void]
     def auto_each(max_pages: 1000)
-      pages = each_page(max_pages:)
-      Enumerator.new { |items| pages.each { |page| page.each { |item| items << item } } }
+      Iteration.items(each_page(max_pages:))
     end
   end
 end

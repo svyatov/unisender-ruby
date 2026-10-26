@@ -52,6 +52,24 @@ module Unisender
 
   # Import acceptance is distinct from recipient delivery.
   class ImportResult < Record
+    OPTIONAL_COUNTERS = %w[inserted updated deleted new_emails].freeze
+
+    def inserted
+      integer("inserted")
+    end
+
+    def updated
+      integer("updated")
+    end
+
+    def deleted
+      integer("deleted")
+    end
+
+    def new_emails
+      integer("new_emails")
+    end
+
     def invalid
       integer!("invalid")
     end
@@ -82,6 +100,7 @@ module Unisender
     def normalize
       @values["invalid"] = invalid
       @values["total"] = total if @values.key?("total")
+      OPTIONAL_COUNTERS.each { |name| @values[name] = integer(name) if @values.key?(name) }
       failures
     end
   end
@@ -202,6 +221,22 @@ module Unisender
 
   # Import counters and acceptance state.
   class ImportResponse < OutcomeResponse
+    def inserted
+      result.inserted
+    end
+
+    def updated
+      result.updated
+    end
+
+    def deleted
+      result.deleted
+    end
+
+    def new_emails
+      result.new_emails
+    end
+
     def total
       result.total
     end

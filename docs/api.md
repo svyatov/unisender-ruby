@@ -1088,7 +1088,7 @@ Object responses expose their result readers directly. Collection elements expos
 | `EmailDelivery` | `id`, `status` |
 | `Failure` | `index`, `code`, `message`, `warning?`, `with_offset` |
 | `RecipientResult` | `id`, `index`, `email`, `failures`, `accepted?` |
-| `ImportResult` | `invalid`, `total`, `complete?`, `partial?`, `uncertain?`, `failures` |
+| `ImportResult` | `invalid`, `total`, `inserted`, `updated`, `deleted`, `new_emails`, `complete?`, `partial?`, `uncertain?`, `failures` |
 | `SendResult` | `recipients`, `email_id`, `complete?`, `partial?`, `uncertain?`, `failures` |
 | `EventResult` | `complete?`, `partial?`, `uncertain?`, `failures` |
 

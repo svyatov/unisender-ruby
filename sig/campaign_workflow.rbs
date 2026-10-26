@@ -14,6 +14,7 @@ module Unisender
     private
     def campaign_parameters: (Hash[Symbol, parameter], Hash[Symbol, parameter]) -> [params, params]
     def workflow_keys!: (params, Symbol) -> void
+    def workflow_options!: (params, params) -> void
     def finish_campaign: (MessageCreatedResponse, params) -> CampaignReceipt
   end
 end
