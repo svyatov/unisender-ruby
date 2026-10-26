@@ -48,8 +48,8 @@ module Unisender
     end
 
     def request_id
-      error = self
-      error.response.headers["x-request-id"] if error.is_a?(HTTPError) || error.is_a?(APIError)
+      response = diagnostic_response
+      @context_request_id || response&.headers&.[]("x-request-id")
     end
 
     def recovery_hint

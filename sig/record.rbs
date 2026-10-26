@@ -19,13 +19,18 @@ module Unisender
     def hash: () -> Integer
     def inspect: () -> String
     def normalize: () -> void
+    def child: (singleton(EmailContact), Hash[String, json], String) -> EmailContact
+             | (singleton(PhoneContact), Hash[String, json], String) -> PhoneContact
+             | (singleton(ContactList), Hash[String, json], String) -> ContactList
+             | (singleton(SenderDomain), Hash[String, json], String) -> SenderDomain
+             | (singleton(RecipientResult), Hash[String, json], String) -> RecipientResult
     def text: (String) -> String?
     def text!: (String) -> String
     def identifier!: (String) -> id
     def integer!: (String) -> Integer
     def integer: (String) -> Integer?
     def number: (String) -> (Integer | Float)?
-    def invalid!: (String) -> bot
+    def invalid!: (String, ?expected_type: String) -> bot
   end
 
   class CollectionResponse[out Item = Record] < Response[Array[Item]]
@@ -59,7 +64,7 @@ module Unisender
     def self.build: (String, Response[json]) -> Response
     def self.boolean: (Response[json]) -> Response[json]
     def self.validate_container: (String, json) -> void
-    def self.object: (singleton(Record), json) -> Record
+    def self.object: (singleton(Record), json, ?String) -> Record
     def self.normalize: (String, json) -> json
     def self.normalize_send: (String, json) -> json
     def self.single_message: (json) -> json

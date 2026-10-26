@@ -14,7 +14,8 @@ module Unisender
         elements = arrays.map { |type| type.delete_prefix("array:") }
         value.each_with_index { |item, index| validate!(item, elements, "#{field}[#{index}]") }
       elsif types.none? { |type| accepts?(value, type) }
-        raise ValidationError.new(field:, code: :invalid_type)
+        raise ValidationError.new(field:, code: :invalid_type, expected_type: types.join(" | "),
+                                  actual_type: Diagnostics.type_name(value))
       end
     end
 

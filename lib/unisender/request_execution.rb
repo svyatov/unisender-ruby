@@ -57,6 +57,7 @@ module Unisender
         response = post_request(uri, headers, body)
         result = yield response
       rescue StandardError => e
+        e.with_http(status: response&.status, request_id: response&.headers&.[]("x-request-id")) if e.is_a?(Error)
         observe(operation, attempt, started, response, e)
         raise
       end

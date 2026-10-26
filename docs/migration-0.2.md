@@ -71,6 +71,8 @@ Conflicting timezone arguments raise `ValidationError`. String inputs retain the
 
 Named flags reject values outside booleans and 0/1 before networking. Known closed choices reject unsupported values.
 Library validation failures expose structured fields through `ValidationError`, while remaining rescuable as `ArgumentError`.
+`error.diagnostics` provides safe structured context for validation, transport, API, task, and batch failures.
+Paths identify documented fields and row positions. Dynamic field names are masked; raw payload access remains explicit.
 `send_email` defaults `error_checking` to true. Use recipient results for IDs; explicit false retains the legacy format.
 `accepted_ids` works with both formats. Recipient views retain rejected and unknown outcomes separately.
 Named `reply_to:` and `priority:` headers reject conflicts. Unsupported `images_as` values fail locally.

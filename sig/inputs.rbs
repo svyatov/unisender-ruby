@@ -12,7 +12,12 @@ module Unisender
     attr_reader code: Symbol
     attr_reader operation: String?
     attr_reader index: Integer?
-    def initialize: (field: String, code: Symbol, ?operation: String?, ?index: Integer?) -> void
+    attr_reader expected_type: String?
+    attr_reader actual_type: String?
+    alias path field
+    def diagnostics: () -> Hash[Symbol, json]
+    def documentation_url: () -> String?
+    def initialize: (field: String, code: Symbol, ?operation: String?, ?index: Integer?, ?expected_type: String?, ?actual_type: String?) -> void
     def with_operation: (String) -> self
     def category: () -> Symbol
     def recovery_hint: () -> String

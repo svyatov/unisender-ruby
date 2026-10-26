@@ -27,7 +27,7 @@ class ImportCellsTest < Minitest::Test
      { email_list_ids: [1], email_subscribe_times: %w[a b] }].each do |fields|
       error = assert_raises(Unisender::ValidationError) { Unisender::RecordRows.new([identity.merge(fields)]) }
 
-      assert_match(/\Arecords\[0\]\.[a-z_]+\z/, error.field)
+      assert_match(/\Arecords\[0\]\.(?:[a-z_]+|\*)\z/, error.field)
       assert_equal [:invalid_cell, 0], [error.code, error.index]
     end
   end

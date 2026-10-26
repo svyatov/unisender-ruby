@@ -60,9 +60,12 @@ module Unisender
       end
     end
 
-    def self.comma_list(value)
-      unless value.all? { |item| item.is_a?(String) || item.is_a?(Integer) }
-        raise ValidationError.new(field: "parameters", code: :invalid_list)
+    def self.comma_list(value, field: "parameters")
+      value.each_with_index do |item, index|
+        next if item.is_a?(String) || item.is_a?(Integer)
+
+        raise ValidationError.new(field: "#{field}[#{index}]", code: :invalid_list,
+                                  expected_type: "String or Integer", actual_type: Diagnostics.type_name(item))
       end
 
       value.join(",")

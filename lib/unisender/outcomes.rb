@@ -161,7 +161,9 @@ module Unisender
     end
 
     def recipients
-      Outcomes.records(self["recipients"]).map { |item| RecipientResult.new(item.to_h) }
+      Outcomes.records(self["recipients"]).each_with_index.map do |item, index|
+        child(RecipientResult, item.to_h, "recipients[#{index}]")
+      end
     end
 
     def email_id

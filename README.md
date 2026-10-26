@@ -185,6 +185,8 @@ An optional `instrumentation:` callable receives operation, attempt, duration, H
 It receives no request payload. Exceptions raised by the callback do not change the operation's result.
 
 Errors expose `category`, `recovery_hint`, `request_id` when supplied, `transient?`, and `safe_to_retry?`.
+Use `error.diagnostics` for a frozen, payload-free Hash with known operation, field, HTTP, and recovery context.
+Validation and result-shape failures expose `path`, `expected_type`, `actual_type`, and `documentation_url` when available.
 A transient failure does not imply that repeating a mutation is safe.
 Import and send reports expose `complete?`, `partial?`, `uncertain?`, and `failures`.
 These describe acceptance, not final message delivery.

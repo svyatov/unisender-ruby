@@ -214,8 +214,8 @@ module Unisender
     def self.hash_pairs: (params, String?, Integer) -> Array[[String, String]]
     def self.key_name: (String | Symbol | Integer) -> String
     def self.scalar: (parameter, String) -> String
-    def self.numeric: (parameter) -> String
-    def self.text: (String) -> String
+    def self.numeric: (parameter, ?String) -> String
+    def self.text: (String, ?String) -> String
   end
 
   module Validation
@@ -227,7 +227,7 @@ module Unisender
     def self.rows!: (parameter, Integer) -> void
     def self.required!: (params, Array[String]) -> void
     def self.missing?: (parameter) -> bool
-    def self.comma_list: (Array[parameter]) -> String
+    def self.comma_list: (Array[parameter], ?field: String) -> String
   end
 
   interface _Transport

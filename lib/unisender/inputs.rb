@@ -3,14 +3,27 @@
 module Unisender
   # Local structural failures omit parameter values from diagnostics.
   class ValidationError < ArgumentError
-    attr_reader :field, :code, :operation, :index
+    attr_reader :field, :code, :operation, :index, :expected_type, :actual_type
 
-    def initialize(field:, code:, operation: nil, index: nil)
-      @field = field
+    # rubocop:disable-next Metrics/ParameterLists -- Structured diagnostic fields remain explicit.
+    def initialize(field:, code:, operation: nil, index: nil, expected_type: nil, actual_type: nil)
+      @field = Diagnostics.input_path(field)
       @code = code
       @operation = operation
       @index = index
-      super("Invalid parameter #{field}: #{code}")
+      @expected_type = expected_type
+      @actual_type = actual_type
+      super("Invalid parameter #{@field}: #{code}")
+    end
+
+    alias path field
+
+    def diagnostics
+      Diagnostics.for_error(self)
+    end
+
+    def documentation_url
+      Diagnostics::URLS[@operation.to_s]
     end
 
     def with_operation(operation)
@@ -162,7 +175,7 @@ module Unisender
   module SmsInputs
     def self.phone(value)
       text = case value
-             when Array then Validation.comma_list(value)
+             when Array then Validation.comma_list(value, field: "phone")
              when String then value
              else raise ValidationError.new(field: "phone", code: :invalid_type)
              end

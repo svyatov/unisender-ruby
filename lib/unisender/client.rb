@@ -63,7 +63,7 @@ module Unisender
     def comma_parameters(params, comma)
       comma.each do |name|
         value = params[name.to_sym]
-        params[name.to_sym] = Validation.comma_list(value) if value.is_a?(Array)
+        params[name.to_sym] = Validation.comma_list(value, field: name) if value.is_a?(Array)
       end
       params
     end

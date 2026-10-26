@@ -49,7 +49,7 @@ module Unisender
 
     def self.wrap(value, model, wrapper, response)
       if value.is_a?(Array)
-        records = value.map { |item| object(model, item) }.freeze
+        records = value.each_with_index.map { |item, index| object(model, item, "result[#{index}]") }.freeze
         CollectionResponse.new(data: response.data, status: response.http_status, headers: response.headers,
                                result: records)
       else
@@ -58,10 +58,15 @@ module Unisender
       end
     end
 
-    def self.object(model, value)
-      raise InvalidResponseError, "Expected result object" unless value.is_a?(Hash)
+    def self.object(model, value, path = "result")
+      unless value.is_a?(Hash)
+        raise InvalidResponseError.new("Expected result object", expected_type: "Hash",
+                                                                 actual_type: Diagnostics.type_name(value))
+      end
 
       model.new(value)
+    rescue InvalidResponseError => e
+      raise e.prepend_path(path), cause: nil
     end
 
     def self.rows(value)
