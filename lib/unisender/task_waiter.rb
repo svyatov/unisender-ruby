@@ -59,7 +59,7 @@ module Unisender
       remaining = deadline - @clock.call
       raise TaskTimeoutError, response unless remaining.positive?
 
-      @sleeper.call([interval, remaining].min)
+      @client.execution_wait([interval, remaining].min, :poll_wait, "async/getTaskResult", @sleeper)
       raise TaskTimeoutError, response if @clock.call >= deadline
     end
   end

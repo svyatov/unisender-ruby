@@ -47,6 +47,9 @@ module Unisender
     attr_reader completed_pages: Integer?
     @polling_task_uuid: String?
     attr_reader last_response: TaskResponse?
+    @download_bytes_written: Integer?
+    def bytes_written: () -> Integer?
+    def with_download: (bytes_written: Integer) -> self
     def task_uuid: () -> String?
     def with_task: (task_uuid: String, last_response: TaskResponse?) -> self
     def with_pagination: (next_offset: Integer, completed_pages: Integer) -> self
@@ -92,11 +95,11 @@ module Unisender
   end
 
   class BatchError < Error
-    attr_reader report: BatchReport
+    attr_reader report: BatchReport | BatchSummary
     attr_reader completed_responses: Array[Response]
     attr_reader failed_range: Range[Integer]
     attr_reader error: StandardError
-    def initialize: (completed_responses: Array[Response], failed_range: Range[Integer], error: StandardError) -> void
+    def initialize: (completed_responses: Array[Response], failed_range: Range[Integer], error: StandardError, ?report: (BatchReport | BatchSummary)?) -> void
   end
   class NotFoundError < Error
   end
@@ -146,11 +149,12 @@ module Unisender
   end
 
   module Batches
-    def self.each: [T] (Enumerable[T], Integer, Integer) { (Array[T]) -> Response } -> Enumerator[Response, void]
-    def self.execute: [T] (Array[T], Integer, Array[Response]) { (Array[T]) -> Response } -> Response
-    def self.each_chunks: [T] (Enumerator[Array[T], void]) { (Array[T]) -> Response } -> Enumerator[Response, void]
+    def self.each: [T] (Enumerable[T], Integer, Integer, ?accumulator: BatchAccumulator?, ?retention: :full | :summary, ?on_progress: (^(BatchProgress) -> void)?, ?execution: ExecutionContext?) { (Array[T]) -> Response } -> Enumerator[Response, void]
+    def self.execute: [T] (Array[T], Integer, BatchAccumulator) { (Array[T]) -> Response } -> Response
+    def self.each_chunks: [T] (Enumerator[Array[T], void], ?accumulator: BatchAccumulator?, ?retention: :full | :summary, ?on_progress: (^(BatchProgress) -> void)?, ?execution: ExecutionContext?) { (Array[T]) -> Response } -> Enumerator[Response, void]
     def self.validate_size: (Integer, Integer) -> void
-    def self.next_chunk: [T] (Enumerator[Array[T], void], Integer, Array[Response]) -> Array[T]?
+    def self.next_chunk: [T] (Enumerator[Array[T], void], Integer, BatchAccumulator, ExecutionContext?) -> Array[T]?
+    def self.progress: ((^(BatchProgress) -> void)?, BatchAccumulator, Integer, Response) -> void
   end
 
   class TaskWaiter
@@ -190,11 +194,11 @@ module Unisender
     @sleeper: ^(Float) -> void
     @random: ^() -> Float
     def initialize: (?max_retries: Integer, ?max_elapsed: duration, ?clock: ( ^() -> Float)?, ?sleeper: ( ^(Float) -> void)?, ?random: ( ^() -> Float)?) -> void
-    def call: [T] (String) { () -> T } -> T
+    def call: [T] (String, ?execution: ExecutionContext?) { () -> T } -> T
     private
     def retry_after: (Error) -> Float
     def validate!: (Integer, duration) -> void
-    def wait?: (Error, Integer, Float) -> bool
+    def wait?: (Error, Integer, Float, ExecutionContext?, String) -> bool
   end
 
   module Protocol
@@ -239,11 +243,12 @@ module Unisender
     @write_timeout: duration
     @http_factory: ^(URI::Generic) -> Net::HTTP
     def initialize: (?open_timeout: duration, ?read_timeout: duration, ?write_timeout: duration, ?http_factory: (^(URI::Generic) -> Net::HTTP)?) -> void
-    def post: (URI::Generic, headers: Hash[String, String], body: String) -> HTTPResponse
+    def post: (URI::Generic, headers: Hash[String, String], body: String, ?execution: ExecutionContext?) -> HTTPResponse
     private
-    def configured_http: (URI::Generic) -> Net::HTTP
-    def exchange: (URI::Generic, headers: Hash[String, String], body: String) -> HTTPResponse
-    def perform: (URI::Generic, Net::HTTPRequest) -> Net::HTTPResponse
+    def configured_http: (URI::Generic, ?execution: ExecutionContext?) -> Net::HTTP
+    def configure_timeouts: (Net::HTTP, ExecutionContext?) -> duration
+    def exchange: (URI::Generic, headers: Hash[String, String], body: String, execution: ExecutionContext?) -> HTTPResponse
+    def perform: (URI::Generic, Net::HTTPRequest, execution: ExecutionContext?) -> Net::HTTPResponse
   end
 
   class Client
@@ -265,15 +270,20 @@ module Unisender
     def request: (String, ?params: params) -> Response[json]
     def track_events: (events: Array[params]) -> EventResponse
     def each_page: (String | Symbol, ?page_size: Integer, ?max_pages: Integer, **parameter) ?{ (PageResponse[Record]) -> void } -> Enumerator[PageResponse[Record], void]
-    def import_contacts_in_batches: (?field_names: Array[String]?, ?data: Enumerable[Array[parameter]]?, ?records: Enumerable[params]?, ?batch_size: Integer, ?overwrite_tags: flag?, ?overwrite_lists: flag?, ?telegram_bot_channel_id: String?) -> BatchReport
-    def each_import_batch: (?field_names: Array[String]?, ?data: Enumerable[Array[parameter]]?, ?records: Enumerable[params]?, ?batch_size: Integer, ?overwrite_tags: flag?, ?overwrite_lists: flag?, ?telegram_bot_channel_id: String?) ?{ (Response) -> void } -> Enumerator[Response, void]
-    def track_events_in_batches: (events: Enumerable[params], ?batch_size: Integer) -> BatchReport
-    def each_event_batch: (events: Enumerable[params], ?batch_size: Integer) ?{ (Response) -> void } -> Enumerator[Response, void]
+    def import_contacts_in_batches: (?field_names: Array[String]?, ?data: Enumerable[Array[parameter]]?, ?records: Enumerable[params]?, ?batch_size: Integer, ?overwrite_tags: flag?, ?overwrite_lists: flag?, ?telegram_bot_channel_id: String?, ?retention: :full, ?on_progress: (^(BatchProgress) -> void)?) -> BatchReport
+      | (?field_names: Array[String]?, ?data: Enumerable[Array[parameter]]?, ?records: Enumerable[params]?, ?batch_size: Integer, ?overwrite_tags: flag?, ?overwrite_lists: flag?, ?telegram_bot_channel_id: String?, retention: :summary, ?on_progress: (^(BatchProgress) -> void)?) -> BatchSummary
+    def each_import_batch: (?field_names: Array[String]?, ?data: Enumerable[Array[parameter]]?, ?records: Enumerable[params]?, ?batch_size: Integer, ?overwrite_tags: flag?, ?overwrite_lists: flag?, ?telegram_bot_channel_id: String?, ?retention: :full | :summary, ?on_progress: (^(BatchProgress) -> void)?) ?{ (Response) -> void } -> Enumerator[Response, void]
+    def track_events_in_batches: (events: Enumerable[params], ?batch_size: Integer, ?retention: :full, ?on_progress: (^(BatchProgress) -> void)?) -> BatchReport
+      | (events: Enumerable[params], ?batch_size: Integer, retention: :summary, ?on_progress: (^(BatchProgress) -> void)?) -> BatchSummary
+    def each_event_batch: (events: Enumerable[params], ?batch_size: Integer, ?retention: :full | :summary, ?on_progress: (^(BatchProgress) -> void)?) ?{ (Response) -> void } -> Enumerator[Response, void]
     def wait_for_task: (task_uuid: String, ?interval: duration, ?timeout: duration, ?clock: ( ^() -> Float)?, ?sleeper: ( ^(duration) -> void)?) ?{ (TaskResponse) -> void } -> TaskResponse
     def contact_in_lists?: (email: String, list_ids: String | Array[id], condition: :any | :all) -> bool
     def inspect: () -> String
     private
+    def import_batches: (field_names: Array[String]?, data: Enumerable[Array[parameter]]?, records: Enumerable[params]?, batch_size: Integer, overwrite_tags: flag?, overwrite_lists: flag?, telegram_bot_channel_id: String?, ?accumulator: BatchAccumulator?, ?retention: :full | :summary, ?on_progress: (^(BatchProgress) -> void)?) -> Enumerator[Response, void]
+    def event_batches: (Enumerable[params], Integer, ?accumulator: BatchAccumulator?, ?retention: :full | :summary, ?on_progress: (^(BatchProgress) -> void)?) -> Enumerator[Response, void]
     def message_defaults: (params) -> params
+    def post_request: (URI::Generic, Hash[String, String], String) -> HTTPResponse
     def request_values: (String, params) -> [URI::Generic, Hash[String, String], String]
     def perform_request: (String, params, named: bool) -> Response
     def decode_response: (HTTPResponse, String, params, bool) -> Response

@@ -26,10 +26,11 @@ module Unisender
     def blocked?: (String) -> bool
   end
   class DownloadTransfer
+    @execution: ExecutionContext?
     @io: _Writable
     @max_bytes: Integer
     attr_reader bytes_written: Integer
-    def initialize: (_Writable, Integer) -> void
+    def initialize: (_Writable, Integer, ?execution: ExecutionContext?) -> void
     def write: (String) -> void
     private
     def copy_chunk: (String) -> void
@@ -41,12 +42,12 @@ module Unisender
     @target: DownloadTarget
     @http_factory: ^(URI::Generic, String) -> Net::HTTP
     def initialize: (?open_timeout: duration, ?read_timeout: duration, ?write_timeout: duration, ?resolver: (^(String) -> Array[String])?, ?http_factory: (^(URI::Generic, String) -> Net::HTTP)?) -> void
-    def download: (String, _Writable, max_bytes: Integer) -> DownloadReceipt
+    def download: (String, _Writable, max_bytes: Integer, ?execution: ExecutionContext?) -> DownloadReceipt
     private
-    def execute: (String, DownloadTransfer) -> DownloadReceipt
-    def download_response: (String, DownloadTransfer) -> Net::HTTPResponse
+    def execute: (String, DownloadTransfer, ExecutionContext?) -> DownloadReceipt
+    def download_response: (String, DownloadTransfer, ExecutionContext?) -> Net::HTTPResponse
     def build_http: (URI::Generic, String) -> Net::HTTP
-    def configured_http: (URI::Generic, String) -> Net::HTTP
+    def configured_http: (URI::Generic, String, ?ExecutionContext?) -> Net::HTTP
     def stream: (Net::HTTPResponse, DownloadTransfer) -> void
   end
 end

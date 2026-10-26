@@ -33,12 +33,18 @@ module Unisender
     end
 
     def download_to(io, max_bytes:, downloader: Downloader.new)
+      @client.check_execution!
       raise TaskError, self unless status == "completed"
 
       url = file_to_download
       raise InvalidResponseError, "Missing task download URL" unless url
 
-      downloader.download(url, io, max_bytes:)
+      case downloader
+      when Downloader
+        downloader.download(url, io, max_bytes:, execution: @client.execution_context)
+      else
+        downloader.download(url, io, max_bytes:)
+      end
     end
   end
 

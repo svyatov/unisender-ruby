@@ -1,4 +1,7 @@
 module Unisender
+  interface _Downloader
+    def download: (String, _Writable, max_bytes: Integer) -> DownloadReceipt
+  end
   class TaskResponse < TaskResultResponse
     def completed?: () -> bool
     def failed?: () -> bool
@@ -7,7 +10,7 @@ module Unisender
     attr_reader task_uuid: String
     def initialize: (TaskResultResponse, client: Client, task_uuid: String) -> void
     def wait: (?interval: duration, ?timeout: duration, ?clock: ( ^() -> Float)?, ?sleeper: ( ^(duration) -> void)?) ?{ (TaskResponse) -> void } -> TaskResponse
-    def download_to: (_Writable, max_bytes: Integer, ?downloader: Downloader) -> DownloadReceipt
+    def download_to: (_Writable, max_bytes: Integer, ?downloader: _Downloader) -> DownloadReceipt
   end
   class TaskFailedError < TaskError
   end

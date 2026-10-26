@@ -43,18 +43,20 @@ module Unisender
 
     private
 
-    def perform(uri, request)
+    def perform(uri, request, execution:)
       reset_after_fork
       key = origin(uri)
       @mutex.synchronize do
         raise TransportError, "Transport is closed" if @closed
 
-        send_request(key, uri, request)
+        execution&.check!
+        send_request(key, uri, request, execution)
       end
     end
 
-    def send_request(key, uri, request)
-      http = connection(key, uri)
+    def send_request(key, uri, request, execution)
+      http = connection(key, uri, execution)
+      configure_timeouts(http, execution)
       response = http.request(request)
       @connections[key] = Connection.new(http:, used_at: @clock.call)
       response
@@ -71,12 +73,12 @@ module Unisender
       uri.hostname.to_s
     end
 
-    def connection(key, uri)
+    def connection(key, uri, execution)
       current = @connections[key]
       return current.http if current && @clock.call - current.used_at < @idle_timeout
 
       discard(key)
-      http = configured_http(uri)
+      http = configured_http(uri, execution:)
       http.start
       @connections[key] = Connection.new(http:, used_at: @clock.call)
       http

@@ -1,0 +1,38 @@
+module Unisender
+  class BatchProgress < Data
+    attr_reader completed_batches: Integer
+    attr_reader completed_items: Integer
+    attr_reader next_index: Integer
+    attr_reader invalid: Integer
+    attr_reader warning_count: Integer
+    attr_reader response: Response?
+    def self.new: (completed_batches: Integer, completed_items: Integer, next_index: Integer, invalid: Integer, warning_count: Integer, response: Response?) -> BatchProgress
+  end
+  class BatchSummary
+    @failure: BatchReport
+    attr_reader completed_batches: Integer
+    attr_reader completed_items: Integer
+    attr_reader invalid: Integer
+    attr_reader warning_count: Integer
+    def initialize: (BatchProgress, ?error: StandardError?, ?failed_range: Range[Integer]?) -> void
+    def complete?: () -> bool
+    def partial?: () -> bool
+    def uncertain?: () -> bool
+    def failures: () -> Array[Failure]
+    def row_warnings: () -> Array[Failure]
+  end
+  class BatchAccumulator
+    @retention: Symbol?
+    @offsets: Array[Integer]
+    @completed_batches: Integer
+    @invalid: Integer
+    @warning_count: Integer
+    attr_reader responses: Array[Response]
+    attr_reader completed_items: Integer
+    def initialize: (Symbol?) -> void
+    def add: (Response, Integer) -> void
+    def progress: (?response: Response?) -> BatchProgress
+    def report: (?error: StandardError?, ?failed_range: Range[Integer]?) -> (BatchReport | BatchSummary)
+    def failure: (StandardError, Range[Integer]) -> BatchError
+  end
+end

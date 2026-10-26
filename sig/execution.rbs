@@ -8,7 +8,8 @@ module Unisender
     attr_reader responses: Array[Response]
     @error: StandardError?
     @failed_range: Range[Integer]?
-    def initialize: (Array[Response], ?error: StandardError?, ?failed_range: Range[Integer]?) -> void
+    @offsets: Array[Integer]?
+    def initialize: (Array[Response], ?error: StandardError?, ?failed_range: Range[Integer]?, ?offsets: Array[Integer]?) -> void
     def each: () -> Enumerator[Response, Array[Response]]
             | () { (Response) -> void } -> Array[Response]
     def complete?: () -> bool

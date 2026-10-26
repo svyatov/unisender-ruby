@@ -9,7 +9,7 @@ module Unisender
       getLists getTotalContactsCount getContactCount isContactInLists getContact checkEmail checkSms
       getActualMessageVersion getWebVersion getSenderDomainList getCampaignCommonStats getCampaignStatus
       getMessages getVisitedLinks listMessages getCampaigns getMessage getTemplate getTemplates listTemplates
-      getFields getTags getContactFieldValues getSubscriberNote getSubscriberNotes async/getTaskResult
+      getFields getTags getContactFieldValues getSubscriberNote getSubscriberNotes async/getTaskResult listHooks
     ].freeze
     TRANSIENT_CODES = %w[retry_later api_call_limit_exceeded_for_api_key api_call_limit_exceeded_for_ip].freeze
 
@@ -23,7 +23,7 @@ module Unisender
       freeze
     end
 
-    def call(operation)
+    def call(operation, execution: nil)
       started = @clock.call
       attempts = 0
       begin
@@ -31,7 +31,7 @@ module Unisender
       rescue Error => e
         raise unless READ_ONLY.include?(operation) && attempts < @max_retries && e.transient?
 
-        raise unless wait?(e, attempts, started + @max_elapsed)
+        raise unless wait?(e, attempts, started + @max_elapsed, execution, operation)
 
         attempts += 1
         retry
@@ -49,11 +49,15 @@ module Unisender
       raise ArgumentError, "max_elapsed must be positive and finite"
     end
 
-    def wait?(error, attempts, deadline)
+    def wait?(error, attempts, deadline, execution, operation)
       delay = [(2.0**attempts) + @random.call, retry_after(error)].max
       return false if delay > 30 || @clock.call + delay >= deadline
 
-      @sleeper.call(delay)
+      if execution
+        execution.wait(delay, :retry_wait, operation, @sleeper)
+      else
+        @sleeper.call(delay)
+      end
       @clock.call < deadline
     end
 

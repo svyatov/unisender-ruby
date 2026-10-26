@@ -16,6 +16,7 @@ module Unisender
       @language = @configuration.language
       @transport = @configuration.transport
       @retry_policy = @configuration.retry_policy
+      @execution = nil
       freeze
     end
 

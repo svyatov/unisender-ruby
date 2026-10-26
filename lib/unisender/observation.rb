@@ -2,7 +2,7 @@
 
 module Unisender
   # Metadata deliberately excludes request bodies, headers, and response payloads.
-  RequestEvent = Data.define(:operation, :attempt, :duration, :http_status, :outcome, :error_category)
+  RequestEvent = Data.define(:operation, :attempt, :duration, :http_status, :outcome, :error_category, :request_id)
 
   # Callback failures cannot change the outcome of an API request.
   module Observation
@@ -18,7 +18,7 @@ module Unisender
       RequestEvent.new(operation: Error.safe_operation(operation) || "request", attempt:,
                        duration: Process.clock_gettime(Process::CLOCK_MONOTONIC) - started,
                        http_status: response&.status, outcome: error ? :failure : :success,
-                       error_category: category(error))
+                       error_category: category(error), request_id: response&.headers&.[]("x-request-id"))
     end
 
     def self.category(error)

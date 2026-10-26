@@ -32,13 +32,17 @@ module Unisender
       settings = @configuration.options_for(options)
       key = settings.delete(:api_key)
       case key
-      when String then Client.new(api_key: key, **settings)
+      when String
+        client = Client.new(api_key: key, **settings)
+        context = @execution
+        context&.own(client)
+        context ? client.execution_client(context) : client
       else raise ArgumentError, "api_key must be a string"
       end
     end
 
     def close
-      @configuration.close
+      @configuration.close unless @execution
     end
   end
 end

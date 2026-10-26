@@ -7,10 +7,11 @@ module Unisender
 
     attr_reader :responses
 
-    def initialize(responses, error: nil, failed_range: nil)
+    def initialize(responses, error: nil, failed_range: nil, offsets: nil)
       @responses = responses.dup.freeze
       @error = error
       @failed_range = failed_range
+      @offsets = offsets&.dup&.freeze
       freeze
     end
 
@@ -57,10 +58,11 @@ module Unisender
       warnings = []
       # @type var offset: Integer?
       offset = 0
-      responses.each do |response|
+      offsets = @offsets
+      responses.each_with_index do |response, index|
         next unless response.is_a?(ImportResponse)
 
-        warnings.concat(warning_rows(response, offset))
+        warnings.concat(warning_rows(response, offsets ? offsets.fetch(index) : offset))
         count = response.total
         offset = offset && count ? offset + count : nil
       end

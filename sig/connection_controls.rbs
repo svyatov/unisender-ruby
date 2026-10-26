@@ -18,7 +18,7 @@ module Unisender
     @mutex: Mutex
     def self.unisender: (?clock: ( ^() -> Float)?, ?sleeper: ( ^(Float) -> void)?) -> RateLimiter
     def initialize: (global: [Integer, duration], ?methods: Hash[String, [Integer, duration]], ?clock: ( ^() -> Float)?, ?sleeper: ( ^(Float) -> void)?) -> void
-    def acquire: (String) -> void
+    def acquire: (String, ?execution: ExecutionContext?) -> void
     def inspect: () -> String
     private
     def validate: ([Integer, duration]) -> [Integer, Float]
@@ -45,10 +45,10 @@ module Unisender
     def initialize_pool: (( ^() -> Float)?, ( ^() -> Integer)?) -> void
     def inspect: () -> String
     private
-    def send_request: (String, URI::Generic, Net::HTTPRequest) -> Net::HTTPResponse
-    def perform: (URI::Generic, Net::HTTPRequest) -> Net::HTTPResponse
+    def send_request: (String, URI::Generic, Net::HTTPRequest, ExecutionContext?) -> Net::HTTPResponse
+    def perform: (URI::Generic, Net::HTTPRequest, execution: ExecutionContext?) -> Net::HTTPResponse
     def origin: (URI::Generic) -> String
-    def connection: (String, URI::Generic) -> Net::HTTP
+    def connection: (String, URI::Generic, ExecutionContext?) -> Net::HTTP
     def discard: (String) -> void
     def reset_after_fork: () -> void
   end
