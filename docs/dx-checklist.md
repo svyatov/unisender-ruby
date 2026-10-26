@@ -49,9 +49,14 @@ The [second audit](dx-audit-follow-up-2026-10-26.md) is implemented for unreleas
 | Consumer support | N14, N21, N22, N23, N25, N26, N27 | Campaign lifecycle, executable reference calls, exact-package install, Rails and Cursor verification, fixture expectations |
 
 The Rails guide's code ran in a temporary Rails 8.1.4 application with SQLite 2.9.5 and the installed gem.
-Five scenarios covered completed/duplicate imports, partial/uncertain recovery, Active Job wiring, and authenticated/repeated/out-of-order delivery events.
+Six scenarios covered completed/duplicate imports, partial/uncertain recovery, inconsistent counts, Active Job wiring, and authenticated/repeated/out-of-order delivery events.
 Cursor 3.27.14 displayed completion, return types, required keywords, and invalid-call diagnostics using the installed gem and Steep.
 See [editor setup](testing.md#cursor-setup) for tested versions and the canonical-path requirement.
+
+Final validation passed all 694 tests on Ruby 3.3.11, 3.4.9, and 4.0.9, with 100% line, branch, and typed-call coverage.
+`rake check` also passed the dependency audit with no known vulnerabilities.
+The built gem passed an isolated installation check, with all 126 packaged files matching the source.
+Independent QA and host-only review passed after corrections to uncertain import recovery, alias validation, and nested error paths.
 
 N24 remains a separate [authorized live-account gate](live-contracts.md#follow-up-evidence-gates).
 N29 remains a separate [three-developer usability gate](usability-checks.md).
