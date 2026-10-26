@@ -12,14 +12,23 @@ module Unisender
     def perform_request(method, params, named:)
       uri, headers, body = request_values(method, params)
       attempt = 0
-      @retry_policy.call(method) do
+      with_retries(method) do
         attempt += 1
         exchange(method, uri, headers:, body:, attempt:) do |http|
           decode_response(http, method, params, named)
         end
       end
-    rescue Error => e
+    rescue Error, ValidationError => e
       raise e.with_operation(method), cause: nil
+    end
+
+    def with_retries(method, &)
+      # rubocop:disable-next Style/ClassEqualityComparison -- Preserve custom subclass types in Steep's fallback.
+      if @retry_policy.class == RetryPolicy
+        @retry_policy.call(method, execution: @execution, &)
+      else
+        @retry_policy.call(method, &)
+      end
     end
 
     def request_values(method, params)
@@ -39,13 +48,13 @@ module Unisender
 
     # rubocop:disable-next Metrics/MethodLength -- Start the clock outside request failure handling.
     def exchange(operation, uri, headers:, body:, attempt: 1)
-      @configuration.check_open!
-      limiter = @configuration.rate_limiter
-      limiter.acquire(operation) if limiter && operation != "track_events"
+      check_execution!
+      acquire_limit(operation)
+      check_execution!
       started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       response = nil
       begin
-        response = @transport.post(uri, headers:, body:)
+        response = post_request(uri, headers, body)
         result = yield response
       rescue StandardError => e
         observe(operation, attempt, started, response, e)
@@ -53,6 +62,29 @@ module Unisender
       end
       observe(operation, attempt, started, response, nil)
       result
+    end
+
+    def acquire_limit(operation)
+      limiter = @configuration.rate_limiter
+      return unless limiter && operation != "track_events"
+
+      # rubocop:disable-next Style/ClassEqualityComparison -- Preserve custom subclass types in Steep's fallback.
+      if limiter.class == RateLimiter
+        limiter.acquire(operation, execution: @execution)
+      else
+        limiter.acquire(operation)
+      end
+    end
+
+    def post_request(uri, headers, body)
+      transport = @transport
+      case transport
+      when Transport
+        if [Transport, PersistentTransport].include?(transport.class)
+          return transport.post(uri, headers:, body:, execution: @execution)
+        end
+      end
+      transport.post(uri, headers:, body:)
     end
 
     def observe(operation, attempt, started, response, error)

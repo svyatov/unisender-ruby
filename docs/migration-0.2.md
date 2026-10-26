@@ -1,8 +1,14 @@
 # Migrating to 0.2
 
+All changes on this branch remain unreleased. Execution scopes, summary retention, and webhooks are opt-in. `RequestEvent` adds a `request_id` field. Full batch history remains the default; summary mode discards successful payloads and successful row-warning details. See [execution](execution.md) and [webhooks](webhooks.md).
+
 Named operations return typed records and collections. `request` retains raw JSON results.
 
 ## Result access
+
+`JSON.generate(response)` serializes the typed payload. Use `response.data` when you need the upstream envelope.
+Collections support slices and fetch defaults; object responses provide `to_h`.
+Contact address strings are available through `email_address` and `phone_number`, independent of nested detail shapes.
 
 ```ruby
 # Before
@@ -33,6 +39,10 @@ Count fields use integers. Tabular visited-link results become enumerable record
 
 ## Execution and pagination
 
+Page iterators now execute supplied blocks. Avoid passing a block unless you intend to consume the iterator immediately.
+Successful pages expose checkpoint metadata through `offset`, `limit`, and `next_offset`.
+Completed task handles return immediately from `wait`; a supplied callback receives the existing handle once.
+
 `import_contacts_in_batches` and `track_events_in_batches` execute immediately and return a `BatchReport`.
 Use `each_import_batch` and `each_event_batch` for lazy execution. Each accepts a block or returns an Enumerator.
 Reading a report repeatedly does not repeat requests.
@@ -44,6 +54,11 @@ Invalid pagination arguments raise when constructing the iterator. HTTP requests
 Pagination errors expose `next_offset` and `completed_pages` for recovery. Direct paginated reads now reject invalid limits and offsets before making requests.
 
 ## Inputs and tasks
+
+Named flags reject values outside booleans and 0/1 before networking. Known closed choices reject unsupported values.
+Library validation failures expose structured fields through `ValidationError`, while remaining rescuable as `ArgumentError`.
+`send_email` defaults `error_checking` to true. Use recipient results for IDs; explicit false retains the legacy format.
+List/tag arrays in import records become comma-separated scalar cells. Subscription-time arrays retain their list-ID order.
 
 Supply `email:` directly to `subscribe`, or continue using `fields:`.
 Subscription modes accept `:request_confirmation`, `:already_confirmed`, and `:confirm_if_needed`.

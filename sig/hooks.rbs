@@ -1,0 +1,18 @@
+module Unisender
+  class Hook < IdentifierRecord
+    def url: () -> String
+    def event_format: () -> String
+    def max_parallel: () -> Integer
+    def single_event: () -> Integer
+    def status: () -> String
+    def events: () -> Record
+    def normalize: () -> void
+  end
+  class Client
+    def set_hook: (hook_url: String, events: Hash[String | Symbol, String | Array[String | Integer]], ?event_format: :json_post | :json_post_gzip | :http_get | String, ?max_parallel: Integer?, ?single_event: flag, ?status: :active | :disabled | String) -> Response[json]
+    def list_hooks: () -> CollectionResponse[Hook]
+    def remove_hook: (hook_url: String) -> Response[json]
+    private
+    def hook_events: (params, parameter) -> params
+  end
+end

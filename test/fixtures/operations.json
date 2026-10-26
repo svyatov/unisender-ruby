@@ -651,7 +651,8 @@
       "sender_email": "sender@example.test",
       "subject": "News",
       "body": "<p>News</p>",
-      "list_id": "123"
+      "list_id": "123",
+      "error_checking": "1"
     },
     "options": {
       "email": "user@example.test",
@@ -1525,5 +1526,30 @@
       "order_by": "created_at",
       "is_pinned": "0"
     }
+  },
+  {
+    "name": "set_hook",
+    "wire": "setHook",
+    "url": "https://www.unisender.com/ru/support/api/common/sistema-uvedomlenij-o-sobytiyah-webhooks/",
+    "args": { "hook_url": "https://example.test/hook", "events": { "subscribe": "*" } },
+    "result": {},
+    "expected": { "hook_url": "https://example.test/hook", "events[subscribe]": "*", "event_format": "json_post_gzip", "single_event": "0", "status": "active" },
+    "options": { "hook_url": "https://example.test/hook", "events": { "subscribe": [1, 2] }, "event_format": "json_post", "max_parallel": 2, "single_event": true, "status": "disabled" },
+    "options_expected": { "hook_url": "https://example.test/hook", "events[subscribe]": "1,2", "event_format": "json_post", "max_parallel": "2", "single_event": "1", "status": "disabled" }
+  },
+  {
+    "name": "list_hooks",
+    "wire": "listHooks",
+    "url": "https://www.unisender.com/ru/support/api/common/sistema-uvedomlenij-o-sobytiyah-webhooks/",
+    "args": {}, "result": [], "expected": {}, "options": {}, "options_expected": {}
+  },
+  {
+    "name": "remove_hook",
+    "wire": "removeHook",
+    "url": "https://www.unisender.com/ru/support/api/common/sistema-uvedomlenij-o-sobytiyah-webhooks/",
+    "args": { "hook_url": "https://example.test/hook" }, "result": {},
+    "expected": { "hook_url": "https://example.test/hook" },
+    "options": { "hook_url": "https://example.test/hook" },
+    "options_expected": { "hook_url": "https://example.test/hook" }
   }
 ]

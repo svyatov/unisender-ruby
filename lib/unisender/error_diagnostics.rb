@@ -3,6 +3,18 @@
 module Unisender
   # Stable categories and safe recovery hints supplement the upstream details.
   class Error
+    HINTS = {
+      authentication: "Check the API key.", authorization: "Check API access and account permissions.",
+      invalid_argument: "Check the operation parameters.", payment: "Check the account balance.",
+      rate_limit: "Wait before another request; check whether repeating this operation is safe.",
+      not_found: "Check the requested identifier.", client_closed: "Create an open client before making a request.",
+      pagination_limit: "Resume from next_offset with an explicit page budget.",
+      task_failed: "Inspect the task response before starting another task.",
+      task_state: "Inspect the task response and documented states.",
+      unknown_task_state: "Inspect the task response and update the supported task states.",
+      partial_failure: "Reconcile accepted records before retrying rejected records.",
+      download: "Inspect the download reason and discard or retain partial output explicitly."
+    }.freeze
     def self.safe_operation(operation)
       OPERATIONS.include?(operation) ? operation.dup.freeze : nil
     end
@@ -41,14 +53,7 @@ module Unisender
     end
 
     def recovery_hint
-      case category
-      when :authentication then "Check the API key."
-      when :authorization then "Check API access and account permissions."
-      when :invalid_argument then "Check the operation parameters."
-      when :payment then "Check the account balance."
-      when :rate_limit then "Wait before another request; check whether repeating this operation is safe."
-      else "Inspect the failure and reconcile mutations before repeating the operation."
-      end
+      HINTS.fetch(category, "Inspect the failure and reconcile mutations before repeating the operation.")
     end
 
     private

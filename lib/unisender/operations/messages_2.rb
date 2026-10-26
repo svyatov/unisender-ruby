@@ -23,7 +23,7 @@ module Unisender
     def send_email(email:, subject:, body:, list_id:, sender_name: UNSET, sender_email: UNSET,
                    attachments: nil, lang: UNSET,
                    track_read: nil, track_links: nil, cc: nil, headers: nil, images_as: nil, ref_key: nil,
-                   error_checking: nil, metadata: nil)
+                   error_checking: true, metadata: nil)
       params = { email:, sender_name:, sender_email:, subject:, body:, list_id:, attachments:, lang:,
                  track_read:, track_links:, cc:, headers:, images_as:, ref_key:, error_checking:, metadata: }
       invoke("sendEmail", params, required: %w[email sender_name sender_email subject body list_id])

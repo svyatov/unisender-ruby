@@ -11,6 +11,12 @@ module Unisender
       @max_pages = max_pages
       @params = self.class.snapshot(params)
       @first_page = first_page
+      initialize_params
+    rescue ValidationError => e
+      raise e.with_operation(PaginatedOperations.wire_name(@method)), cause: nil
+    end
+
+    def initialize_params
       validate!(PaginatedOperations.page_limit(@method))
       wire = PaginatedOperations.validate(@method, @params)
       @params = self.class.snapshot(Inputs.normalize(wire, @params))
@@ -39,7 +45,7 @@ module Unisender
 
     def initial_offset
       offset = @params.fetch(:offset, 0)
-      raise ArgumentError, "offset must be nonnegative" unless offset.is_a?(Integer) && offset >= 0
+      raise ValidationError.new(field: "offset", code: :out_of_range) unless offset.is_a?(Integer) && offset >= 0
 
       offset
     end
@@ -67,13 +73,19 @@ module Unisender
 
     def validate!(maximum)
       validate_limit!(maximum)
-      raise ArgumentError, "max_pages must be positive" unless @max_pages.is_a?(Integer) && @max_pages.positive?
-      raise ArgumentError, "Use page_size instead of limit" if @params.key?(:limit)
+      unless @max_pages.is_a?(Integer) && @max_pages.positive?
+        raise ValidationError.new(field: "max_pages",
+                                  code: :out_of_range)
+      end
+      raise ValidationError.new(field: "limit", code: :use_page_size) if @params.key?(:limit)
     end
 
     def validate_limit!(maximum)
-      raise ArgumentError, "Invalid page_size" unless @page_size.is_a?(Integer) && @page_size.positive?
-      raise ArgumentError, "page_size exceeds the method limit" if maximum && @page_size > maximum
+      unless @page_size.is_a?(Integer) && @page_size.positive?
+        raise ValidationError.new(field: "page_size",
+                                  code: :out_of_range)
+      end
+      raise ValidationError.new(field: "page_size", code: :out_of_range) if maximum && @page_size > maximum
     end
 
     def page_length(response)

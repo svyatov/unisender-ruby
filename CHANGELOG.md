@@ -4,6 +4,33 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Document the accepted MD5 exception required by UniSender's webhook protocol.
+
+- Scan webhook JSON tokens without regular-expression backtracking and reject unterminated strings.
+- Escape backslashes as well as table separators in generated API type descriptions.
+
+- Preserve existing injected retry policies, rate limiters, and downloaders when execution scopes are enabled.
+- Add cooperative execution scopes and cancellation across retries, pacing, polling, and batch boundaries, with separate execution timing events and request IDs on request events.
+- Add opt-in summary retention and progress checkpoints for import and Event Tracking batches, preserving known source offsets for row diagnostics.
+- Add hook management and bounded JSON/gzip webhook authentication with typed notification readers.
+- Add fake-transport queue verification and JSON request access, durable export recovery examples, and opt-in staging contract probes.
+
+- Validate malformed contact fields and count filters locally, and preserve operation names and import column paths in validation errors.
+- Correct reference descriptions of legacy empty-result normalization.
+
+- Standardize input diagnostics, validate named flags and choices, and preserve wrapper failure context.
+- Normalize structured import cells and expose typed row warnings with known global indices.
+- Add scoped email/phone removal inputs and explicit contact-count filters.
+- Request detailed send acceptance by default; retain explicit legacy and omission options.
+
+- Accept blocks on page iterators and expose page checkpoint offsets.
+- Add Array-style collection access, Hash-style record lookup, and payload JSON serialization.
+- Add stable contact address readers, optional contact details, note metadata, and mutation result readers.
+- Return completed task handles without polling; expose task predicates and block-scoped client lifetime.
+
+- Separate development installation from published usage and link gem documentation to its version tag.
+- Generate API argument and result tables from RBS, with agreement checks for the Ruby interface.
+
 - Expose all documented import counters directly and normalize string-keyed default overrides.
 - Validate campaign encoding before creating a message.
 

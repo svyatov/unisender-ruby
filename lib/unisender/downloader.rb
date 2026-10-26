@@ -10,6 +10,10 @@ module Unisender
   class DownloadError < Error
     attr_reader :reason, :bytes_written, :http_status
 
+    def category
+      :download
+    end
+
     def initialize(reason:, bytes_written: 0, http_status: nil)
       @reason = reason
       @bytes_written = bytes_written
@@ -34,16 +38,18 @@ module Unisender
       @http_factory = http_factory || ->(uri, address) { build_http(uri, address) }
     end
 
-    def download(url, io, max_bytes:)
-      transfer = DownloadTransfer.new(io, max_bytes)
-      execute(url, transfer)
+    def download(url, io, max_bytes:, execution: nil)
+      transfer = DownloadTransfer.new(io, max_bytes, execution:)
+      execute(url, transfer, execution)
     end
 
     private
 
-    def execute(url, transfer)
-      response = download_response(url, transfer)
+    def execute(url, transfer, execution)
+      response = download_response(url, transfer, execution)
       DownloadReceipt.new(bytes_written: transfer.bytes_written, http_status: response.code.to_i)
+    rescue CancelledError, DeadlineExceededError => e
+      raise e.with_download(bytes_written: transfer.bytes_written), cause: nil
     rescue DownloadError => e
       raise DownloadError.new(reason: e.reason, bytes_written: transfer.bytes_written, http_status: e.http_status),
             cause: nil
@@ -51,9 +57,10 @@ module Unisender
       raise DownloadError.new(reason: :transport, bytes_written: transfer.bytes_written), cause: nil
     end
 
-    def download_response(url, transfer)
+    def download_response(url, transfer, execution)
+      execution&.check!
       uri, address = @target.resolve(url)
-      http = configured_http(uri, address)
+      http = configured_http(uri, address, execution)
       http.start do |connection|
         request = Net::HTTP::Get.new(uri, { "Accept-Encoding" => "identity" })
         connection.request(request) { |reply| stream(reply, transfer) }
@@ -66,13 +73,14 @@ module Unisender
       http
     end
 
-    def configured_http(uri, address)
+    def configured_http(uri, address, execution = nil)
       http = @http_factory.call(uri, address)
+      remaining = execution&.remaining
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-      http.open_timeout = @open_timeout
-      http.read_timeout = @read_timeout
-      http.write_timeout = @write_timeout
+      http.open_timeout = remaining ? [@open_timeout, remaining].min : @open_timeout
+      http.read_timeout = remaining ? [@read_timeout, remaining].min : @read_timeout
+      http.write_timeout = remaining ? [@write_timeout, remaining].min : @write_timeout
       http.max_retries = 0
       http
     end

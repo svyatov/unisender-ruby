@@ -1,0 +1,55 @@
+module Unisender
+  class WebhookError < Error
+    attr_reader reason: Symbol
+    def initialize: (Symbol) -> void
+  end
+  class WebhookEvent < Record
+    def event_name: () -> String
+    def event_time: () -> String
+    def event_data: () -> Record
+    def normalize: () -> void
+  end
+  class WebhookUser < Record
+    def login: () -> String
+    def events: () -> Array[WebhookEvent]
+    def normalize: () -> void
+  end
+  class WebhookNotification < Record
+    def users: () -> Array[WebhookUser]
+    def events: () -> Array[WebhookEvent]
+    def normalize: () -> void
+  end
+  module Webhooks
+    class ObjectKeys
+      @seen: Hash[String, bool]
+      attr_reader key: String?
+      def initialize: () -> void
+      def register: (String) -> void
+      def next_key: () -> nil
+    end
+    def self.verify: (body: String, api_key: String, ?content_encoding: String?, ?max_bytes: Integer, ?max_decompressed_bytes: Integer, ?max_events: Integer) -> WebhookNotification
+    def self.validate_limits: (*Integer) -> void
+    def self.decompress: (String, String?, Integer) -> String
+    def self.bounded: (String, Integer) -> String
+    def self.inflate: (String, Integer) -> String
+    def self.decode: (String) -> Hash[String, json]
+    def self.authenticate: (String, Hash[String, json], String) -> void
+    def self.auth_value: (Hash[String, json]) -> String
+    def self.secure_equal?: (String, String) -> bool
+    def self.auth_span: (String) -> [Integer, Integer]
+    def self.register_string: (Array[ObjectKeys?], String, Integer, Integer) -> [Integer, Integer]?
+    class Tokens
+      @text: String
+      def initialize: (String) -> void
+      def each: () { (String, Integer, Integer) -> void } -> void
+      private
+      def read: (Integer) -> [String, Integer]
+      def string_end: (Integer) -> Integer
+    end
+  end
+end
+
+# GzipReader accepts a read-compatible StringIO in the Ruby standard library.
+class Zlib::GzipReader
+  def self.new: (StringIO) -> Zlib::GzipReader
+end

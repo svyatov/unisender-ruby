@@ -2,7 +2,7 @@
 
 Contract audit: 2026-10-25. The [official UniSender documentation](https://www.unisender.com/ru/support/category/api/) is the source of truth. Tests use deterministic, artificial responses and do not establish live account compatibility.
 
-Named HTTP operations return typed `Unisender::Response` subclasses. Required arguments are Ruby keywords. Optional keywords default to omission, preserving the service's defaults. RBS signatures ship with the gem. Identifiers accept integers or strings; flags accept booleans or 0/1. Timestamp arguments accept strings or Ruby `Time` values. Time values use the method's documented UTC format.
+Named HTTP operations return typed `Unisender::Response` subclasses. Required arguments are Ruby keywords. Optional keywords normally default to omission; documented client defaults take precedence. RBS signatures ship with the gem. Identifiers accept integers or strings; flags accept booleans or 0/1. Timestamp arguments accept strings or Ruby `Time` values. Time values use the method's documented UTC format.
 
 Arrays supplied to comma-separated fields are joined only by named methods. For other array or hash arguments, the form encoder emits explicit bracket indices. `request(method, params: {})` accepts the exact wire method and parameters; it does not perform method-specific conversions or validation.
 
@@ -27,64 +27,67 @@ Batch commands execute immediately. Their `each_*` equivalents accept a block or
 
 The offline contract cases are in `test/fixtures/operations.json` and run through `test/operations_test.rb` in the source checkout. Every entry verifies the path, authentication body, required arguments, a successful result, and API failure propagation.
 
-| Ruby method | Wire method and documentation | Required keywords | Optional keywords |
-| --- | --- | --- | --- |
-| [`create_list`](#create_list) | [`createList`](https://www.unisender.com/ru/support/api/contacts/createlist/) | `title` | `before_subscribe_url`, `after_subscribe_url`, `sub_user_rights` |
-| [`delete_list`](#delete_list) | [`deleteList`](https://www.unisender.com/ru/support/api/contacts/deletelist/) | `list_id` | None |
-| [`exclude`](#exclude) | [`exclude`](https://www.unisender.com/ru/support/api/contacts/exclude/) | `contact_type`, `contact` | `list_ids` |
-| [`export_contacts`](#export_contacts) | [`async/exportContacts`](https://www.unisender.com/ru/support/api/contacts/exportcontacts/) | None | `notify_url`, `list_id`, `field_names`, `email`, `phone`, `tag`, `email_status`, `phone_status`, `contact_status` |
-| [`get_contact_count`](#get_contact_count) | [`getContactCount`](https://www.unisender.com/ru/support/api/contacts/getcontactcount/) | `list_id`, `params` | None |
-| [`get_lists`](#get_lists) | [`getLists`](https://www.unisender.com/ru/support/api/contacts/getlists/) | None | None |
-| [`get_total_contacts_count`](#get_total_contacts_count) | [`getTotalContactsCount`](https://www.unisender.com/ru/support/api/contacts/gettotalcontactscount/) | `login` | None |
-| [`import_contacts`](#import_contacts) | [`importContacts`](https://www.unisender.com/ru/support/api/contacts/importcontacts/) | `field_names`, `data` | `overwrite_tags`, `overwrite_lists`, `telegram_bot_channel_id` |
-| [`subscribe`](#subscribe) | [`subscribe`](https://www.unisender.com/ru/support/api/contacts/subscribe/) | `list_ids`, `fields` | `tags`, `double_optin`, `overwrite` |
-| [`update_list`](#update_list) | [`updateList`](https://www.unisender.com/ru/support/api/contacts/updatelist/) | `list_id`, `title` | `before_subscribe_url`, `after_subscribe_url`, `sub_user_rights` |
-| [`is_contact_in_lists`](#is_contact_in_lists) | [`isContactInLists`](https://www.unisender.com/ru/support/api/contacts/iscontactinlists/) | `email`, `list_ids`, `condition` | None |
-| [`get_contact`](#get_contact) | [`getContact`](https://www.unisender.com/ru/support/api/contacts/getcontact/) | `email` | `include_lists`, `include_fields`, `include_details` |
-| [`unsubscribe`](#unsubscribe) | [`unsubscribe`](https://www.unisender.com/ru/support/api/contacts/unsubscribe/) | `contact_type`, `contact` | `list_ids` |
-| [`cancel_campaign`](#cancel_campaign) | [`cancelCampaign`](https://www.unisender.com/ru/support/api/messages/cancel-campaign/) | `campaign_id` | None |
-| [`check_email`](#check_email) | [`checkEmail`](https://www.unisender.com/ru/support/api/messages/check-email/) | `email_id` | None |
-| [`check_sms`](#check_sms) | [`checkSms`](https://www.unisender.com/ru/support/api/messages/check-sms/) | `sms_id` | None |
-| [`create_campaign`](#create_campaign) | [`createCampaign`](https://www.unisender.com/ru/support/api/messages/createcampaign/) | `message_id` | `start_time`, `timezone`, `track_read`, `track_links`, `contacts`, `contacts_url`, `track_ga`, `payment_limit`, `payment_currency`, `ga_medium`, `ga_source`, `ga_campaign`, `ga_content`, `ga_term` |
-| [`create_email_message`](#create_email_message) | [`createEmailMessage`](https://www.unisender.com/ru/support/api/messages/createemailmessage/) | `sender_name`, `sender_email`, `list_id` | `subject`, `body`, `text_body`, `generate_text`, `tag`, `attachments`, `lang`, `template_id`, `system_template_id`, `wrap_type`, `categories` |
-| [`create_sms_message`](#create_sms_message) | [`createSmsMessage`](https://www.unisender.com/ru/support/api/messages/createsmsmessage/) | `sender`, `body`, `list_id` | `tag` |
-| [`delete_message`](#delete_message) | [`deleteMessage`](https://www.unisender.com/ru/support/api/messages/deletemessage/) | `message_id` | None |
-| [`get_actual_message_version`](#get_actual_message_version) | [`getActualMessageVersion`](https://www.unisender.com/ru/support/api/messages/get-actual-message-version/) | `message_id` | None |
-| [`get_web_version`](#get_web_version) | [`getWebVersion`](https://www.unisender.com/ru/support/api/messages/getwebversion/) | `campaign_id` | None |
-| [`send_email`](#send_email) | [`sendEmail`](https://www.unisender.com/ru/support/api/messages/sendemail/) | `email`, `sender_name`, `sender_email`, `subject`, `body`, `list_id` | `attachments`, `lang`, `track_read`, `track_links`, `cc`, `headers`, `images_as`, `ref_key`, `error_checking`, `metadata` |
-| [`send_sms`](#send_sms) | [`sendSms`](https://www.unisender.com/ru/support/api/messages/sendsms/) | `phone`, `sender`, `text` | None |
-| [`send_test_email`](#send_test_email) | [`sendTestEmail`](https://www.unisender.com/ru/support/api/messages/sendtestemail/) | `email`, `id` | None |
-| [`update_email_message`](#update_email_message) | [`updateEmailMessage`](https://www.unisender.com/ru/support/api/messages/updateemailmessage/) | `id` | `sender_name`, `sender_email`, `subject`, `body`, `list_id`, `text_body`, `lang`, `categories` |
-| [`update_opt_in_email`](#update_opt_in_email) | [`updateOptInEmail`](https://www.unisender.com/ru/support/api/messages/updateoptinemail/) | `sender_name`, `sender_email`, `subject`, `body`, `list_id` | None |
-| [`get_sender_domain_list`](#get_sender_domain_list) | [`getSenderDomainList`](https://www.unisender.com/ru/support/api/messages/getsenderdomainlist/) | `username` | `domain`, `limit`, `offset` |
-| [`get_campaign_common_stats`](#get_campaign_common_stats) | [`getCampaignCommonStats`](https://www.unisender.com/ru/support/api/statistics/get-campaign-common-stats/) | `campaign_id` | None |
-| [`get_campaign_delivery_stats`](#get_campaign_delivery_stats) | [`async/getCampaignDeliveryStats`](https://www.unisender.com/ru/support/api/statistics/getcampaigndeliverystats/) | `campaign_id` | `notify_url`, `changed_since`, `field_ids` |
-| [`get_campaign_status`](#get_campaign_status) | [`getCampaignStatus`](https://www.unisender.com/ru/support/api/statistics/getcampaignstatus/) | `campaign_id` | None |
-| [`get_messages`](#get_messages) | [`getMessages`](https://www.unisender.com/ru/support/api/statistics/getmessages/) | `date_from`, `date_to` | `limit`, `offset` |
-| [`get_visited_links`](#get_visited_links) | [`getVisitedLinks`](https://www.unisender.com/ru/support/api/statistics/getvisitedlinks/) | `campaign_id` | `group` |
-| [`list_messages`](#list_messages) | [`listMessages`](https://www.unisender.com/ru/support/api/statistics/listmessages/) | `date_from`, `date_to` | `limit`, `offset` |
-| [`get_campaigns`](#get_campaigns) | [`getCampaigns`](https://www.unisender.com/ru/support/api/statistics/getcampaigns/) | `from` | `to`, `limit`, `offset` |
-| [`get_message`](#get_message) | [`getMessage`](https://www.unisender.com/ru/support/api/statistics/getmessage/) | `id` | None |
-| [`get_task_result`](#get_task_result) | [`async/getTaskResult`](https://www.unisender.com/ru/support/api/statistics/../contacts/exportcontacts/) | `task_uuid` | None |
-| [`create_email_template`](#create_email_template) | [`createEmailTemplate`](https://www.unisender.com/ru/support/api/templates/createemailtemplate/) | `title`, `subject`, `body` | `description`, `text_body`, `lang` |
-| [`delete_template`](#delete_template) | [`deleteTemplate`](https://www.unisender.com/ru/support/api/templates/deletetemplate/) | `template_id` | None |
-| [`get_template`](#get_template) | [`getTemplate`](https://www.unisender.com/ru/support/api/templates/gettemplate/) | None | `template_id`, `system_template_id` |
-| [`get_templates`](#get_templates) | [`getTemplates`](https://www.unisender.com/ru/support/api/templates/gettemplates/) | None | `type`, `date_from`, `date_to`, `limit`, `offset` |
-| [`list_templates`](#list_templates) | [`listTemplates`](https://www.unisender.com/ru/support/api/templates/listtemplates/) | None | `type`, `date_from`, `date_to`, `limit`, `offset` |
-| [`update_email_template`](#update_email_template) | [`updateEmailTemplate`](https://www.unisender.com/ru/support/api/templates/updateemailtemplate/) | `template_id` | `title`, `description`, `subject`, `body`, `text_body`, `lang` |
-| [`create_field`](#create_field) | [`createField`](https://www.unisender.com/ru/support/api/inputs/createfield/) | `name`, `type` | `public_name` |
-| [`delete_field`](#delete_field) | [`deleteField`](https://www.unisender.com/ru/support/api/inputs/deletefield/) | `id` | None |
-| [`delete_tag`](#delete_tag) | [`deleteTag`](https://www.unisender.com/ru/support/api/inputs/deletetag/) | `id` | None |
-| [`get_fields`](#get_fields) | [`getFields`](https://www.unisender.com/ru/support/api/inputs/getfields/) | None | None |
-| [`get_tags`](#get_tags) | [`getTags`](https://www.unisender.com/ru/support/api/inputs/gettags/) | None | None |
-| [`update_field`](#update_field) | [`updateField`](https://www.unisender.com/ru/support/api/inputs/updatefield/) | `id`, `name` | `public_name` |
-| [`get_contact_field_values`](#get_contact_field_values) | [`getContactFieldValues`](https://www.unisender.com/ru/support/api/inputs/getcontactfieldvalues/) | `email`, `field_ids` | None |
-| [`create_subscriber_note`](#create_subscriber_note) | [`createSubscriberNote`](https://www.unisender.com/ru/support/api/notes/createsubscibernote/) | `subscriber_id`, `content` | None |
-| [`update_subscriber_note`](#update_subscriber_note) | [`updateSubscriberNote`](https://www.unisender.com/ru/support/api/notes/updatesubcribernote/) | `id`, `content` | None |
-| [`delete_subscriber_note`](#delete_subscriber_note) | [`deleteSubscriberNote`](https://www.unisender.com/ru/support/api/notes/deletesubscribernote/) | `id` | None |
-| [`get_subscriber_note`](#get_subscriber_note) | [`getSubscriberNote`](https://www.unisender.com/ru/support/api/notes/getsubscribernote/) | `id` | None |
-| [`get_subscriber_notes`](#get_subscriber_notes) | [`getSubscriberNotes`](https://www.unisender.com/ru/support/api/notes/getsubscribernotes/) | `subscriber_id` | `limit`, `offset`, `order_type`, `order_by`, `is_pinned` |
-| `track_events` | [Event Tracking](https://www.unisender.com/ru/support/api/event-tracking-api/) | `events` | None |
+| Ruby method | Wire method and documentation | Required inputs | Optional keywords | Typed result |
+| --- | --- | --- | --- | --- |
+| [`create_list`](#create_list) | [`createList`](https://www.unisender.com/ru/support/api/contacts/createlist/) | `title` | `before_subscribe_url`, `after_subscribe_url`, `sub_user_rights` | `IdentifierRecordResponse` |
+| [`delete_list`](#delete_list) | [`deleteList`](https://www.unisender.com/ru/support/api/contacts/deletelist/) | `list_id` | None | `ObjectResponse[Record]` |
+| [`exclude`](#exclude) | [`exclude`](https://www.unisender.com/ru/support/api/contacts/exclude/) | `email` or `phone` with `list_ids`, or `contact_type` with `contact` | `contact_type`, `contact`, `email`, `phone`, `list_ids` | `ObjectResponse[Record]` |
+| [`export_contacts`](#export_contacts) | [`async/exportContacts`](https://www.unisender.com/ru/support/api/contacts/exportcontacts/) | None | `notify_url`, `list_id`, `field_names`, `email`, `phone`, `tag`, `email_status`, `phone_status`, `contact_status` | `TaskResponse` |
+| [`get_contact_count`](#get_contact_count) | [`getContactCount`](https://www.unisender.com/ru/support/api/contacts/getcontactcount/) | `list_id` and (`params` or explicit filters) | `params`, `tag_id`, `contact_type`, `search` | `ContactCountResponse` |
+| [`get_lists`](#get_lists) | [`getLists`](https://www.unisender.com/ru/support/api/contacts/getlists/) | None | None | `CollectionResponse[List]` |
+| [`get_total_contacts_count`](#get_total_contacts_count) | [`getTotalContactsCount`](https://www.unisender.com/ru/support/api/contacts/gettotalcontactscount/) | `login` | None | `TotalContactsResponse` |
+| [`import_contacts`](#import_contacts) | [`importContacts`](https://www.unisender.com/ru/support/api/contacts/importcontacts/) | `records` or `field_names` with `data` | `field_names`, `data`, `records`, `overwrite_tags`, `overwrite_lists`, `telegram_bot_channel_id` | `ImportResponse` |
+| [`subscribe`](#subscribe) | [`subscribe`](https://www.unisender.com/ru/support/api/contacts/subscribe/) | `list_ids` and (`email` or `fields`) | `fields`, `email`, `tags`, `double_optin`, `overwrite` | `SubscriptionResponse` |
+| [`update_list`](#update_list) | [`updateList`](https://www.unisender.com/ru/support/api/contacts/updatelist/) | `list_id`, `title` | `before_subscribe_url`, `after_subscribe_url`, `sub_user_rights` | `ObjectResponse[Record]` |
+| [`is_contact_in_lists`](#is_contact_in_lists) | [`isContactInLists`](https://www.unisender.com/ru/support/api/contacts/iscontactinlists/) | `email`, `list_ids`, `condition` | None | `Response[bool]` |
+| [`get_contact`](#get_contact) | [`getContact`](https://www.unisender.com/ru/support/api/contacts/getcontact/) | `email` | `include_lists`, `include_fields`, `include_details` | `ContactResponse` |
+| [`unsubscribe`](#unsubscribe) | [`unsubscribe`](https://www.unisender.com/ru/support/api/contacts/unsubscribe/) | `email` or `phone` with `list_ids`, or `contact_type` with `contact` | `contact_type`, `contact`, `email`, `phone`, `list_ids` | `ObjectResponse[Record]` |
+| [`cancel_campaign`](#cancel_campaign) | [`cancelCampaign`](https://www.unisender.com/ru/support/api/messages/cancel-campaign/) | `campaign_id` | None | `ObjectResponse[Record]` |
+| [`check_email`](#check_email) | [`checkEmail`](https://www.unisender.com/ru/support/api/messages/check-email/) | `email_id` | None | `CollectionResponse[EmailDelivery]` |
+| [`check_sms`](#check_sms) | [`checkSms`](https://www.unisender.com/ru/support/api/messages/check-sms/) | `sms_id` | None | `StatusResponse` |
+| [`create_campaign`](#create_campaign) | [`createCampaign`](https://www.unisender.com/ru/support/api/messages/createcampaign/) | `message_id` | `start_time`, `timezone`, `track_read`, `track_links`, `contacts`, `contacts_url`, `track_ga`, `payment_limit`, `payment_currency`, `ga_medium`, `ga_source`, `ga_campaign`, `ga_content`, `ga_term` | `CampaignCreatedResponse` |
+| [`create_email_message`](#create_email_message) | [`createEmailMessage`](https://www.unisender.com/ru/support/api/messages/createemailmessage/) | `list_id`; sender defaults; content or a template | `sender_name`, `sender_email`, `subject`, `body`, `text_body`, `generate_text`, `tag`, `attachments`, `lang`, `template_id`, `system_template_id`, `wrap_type`, `categories` | `MessageCreatedResponse` |
+| [`create_sms_message`](#create_sms_message) | [`createSmsMessage`](https://www.unisender.com/ru/support/api/messages/createsmsmessage/) | `sender`, `body`, `list_id` | `tag` | `MessageCreatedResponse` |
+| [`delete_message`](#delete_message) | [`deleteMessage`](https://www.unisender.com/ru/support/api/messages/deletemessage/) | `message_id` | None | `ObjectResponse[Record]` |
+| [`get_actual_message_version`](#get_actual_message_version) | [`getActualMessageVersion`](https://www.unisender.com/ru/support/api/messages/get-actual-message-version/) | `message_id` | None | `MessageVersionResponse` |
+| [`get_web_version`](#get_web_version) | [`getWebVersion`](https://www.unisender.com/ru/support/api/messages/getwebversion/) | `campaign_id` | None | `WebVersionResponse` |
+| [`send_email`](#send_email) | [`sendEmail`](https://www.unisender.com/ru/support/api/messages/sendemail/) | `email`, `subject`, `body`, `list_id`; sender defaults | `sender_name`, `sender_email`, `attachments`, `lang`, `track_read`, `track_links`, `cc`, `headers`, `images_as`, `ref_key`, `error_checking`, `metadata` | `SendResponse` |
+| [`send_sms`](#send_sms) | [`sendSms`](https://www.unisender.com/ru/support/api/messages/sendsms/) | `phone`, `sender`, `text` | None | `SmsReceiptResponse \| CollectionResponse[SmsReceipt]` |
+| [`send_test_email`](#send_test_email) | [`sendTestEmail`](https://www.unisender.com/ru/support/api/messages/sendtestemail/) | `email`, `id` | None | `MessageNoticeResponse` |
+| [`update_email_message`](#update_email_message) | [`updateEmailMessage`](https://www.unisender.com/ru/support/api/messages/updateemailmessage/) | `id` | `sender_name`, `sender_email`, `subject`, `body`, `list_id`, `text_body`, `lang`, `categories` | `MessageCreatedResponse` |
+| [`update_opt_in_email`](#update_opt_in_email) | [`updateOptInEmail`](https://www.unisender.com/ru/support/api/messages/updateoptinemail/) | `sender_name`, `sender_email`, `subject`, `body`, `list_id` | None | `ObjectResponse[Record]` |
+| [`get_sender_domain_list`](#get_sender_domain_list) | [`getSenderDomainList`](https://www.unisender.com/ru/support/api/messages/getsenderdomainlist/) | `username` | `domain`, `limit`, `offset` | `PageResponse[SenderDomainGroup]` |
+| [`get_campaign_common_stats`](#get_campaign_common_stats) | [`getCampaignCommonStats`](https://www.unisender.com/ru/support/api/statistics/get-campaign-common-stats/) | `campaign_id` | None | `CampaignStatsResponse` |
+| [`get_campaign_delivery_stats`](#get_campaign_delivery_stats) | [`async/getCampaignDeliveryStats`](https://www.unisender.com/ru/support/api/statistics/getcampaigndeliverystats/) | `campaign_id` | `notify_url`, `changed_since`, `field_ids` | `TaskResponse` |
+| [`get_campaign_status`](#get_campaign_status) | [`getCampaignStatus`](https://www.unisender.com/ru/support/api/statistics/getcampaignstatus/) | `campaign_id` | None | `StatusResponse` |
+| [`get_messages`](#get_messages) | [`getMessages`](https://www.unisender.com/ru/support/api/statistics/getmessages/) | `date_from`, `date_to` | `limit`, `offset` | `PageResponse[Message]` |
+| [`get_visited_links`](#get_visited_links) | [`getVisitedLinks`](https://www.unisender.com/ru/support/api/statistics/getvisitedlinks/) | `campaign_id` | `group` | `CollectionResponse[Record]` |
+| [`list_messages`](#list_messages) | [`listMessages`](https://www.unisender.com/ru/support/api/statistics/listmessages/) | `date_from`, `date_to` | `limit`, `offset` | `PageResponse[Message]` |
+| [`get_campaigns`](#get_campaigns) | [`getCampaigns`](https://www.unisender.com/ru/support/api/statistics/getcampaigns/) | `from` | `to`, `limit`, `offset` | `PageResponse[Campaign]` |
+| [`get_message`](#get_message) | [`getMessage`](https://www.unisender.com/ru/support/api/statistics/getmessage/) | `id` | None | `MessageResponse` |
+| [`get_task_result`](#get_task_result) | [`async/getTaskResult`](https://www.unisender.com/ru/support/api/statistics/../contacts/exportcontacts/) | `task_uuid` | None | `TaskResponse` |
+| [`create_email_template`](#create_email_template) | [`createEmailTemplate`](https://www.unisender.com/ru/support/api/templates/createemailtemplate/) | `title`, `subject`, `body` | `description`, `text_body`, `lang` | `IdentifierRecordResponse` |
+| [`delete_template`](#delete_template) | [`deleteTemplate`](https://www.unisender.com/ru/support/api/templates/deletetemplate/) | `template_id` | None | `ObjectResponse[Record]` |
+| [`get_template`](#get_template) | [`getTemplate`](https://www.unisender.com/ru/support/api/templates/gettemplate/) | `template_id` or `system_template_id` | `template_id`, `system_template_id` | `TemplateResponse` |
+| [`get_templates`](#get_templates) | [`getTemplates`](https://www.unisender.com/ru/support/api/templates/gettemplates/) | None | `type`, `date_from`, `date_to`, `limit`, `offset` | `PageResponse[Template]` |
+| [`list_templates`](#list_templates) | [`listTemplates`](https://www.unisender.com/ru/support/api/templates/listtemplates/) | None | `type`, `date_from`, `date_to`, `limit`, `offset` | `PageResponse[Template]` |
+| [`update_email_template`](#update_email_template) | [`updateEmailTemplate`](https://www.unisender.com/ru/support/api/templates/updateemailtemplate/) | `template_id` | `title`, `description`, `subject`, `body`, `text_body`, `lang` | `IdentifierRecordResponse` |
+| [`create_field`](#create_field) | [`createField`](https://www.unisender.com/ru/support/api/inputs/createfield/) | `name`, `type` | `public_name` | `IdentifierRecordResponse` |
+| [`delete_field`](#delete_field) | [`deleteField`](https://www.unisender.com/ru/support/api/inputs/deletefield/) | `id` | None | `ObjectResponse[Record]` |
+| [`delete_tag`](#delete_tag) | [`deleteTag`](https://www.unisender.com/ru/support/api/inputs/deletetag/) | `id` | None | `ObjectResponse[Record]` |
+| [`get_fields`](#get_fields) | [`getFields`](https://www.unisender.com/ru/support/api/inputs/getfields/) | None | None | `CollectionResponse[Field]` |
+| [`get_tags`](#get_tags) | [`getTags`](https://www.unisender.com/ru/support/api/inputs/gettags/) | None | None | `CollectionResponse[Tag]` |
+| [`update_field`](#update_field) | [`updateField`](https://www.unisender.com/ru/support/api/inputs/updatefield/) | `id`, `name` | `public_name` | `OptionalIdentifierResponse` |
+| [`get_contact_field_values`](#get_contact_field_values) | [`getContactFieldValues`](https://www.unisender.com/ru/support/api/inputs/getcontactfieldvalues/) | `email`, `field_ids` | None | `ContactFieldsResponse` |
+| [`create_subscriber_note`](#create_subscriber_note) | [`createSubscriberNote`](https://www.unisender.com/ru/support/api/notes/createsubscibernote/) | `subscriber_id`, `content` | None | `IdentifierRecordResponse` |
+| [`update_subscriber_note`](#update_subscriber_note) | [`updateSubscriberNote`](https://www.unisender.com/ru/support/api/notes/updatesubcribernote/) | `id`, `content` | None | `IdentifierRecordResponse` |
+| [`delete_subscriber_note`](#delete_subscriber_note) | [`deleteSubscriberNote`](https://www.unisender.com/ru/support/api/notes/deletesubscribernote/) | `id` | None | `ObjectResponse[Record]` |
+| [`get_subscriber_note`](#get_subscriber_note) | [`getSubscriberNote`](https://www.unisender.com/ru/support/api/notes/getsubscribernote/) | `id` | None | `NoteResponse` |
+| [`get_subscriber_notes`](#get_subscriber_notes) | [`getSubscriberNotes`](https://www.unisender.com/ru/support/api/notes/getsubscribernotes/) | `subscriber_id` | `limit`, `offset`, `order_type`, `order_by`, `is_pinned` | `PageResponse[Note]` |
+| [`set_hook`](#set_hook) | [`setHook`](https://www.unisender.com/ru/support/api/common/sistema-uvedomlenij-o-sobytiyah-webhooks/) | `hook_url`, `events` | `event_format`, `max_parallel`, `single_event`, `status` | `Response[json]` |
+| [`list_hooks`](#list_hooks) | [`listHooks`](https://www.unisender.com/ru/support/api/common/sistema-uvedomlenij-o-sobytiyah-webhooks/) | None | None | `CollectionResponse[Hook]` |
+| [`remove_hook`](#remove_hook) | [`removeHook`](https://www.unisender.com/ru/support/api/common/sistema-uvedomlenij-o-sobytiyah-webhooks/) | `hook_url` | None | `Response[json]` |
+| `track_events` | [Event Tracking](https://www.unisender.com/ru/support/api/event-tracking-api/) | `events` | None | `EventResponse` |
 
 ## Reading the contracts
 
@@ -105,9 +108,9 @@ Named-operation results are immutable typed records or collections. The wire sha
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
 | `title` | `String` | Required |
-| `before_subscribe_url` | `String` | Optional, omitted |
-| `after_subscribe_url` | `String` | Optional, omitted |
-| `sub_user_rights` | `params` | Optional, omitted |
+| `before_subscribe_url` | `String \| nil` | Optional, omitted |
+| `after_subscribe_url` | `String \| nil` | Optional, omitted |
+| `sub_user_rights` | `params \| nil` | Optional, omitted |
 
 **Result:** Object with `id`, the new list identifier.
 
@@ -137,11 +140,13 @@ The title must be unique within the account. `sub_user_rights` maps user IDs to 
 
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
-| `contact_type` | `String` | Required |
-| `contact` | `String` | Required |
-| `list_ids` | `String \| Array[id]` | Optional, omitted |
+| `contact_type` | `contact_type?` | Required with contact |
+| `contact` | `String?` | Required with contact_type |
+| `email` | `String?` | Alternative contact selector; requires list_ids |
+| `phone` | `String?` | Alternative contact selector; requires list_ids |
+| `list_ids` | `String \| Array[id] \| nil` | Optional, omitted |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization. Removes membership in the selected lists.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape. Removes membership in the selected lists.
 
 `contact_type` is `"email"` or `"phone"`. Omitted `list_ids` applies the upstream account-wide behavior; provide explicit IDs when intending to affect selected lists only.
 
@@ -155,15 +160,15 @@ The title must be unique within the account. `sub_user_rights` maps user IDs to 
 
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
-| `notify_url` | `String` | Optional, omitted |
-| `list_id` | `id` | Optional, omitted |
-| `field_names` | `Array[String]` | Optional, omitted |
-| `email` | `String` | Optional, omitted |
-| `phone` | `String` | Optional, omitted |
-| `tag` | `String` | Optional, omitted |
-| `email_status` | `String` | Optional, omitted |
-| `phone_status` | `String` | Optional, omitted |
-| `contact_status` | `String` | Optional, omitted |
+| `notify_url` | `String \| nil` | Optional, omitted |
+| `list_id` | `id \| nil` | Optional, omitted |
+| `field_names` | `Array[String] \| nil` | Optional, omitted |
+| `email` | `String \| nil` | Optional, omitted |
+| `phone` | `String \| nil` | Optional, omitted |
+| `tag` | `String \| nil` | Optional, omitted |
+| `email_status` | `String \| nil` | Optional, omitted |
+| `phone_status` | `String \| nil` | Optional, omitted |
+| `contact_status` | `String \| nil` | Optional, omitted |
 
 **Result:** Object with `task_uuid` and initial `status`. Poll `get_task_result`, or use `wait_for_task`; a completed job provides `file_to_download`.
 
@@ -178,9 +183,12 @@ The title must be unique within the account. `sub_user_rights` maps user IDs to 
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
 | `list_id` | `id` | Required |
-| `params` | `params` | Required |
+| `params` | `params?` | Alternative to explicit filters |
+| `tag_id` | `id?` | Optional, omitted |
+| `contact_type` | `contact_type \| "address" \| nil` | Required when search is supplied |
+| `search` | `String?` | Optional, omitted |
 
-**Result:** Object with `listId`, `searchParams`, and `count`. The documented `count` is a String, not an Integer.
+**Wire result:** Object with `listId`, `searchParams`, and a String `count`. The typed `response.count` reader returns an Integer.
 
 `params` must contain at least one filter. Use `tagId`, `type` (`"address"` or `"phone"`), and optionally `search`; `search` requires `type`.
 
@@ -220,12 +228,12 @@ No operation arguments.
 
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
-| `field_names` | `Array[String]` | Required with `data` |
-| `data` | `Array[Array[parameter]]` | Required with `field_names` |
-| `records` | `Enumerable[params]` | Alternative to `field_names` and `data` |
-| `overwrite_tags` | `flag` | Optional, omitted |
-| `overwrite_lists` | `flag` | Optional, omitted |
-| `telegram_bot_channel_id` | `String` | Optional, omitted |
+| `field_names` | `Array[String]?` | Required with data |
+| `data` | `Array[Array[parameter]]?` | Required with field_names |
+| `records` | `Enumerable[params]?` | Alternative to field_names and data |
+| `overwrite_tags` | `flag \| nil` | Optional, omitted |
+| `overwrite_lists` | `flag \| nil` | Optional, omitted |
+| `telegram_bot_channel_id` | `String \| nil` | Optional, omitted |
 
 **Result:** Object with Integer counters `total`, `inserted`, `updated`, `deleted`, `new_emails`, and `invalid`; `log` contains per-row `index`, `code`, and `message`. A successful response can include rejected rows. Inspect `invalid` and `log`.
 
@@ -242,11 +250,11 @@ No operation arguments.
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
 | `list_ids` | `String \| Array[id]` | Required |
-| `fields` | `params` | Required unless `email` is supplied |
-| `email` | `String` | Alternative to `fields[:email]` |
-| `tags` | `String \| Array[id]` | Optional, omitted |
-| `double_optin` | `Integer \| Symbol` | Optional, omitted |
-| `overwrite` | `Integer \| Symbol` | Optional, omitted |
+| `fields` | `params?` | Required unless email is supplied |
+| `email` | `String?` | Required unless supplied in fields |
+| `tags` | `String \| Array[id] \| nil` | Optional, omitted |
+| `double_optin` | `Integer \| :request_confirmation \| :already_confirmed \| :confirm_if_needed \| nil` | Optional, omitted |
+| `overwrite` | `Integer \| :preserve \| :replace \| :update \| nil` | Optional, omitted |
 
 **Result:** Object with `person_id`, the contact identifier. Success does not mean the contact has confirmed subscription.
 
@@ -264,11 +272,11 @@ Supply `email:` directly or include email in `fields:`; custom names are case-se
 | --- | --- | --- |
 | `list_id` | `id` | Required |
 | `title` | `String` | Required |
-| `before_subscribe_url` | `String` | Optional, omitted |
-| `after_subscribe_url` | `String` | Optional, omitted |
-| `sub_user_rights` | `params` | Optional, omitted |
+| `before_subscribe_url` | `String \| nil` | Optional, omitted |
+| `after_subscribe_url` | `String \| nil` | Optional, omitted |
+| `sub_user_rights` | `params \| nil` | Optional, omitted |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape.
 
 </details>
 
@@ -299,9 +307,9 @@ Supply `email:` directly or include email in `fields:`; custom names are case-se
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
 | `email` | `String` | Required |
-| `include_lists` | `flag` | Optional, omitted |
-| `include_fields` | `flag` | Optional, omitted |
-| `include_details` | `flag` | Optional, omitted |
+| `include_lists` | `flag \| nil` | Optional, omitted |
+| `include_fields` | `flag \| nil` | Optional, omitted |
+| `include_details` | `flag \| nil` | Optional, omitted |
 
 **Result:** Object with nested `email` contact details. `phone`, `lists`, and custom `fields` depend on the contact and include options. Access the address as `result.fetch("email").fetch("email")`, not `result.fetch("email")` alone.
 
@@ -315,11 +323,13 @@ Supply `email:` directly or include email in `fields:`; custom names are case-se
 
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
-| `contact_type` | `String` | Required |
-| `contact` | `String` | Required |
-| `list_ids` | `String \| Array[id]` | Optional, omitted |
+| `contact_type` | `contact_type?` | Required with contact |
+| `contact` | `String?` | Required with contact_type |
+| `email` | `String?` | Alternative contact selector; requires list_ids |
+| `phone` | `String?` | Alternative contact selector; requires list_ids |
+| `list_ids` | `String \| Array[id] \| nil` | Optional, omitted |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization. Unsubscribes the specified contact from the selected lists.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape. Unsubscribes the specified contact from the selected lists.
 
 `contact_type` is `"email"` or `"phone"`. Omitted `list_ids` applies the upstream account-wide behavior; provide explicit IDs when intending to affect selected lists only.
 
@@ -376,20 +386,20 @@ Supply `email:` directly or include email in `fields:`; custom names are case-se
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
 | `message_id` | `id` | Required |
-| `start_time` | `String` | Optional, omitted |
-| `timezone` | `String` | Optional, omitted |
-| `track_read` | `flag` | Optional, omitted |
-| `track_links` | `flag` | Optional, omitted |
-| `contacts` | `String \| Array[id]` | Optional, omitted |
-| `contacts_url` | `String` | Optional, omitted |
-| `track_ga` | `flag` | Optional, omitted |
-| `payment_limit` | `Integer \| Float` | Optional, omitted |
-| `payment_currency` | `String` | Optional, omitted |
-| `ga_medium` | `String` | Optional, omitted |
-| `ga_source` | `String` | Optional, omitted |
-| `ga_campaign` | `String` | Optional, omitted |
-| `ga_content` | `String` | Optional, omitted |
-| `ga_term` | `String` | Optional, omitted |
+| `start_time` | `String \| Time \| nil` | Optional, omitted |
+| `timezone` | `String \| nil` | Optional, omitted |
+| `track_read` | `flag \| nil` | Optional, omitted |
+| `track_links` | `flag \| nil` | Optional, omitted |
+| `contacts` | `String \| Array[id] \| nil` | Optional, omitted |
+| `contacts_url` | `String \| nil` | Optional, omitted |
+| `track_ga` | `flag \| nil` | Optional, omitted |
+| `payment_limit` | `Integer \| Float \| nil` | Optional, omitted |
+| `payment_currency` | `String \| nil` | Optional, omitted |
+| `ga_medium` | `String \| nil` | Optional, omitted |
+| `ga_source` | `String \| nil` | Optional, omitted |
+| `ga_campaign` | `String \| nil` | Optional, omitted |
+| `ga_content` | `String \| nil` | Optional, omitted |
+| `ga_term` | `String \| nil` | Optional, omitted |
 
 **Result:** Object with `campaign_id` and String `status`, such as `scheduled` or `waits_censor`. `count` is deprecated and documented as zero. Accepted does not mean delivered.
 
@@ -405,20 +415,20 @@ Supply `email:` directly or include email in `fields:`; custom names are case-se
 
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
-| `sender_name` | `String` | Required |
-| `sender_email` | `String` | Required |
 | `list_id` | `id` | Required |
-| `subject` | `String` | Optional, omitted |
-| `body` | `String` | Optional, omitted |
-| `text_body` | `String` | Optional, omitted |
-| `generate_text` | `flag` | Optional, omitted |
-| `tag` | `String` | Optional, omitted |
-| `attachments` | `Hash[String, String] \| Attachment \| Array[Attachment]` | Optional, omitted |
-| `lang` | `String` | Optional, omitted |
-| `template_id` | `id` | Optional, omitted |
-| `system_template_id` | `id` | Optional, omitted |
-| `wrap_type` | `String` | Optional, omitted |
-| `categories` | `String \| Array[id]` | Optional, omitted |
+| `sender_name` | `String?` | Required unless configured as a default |
+| `sender_email` | `String?` | Required unless configured as a default |
+| `subject` | `String \| nil` | Required without a template |
+| `body` | `String \| nil` | Required without a template |
+| `text_body` | `String \| nil` | Optional, omitted |
+| `generate_text` | `flag \| nil` | Optional, omitted |
+| `tag` | `String \| nil` | Optional, omitted |
+| `attachments` | `Hash[String, String] \| Attachment \| Array[Attachment] \| nil` | Optional, omitted |
+| `lang` | `String \| nil` | Optional, omitted |
+| `template_id` | `id \| nil` | Optional, omitted |
+| `system_template_id` | `id \| nil` | Optional, omitted |
+| `wrap_type` | `String \| nil` | Optional, omitted |
+| `categories` | `String \| Array[id] \| nil` | Optional, omitted |
 
 **Result:** Object with `message_id`. Creates a message without sending it. Pass the identifier to `create_campaign` to send.
 
@@ -437,7 +447,7 @@ Supply nonempty `subject` and `body`, or select `template_id` / `system_template
 | `sender` | `String` | Required |
 | `body` | `String` | Required |
 | `list_id` | `id` | Required |
-| `tag` | `String` | Optional, omitted |
+| `tag` | `String \| nil` | Optional, omitted |
 
 **Result:** Object with `message_id`. Creates a message without sending it.
 
@@ -453,7 +463,7 @@ Supply nonempty `subject` and `body`, or select `template_id` / `system_template
 | --- | --- | --- |
 | `message_id` | `id` | Required |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape.
 
 </details>
 
@@ -494,21 +504,21 @@ Supply nonempty `subject` and `body`, or select `template_id` / `system_template
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
 | `email` | `String` | Required |
-| `sender_name` | `String` | Required |
-| `sender_email` | `String` | Required |
 | `subject` | `String` | Required |
 | `body` | `String` | Required |
 | `list_id` | `id` | Required |
-| `attachments` | `Hash[String, String] \| Attachment \| Array[Attachment]` | Optional, omitted |
-| `lang` | `String` | Optional, omitted |
-| `track_read` | `flag` | Optional, omitted |
-| `track_links` | `flag` | Optional, omitted |
-| `cc` | `String` | Optional, omitted |
-| `headers` | `String \| params` | Optional, omitted |
-| `images_as` | `String` | Optional, omitted |
-| `ref_key` | `String` | Optional, omitted |
-| `error_checking` | `flag` | Optional, omitted |
-| `metadata` | `params` | Optional, omitted |
+| `sender_name` | `String?` | Required unless configured as a default |
+| `sender_email` | `String?` | Required unless configured as a default |
+| `attachments` | `Hash[String, String] \| Attachment \| Array[Attachment] \| nil` | Optional, omitted |
+| `lang` | `String \| nil` | Optional, omitted |
+| `track_read` | `flag \| nil` | Optional, omitted |
+| `track_links` | `flag \| nil` | Optional, omitted |
+| `cc` | `String \| nil` | Optional, omitted |
+| `headers` | `String \| params \| nil` | Optional, omitted |
+| `images_as` | `String \| nil` | Optional, omitted |
+| `ref_key` | `String \| nil` | Optional, omitted |
+| `error_checking` | `flag \| nil` | Optional, defaults to true; nil omits the field |
+| `metadata` | `params \| nil` | Optional, omitted |
 
 **Result:** With `error_checking: 1` or `cc`, an Array of per-recipient results containing `index`, `email`, and accepted message `id`. Without either, the legacy result is an Object with `email_id`. With `error_checking: 1`, also inspect recipient `errors`; the top-level success envelope alone is insufficient.
 
@@ -558,14 +568,14 @@ Use the international phone format and an approved sender. Sending is never auto
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
 | `id` | `id` | Required |
-| `sender_name` | `String` | Optional, omitted |
-| `sender_email` | `String` | Optional, omitted |
-| `subject` | `String` | Optional, omitted |
-| `body` | `String` | Optional, omitted |
-| `list_id` | `id` | Optional, omitted |
-| `text_body` | `String` | Optional, omitted |
-| `lang` | `String` | Optional, omitted |
-| `categories` | `String \| Array[id]` | Optional, omitted |
+| `sender_name` | `String \| nil` | Optional, omitted |
+| `sender_email` | `String \| nil` | Optional, omitted |
+| `subject` | `String \| nil` | Optional, omitted |
+| `body` | `String \| nil` | Optional, omitted |
+| `list_id` | `id \| nil` | Optional, omitted |
+| `text_body` | `String \| nil` | Optional, omitted |
+| `lang` | `String \| nil` | Optional, omitted |
+| `categories` | `String \| Array[id] \| nil` | Optional, omitted |
 
 **Result:** Object with `message_id`. Retain the returned identifier because editing an already-sent message can create a new version.
 
@@ -585,7 +595,7 @@ Use the international phone format and an approved sender. Sending is never auto
 | `body` | `String` | Required |
 | `list_id` | `id` | Required |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization. Updates the list confirmation message.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape. Updates the list confirmation message.
 
 </details>
 
@@ -598,9 +608,9 @@ Use the international phone format and an approved sender. Sending is never auto
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
 | `username` | `String` | Required |
-| `domain` | `String` | Optional, omitted |
-| `limit` | `Integer` | Optional, defaults to 100 |
-| `offset` | `Integer` | Optional, omitted |
+| `domain` | `String \| nil` | Optional, omitted |
+| `limit` | `Integer \| nil` | Optional, defaults to 100 |
+| `offset` | `Integer \| nil` | Optional, omitted |
 
 **Result:** Array of groups containing `status` and `domains`; each domain has fields such as `Domain` and `Status`. Preserve the upstream capitalization. Pagination counts domains, not groups.
 
@@ -629,9 +639,9 @@ Use the international phone format and an approved sender. Sending is never auto
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
 | `campaign_id` | `id` | Required |
-| `notify_url` | `String` | Optional, omitted |
-| `changed_since` | `String` | Optional, omitted |
-| `field_ids` | `Array[id]` | Optional, omitted |
+| `notify_url` | `String \| nil` | Optional, omitted |
+| `changed_since` | `String \| Time \| nil` | Optional, omitted |
+| `field_ids` | `Array[id] \| nil` | Optional, omitted |
 
 **Result:** Object with `task_uuid` and initial `status`, followed by a download URL when the asynchronous report completes.
 
@@ -659,10 +669,10 @@ Use the international phone format and an approved sender. Sending is never auto
 
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
-| `date_from` | `String` | Required |
-| `date_to` | `String` | Required |
-| `limit` | `Integer` | Optional, defaults to 100 |
-| `offset` | `Integer` | Optional, omitted |
+| `date_from` | `String \| Time` | Required |
+| `date_to` | `String \| Time` | Required |
+| `limit` | `Integer \| nil` | Optional, defaults to 100 |
+| `offset` | `Integer \| nil` | Optional, omitted |
 
 **Result:** Array of message objects, including identifiers, content, sender information, and version metadata. Field availability depends on email versus SMS.
 
@@ -679,7 +689,7 @@ Date filters use UTC `YYYY-MM-DD HH:MM`. `limit` is 1 to 100 (default 50), and `
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
 | `campaign_id` | `id` | Required |
-| `group` | `flag` | Optional, omitted |
+| `group` | `flag \| nil` | Optional, omitted |
 
 **Result:** Object with `fields` (column names) and `data` (rows). Interpret each row using the matching column index.
 
@@ -693,10 +703,10 @@ Date filters use UTC `YYYY-MM-DD HH:MM`. `limit` is 1 to 100 (default 50), and `
 
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
-| `date_from` | `String` | Required |
-| `date_to` | `String` | Required |
-| `limit` | `Integer` | Optional, defaults to 100 |
-| `offset` | `Integer` | Optional, omitted |
+| `date_from` | `String \| Time` | Required |
+| `date_to` | `String \| Time` | Required |
+| `limit` | `Integer \| nil` | Optional, defaults to 100 |
+| `offset` | `Integer \| nil` | Optional, omitted |
 
 **Result:** Array of message summary objects. Use `get_message` when message content is needed.
 
@@ -712,10 +722,10 @@ Date filters use UTC `YYYY-MM-DD HH:MM`. `limit` is 1 to 100 (default 50), and `
 
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
-| `from` | `String` | Required |
-| `to` | `String` | Optional, omitted |
-| `limit` | `Integer` | Optional, defaults to 100 |
-| `offset` | `Integer` | Optional, omitted |
+| `from` | `String \| Time` | Required |
+| `to` | `String \| Time \| nil` | Optional, omitted |
+| `limit` | `Integer \| nil` | Optional, defaults to 100 |
+| `offset` | `Integer \| nil` | Optional, omitted |
 
 **Result:** Array of campaign objects with identifiers and campaign metadata. Supports offset pagination.
 
@@ -762,9 +772,9 @@ Date filters use UTC `YYYY-MM-DD HH:MM`. `limit` is 1 to 100 (default 50), and `
 | `title` | `String` | Required |
 | `subject` | `String` | Required |
 | `body` | `String` | Required |
-| `description` | `String` | Optional, omitted |
-| `text_body` | `String` | Optional, omitted |
-| `lang` | `String` | Optional, omitted |
+| `description` | `String \| nil` | Optional, omitted |
+| `text_body` | `String \| nil` | Optional, omitted |
+| `lang` | `String \| nil` | Optional, omitted |
 
 **Result:** Object with the new template `id`.
 
@@ -780,7 +790,7 @@ Date filters use UTC `YYYY-MM-DD HH:MM`. `limit` is 1 to 100 (default 50), and `
 | --- | --- | --- |
 | `template_id` | `id` | Required |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape.
 
 </details>
 
@@ -792,8 +802,8 @@ Date filters use UTC `YYYY-MM-DD HH:MM`. `limit` is 1 to 100 (default 50), and `
 
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
-| `template_id` | `id` | Optional, omitted |
-| `system_template_id` | `id` | Optional, omitted |
+| `template_id` | `id \| nil` | Optional, omitted |
+| `system_template_id` | `id \| nil` | Optional, omitted |
 
 **Result:** Object describing the selected template. User and system templates can have different fields; content fields include `subject`, `body`, and `lang_code` where applicable.
 
@@ -809,11 +819,11 @@ Provide `template_id` or `system_template_id`; neither is required individually,
 
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
-| `type` | `String` | Optional, omitted |
-| `date_from` | `String` | Optional, omitted |
-| `date_to` | `String` | Optional, omitted |
-| `limit` | `Integer` | Optional, defaults to 100 |
-| `offset` | `Integer` | Optional, omitted |
+| `type` | `template_type \| nil` | Optional, omitted |
+| `date_from` | `String \| Time \| nil` | Optional, omitted |
+| `date_to` | `String \| Time \| nil` | Optional, omitted |
+| `limit` | `Integer \| nil` | Optional, defaults to 100 |
+| `offset` | `Integer \| nil` | Optional, omitted |
 
 **Result:** Array of template objects with identifiers, titles, content, and metadata. User-only fields include `body`; system templates can provide preview URLs instead.
 
@@ -829,11 +839,11 @@ Provide `template_id` or `system_template_id`; neither is required individually,
 
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
-| `type` | `String` | Optional, omitted |
-| `date_from` | `String` | Optional, omitted |
-| `date_to` | `String` | Optional, omitted |
-| `limit` | `Integer` | Optional, defaults to 100 |
-| `offset` | `Integer` | Optional, omitted |
+| `type` | `template_type \| nil` | Optional, omitted |
+| `date_from` | `String \| Time \| nil` | Optional, omitted |
+| `date_to` | `String \| Time \| nil` | Optional, omitted |
+| `limit` | `Integer \| nil` | Optional, defaults to 100 |
+| `offset` | `Integer \| nil` | Optional, omitted |
 
 **Result:** Array of template summary objects. Use `get_template` for a selected template.
 
@@ -850,12 +860,12 @@ Provide `template_id` or `system_template_id`; neither is required individually,
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
 | `template_id` | `id` | Required |
-| `title` | `String` | Optional, omitted |
-| `description` | `String` | Optional, omitted |
-| `subject` | `String` | Optional, omitted |
-| `body` | `String` | Optional, omitted |
-| `text_body` | `String` | Optional, omitted |
-| `lang` | `String` | Optional, omitted |
+| `title` | `String \| nil` | Optional, omitted |
+| `description` | `String \| nil` | Optional, omitted |
+| `subject` | `String \| nil` | Optional, omitted |
+| `body` | `String \| nil` | Optional, omitted |
+| `text_body` | `String \| nil` | Optional, omitted |
+| `lang` | `String \| nil` | Optional, omitted |
 
 **Result:** Object with the updated template `id`.
 
@@ -871,7 +881,7 @@ Provide `template_id` or `system_template_id`; neither is required individually,
 | --- | --- | --- |
 | `name` | `String` | Required |
 | `type` | `String` | Required |
-| `public_name` | `String` | Optional, omitted |
+| `public_name` | `String \| nil` | Optional, omitted |
 
 **Result:** Object with the new field `id`.
 
@@ -887,7 +897,7 @@ Provide `template_id` or `system_template_id`; neither is required individually,
 | --- | --- | --- |
 | `id` | `id` | Required |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape.
 
 </details>
 
@@ -901,7 +911,7 @@ Provide `template_id` or `system_template_id`; neither is required individually,
 | --- | --- | --- |
 | `id` | `id` | Required |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape.
 
 </details>
 
@@ -939,7 +949,7 @@ No operation arguments.
 | --- | --- | --- |
 | `id` | `id` | Required |
 | `name` | `String` | Required |
-| `public_name` | `String` | Optional, omitted |
+| `public_name` | `String \| nil` | Optional, omitted |
 
 **Result:** The documented top-level Object contains the updated field `id`. Legacy `result` envelopes are also accepted.
 
@@ -1000,7 +1010,7 @@ No operation arguments.
 | --- | --- | --- |
 | `id` | `id` | Required |
 
-**Result:** Empty JSON result on success. The documented object shape and legacy array responses are preserved without normalization.
+**Result:** Empty JSON result on success. Named calls normalize an empty legacy array to an empty record; `data` retains the wire shape.
 
 </details>
 
@@ -1027,11 +1037,11 @@ No operation arguments.
 | Keyword | Ruby type | Presence |
 | --- | --- | --- |
 | `subscriber_id` | `id` | Required |
-| `limit` | `Integer` | Optional, defaults to 100 |
-| `offset` | `Integer` | Optional, omitted |
-| `order_type` | `String` | Optional, omitted |
-| `order_by` | `String` | Optional, omitted |
-| `is_pinned` | `flag` | Optional, omitted |
+| `limit` | `Integer \| nil` | Optional, defaults to 100 |
+| `offset` | `Integer \| nil` | Optional, omitted |
+| `order_type` | `note_order \| nil` | Optional, omitted |
+| `order_by` | `note_field \| nil` | Optional, omitted |
+| `is_pinned` | `flag \| nil` | Optional, omitted |
 
 **Result:** Array of note objects for the subscriber. Supports offset pagination.
 
@@ -1061,36 +1071,44 @@ Object responses expose their result readers directly. Collection elements expos
 
 | Result | Readers |
 | --- | --- |
-| `IdentifierRecord` | `id` |
-| `List` | `id`, `title` |
-| `Message` | `id`, `subject`, `body`, `sender_name`, `sender_email` |
-| `Campaign` | `id`, `status`, `subject` |
-| `Template` | `id`, `title`, `subject`, `body` |
-| `Field` | `id`, `name`, `type` |
-| `Tag` | `id`, `name` |
-| `Note` | `id`, `content` |
-| `MessageCreated` | `message_id` |
-| `Subscription` | `person_id` |
-| `CampaignCreated` | `campaign_id`, `status` |
-| `Status` | `status` |
-| `ContactCount` | `count` |
-| `TotalContacts` | `total` |
-| `MessageVersion` | `message_id`, `actual_version_id` |
-| `WebVersion` | `letter_id`, `web_letter_link` |
-| `TaskResult` | `task_uuid`, `status`, `file_to_download` |
-| `Contact` | `email` |
-| `EmailContact` | `email`, `status`, `availability` |
-| `SenderDomainGroup` | `status`, `domains` |
-| `SenderDomain` | `domain`, `status`, `key` |
-| `ContactFields` | `field_values` |
+| `Campaign` | `status`, `subject`, `id` |
+| `CampaignCreated` | `count`, `campaign_id`, `status` |
 | `CampaignStats` | `total`, `sent`, `delivered`, `read_unique`, `read_all`, `clicked_unique`, `clicked_all`, `unsubscribed`, `spam` |
-| `SmsReceipt` | `sms_id`, `price`, `currency` |
+| `Contact` | `email`, `email_address`, `phone`, `phone_number`, `lists`, `fields` |
+| `ContactCount` | `count` |
+| `ContactFields` | `field_values` |
+| `ContactList` | `status`, `added_at`, `id` |
+| `EmailContact` | `email`, `status`, `availability`, `added_at`, `last_send_datetime`, `last_delivery_datetime`, `last_read_datetime`, `last_click_datetime`, `rating` |
 | `EmailDelivery` | `id`, `status` |
-| `Failure` | `index`, `code`, `message`, `warning?`, `with_offset` |
-| `RecipientResult` | `id`, `index`, `email`, `failures`, `accepted?` |
-| `ImportResult` | `invalid`, `total`, `inserted`, `updated`, `deleted`, `new_emails`, `complete?`, `partial?`, `uncertain?`, `failures` |
-| `SendResult` | `recipients`, `email_id`, `complete?`, `partial?`, `uncertain?`, `failures` |
 | `EventResult` | `complete?`, `partial?`, `uncertain?`, `failures` |
+| `Failure` | `index`, `code`, `message`, `warning?`, `with_offset` |
+| `Field` | `name`, `type`, `id` |
+| `Hook` | `url`, `event_format`, `max_parallel`, `single_event`, `status`, `events`, `id` |
+| `IdentifierRecord` | `id` |
+| `ImportResult` | `row_warnings`, `inserted`, `updated`, `deleted`, `new_emails`, `total`, `invalid`, `complete?`, `partial?`, `uncertain?`, `failures` |
+| `List` | `title`, `id` |
+| `Message` | `subject`, `body`, `sender_name`, `sender_email`, `id` |
+| `MessageCreated` | `message_id` |
+| `MessageNotice` | `message` |
+| `MessageVersion` | `message_id`, `actual_version_id` |
+| `Note` | `user_id`, `subscriber_id`, `origin`, `is_pinned`, `created_at`, `updated_at`, `pinned_at`, `content`, `id` |
+| `OptionalIdentifier` | `id` |
+| `PhoneContact` | `phone`, `status`, `availability`, `added_at` |
+| `RecipientResult` | `id`, `index`, `email`, `failures`, `accepted?` |
+| `SendResult` | `recipients`, `email_id`, `complete?`, `partial?`, `uncertain?`, `failures` |
+| `SenderDomain` | `domain`, `status`, `key` |
+| `SenderDomainGroup` | `status`, `domains` |
+| `SmsReceipt` | `sms_id`, `price`, `currency` |
+| `Status` | `status` |
+| `Subscription` | `person_id` |
+| `Tag` | `name`, `id` |
+| `TaskResult` | `task_uuid`, `status`, `file_to_download` |
+| `Template` | `title`, `subject`, `body`, `id` |
+| `TotalContacts` | `total` |
+| `WebVersion` | `letter_id`, `web_letter_link` |
+| `WebhookEvent` | `event_name`, `event_time`, `event_data` |
+| `WebhookNotification` | `users`, `events` |
+| `WebhookUser` | `login`, `events` |
 
 Report responses also expose `raise_for_partial_failure!`.
 A `BatchReport` exposes `responses`, `completed_batches`, `total`, `invalid`, `failures`, `complete?`, `partial?`, and `uncertain?`.
@@ -1098,6 +1116,34 @@ Its totals return `nil` when the outcome does not provide reliable import counts
 Task handles expose `task_uuid`, `wait`, and `download_to`; their result retains the original task fields. Polling request errors keep their original error class and expose `task_uuid` plus `last_response` (nil before any observed task state).
 
 ## Documentation decisions
+
+### Webhook management
+
+<a id="set_hook"></a>
+#### `set_hook`
+
+| Keyword | Ruby type | Presence |
+| --- | --- | --- |
+| `hook_url` | `String` | Required |
+| `events` | `Hash[String \| Symbol, String \| Array[String \| Integer]]` | Required |
+| `event_format` | `:json_post \| :json_post_gzip \| :http_get \| String` | Optional, defaults to json_post_gzip |
+| `max_parallel` | `Integer?` | Optional, omitted |
+| `single_event` | `flag` | Optional, defaults to false (0 on the wire) |
+| `status` | `:active \| :disabled \| String` | Optional, defaults to active |
+
+<a id="list_hooks"></a>
+#### `list_hooks`
+
+No operation arguments.
+
+<a id="remove_hook"></a>
+#### `remove_hook`
+
+| Keyword | Ruby type | Presence |
+| --- | --- | --- |
+| `hook_url` | `String` | Required |
+
+See the [receiver guide](webhooks.md) for registration behavior and bounded verification.
 
 Successful `sendTestEmail` and `updateField` examples omit the `result` envelope. These two operations also accept their documented top-level success fields. Other operations still require `result`, and `error` always takes precedence.
 
@@ -1124,6 +1170,8 @@ Successful `sendTestEmail` and `updateField` examples omit the `result` envelope
 Pagination additionally requires a positive integer page size within the method's documented limit, a positive integer `max_pages`, and a nonnegative integer `offset`. Named paginated reads use the same local validation for `limit` and `offset`. Each yielded response preserves its warnings and metadata.
 
 Batch helper failures raise `BatchError`. Its `completed_responses` contains earlier successful batches, `failed_range` is the zero-based, end-exclusive input range with an uncertain or failed outcome, and `error` contains the original failure. A failed batch can still contain accepted records. Helpers do not replay batches or roll back earlier changes. Source exceptions also retain completed responses; an unknown unsent source range can be empty at the next offset.
+
+All batch helpers accept `retention: :full | :summary` and `on_progress:`. Full history is the default. Summary mode retains counts and failed-response details, not successful payloads. `client.with_execution(timeout:, cancellation:, instrumentation:)` creates a cooperative budget for related work. See [execution and recovery](execution.md) for checkpoint and lifetime contracts.
 
 ## Optional workflow helpers
 

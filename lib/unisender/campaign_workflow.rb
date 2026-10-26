@@ -13,6 +13,16 @@ module Unisender
       @error = error
       super("Campaign creation failed after message creation")
     end
+
+    def category
+      error = @error
+      error.is_a?(Error) || error.is_a?(ValidationError) ? error.category : :unexpected
+    end
+
+    def request_id
+      error = @error
+      error.request_id if error.is_a?(Error)
+    end
   end
 
   # Validates both steps before creating a message.

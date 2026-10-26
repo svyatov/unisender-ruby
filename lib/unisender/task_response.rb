@@ -12,21 +12,63 @@ module Unisender
     end
 
     def wait(interval: 1, timeout: 60, clock: nil, sleeper: nil, &)
+      if completed?
+        yield self if block_given?
+        return self
+      end
+
       @client.wait_for_task(task_uuid:, interval:, timeout:, clock:, sleeper:, &)
     end
 
+    def completed?
+      status == "completed"
+    end
+
+    def failed?
+      status == "failed"
+    end
+
+    def pending?
+      TaskWaiter::PENDING.include?(status)
+    end
+
     def download_to(io, max_bytes:, downloader: Downloader.new)
+      @client.check_execution!
       raise TaskError, self unless status == "completed"
 
       url = file_to_download
       raise InvalidResponseError, "Missing task download URL" unless url
 
+      download_file(url, io, max_bytes, downloader)
+    end
+
+    private
+
+    def download_file(url, io, max_bytes, downloader)
+      case downloader
+      when Downloader
+        # rubocop:disable-next Style/ClassEqualityComparison -- Preserve custom subclass types in Steep's fallback.
+        if downloader.class == Downloader
+          return downloader.download(url, io, max_bytes:, execution: @client.execution_context)
+        end
+      end
       downloader.download(url, io, max_bytes:)
     end
   end
 
-  class TaskFailedError < TaskError; end
-  class UnknownTaskStateError < TaskError; end
+  # A task reached the failed terminal state.
+  class TaskFailedError < TaskError
+    def category
+      :task_failed
+    end
+  end
+
+  # A task returned a state not documented by the protocol.
+  class UnknownTaskStateError < TaskError
+    def category
+      :unknown_task_state
+    end
+  end
 
   # A polling deadline retains the last known task state.
   class TaskTimeoutError < TimeoutError

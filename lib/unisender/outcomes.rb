@@ -82,6 +82,10 @@ module Unisender
       Outcomes.records(self["log"]).map { |item| Failure.new(item.to_h) }.reject(&:warning?)
     end
 
+    def row_warnings
+      Outcomes.records(self["log"]).map { |item| Failure.new(item.to_h) }.select(&:warning?)
+    end
+
     def complete?
       invalid.zero?
     end
@@ -221,6 +225,10 @@ module Unisender
 
   # Import counters and acceptance state.
   class ImportResponse < OutcomeResponse
+    def row_warnings
+      result.row_warnings
+    end
+
     def inserted
       result.inserted
     end

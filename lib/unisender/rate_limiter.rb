@@ -23,12 +23,17 @@ module Unisender
       @mutex = Mutex.new
     end
 
-    def acquire(operation)
+    def acquire(operation, execution: nil)
       loop do
+        execution&.check!
         delay = @mutex.synchronize { reserve(operation) }
         return if delay.zero?
 
-        @sleeper.call(delay)
+        if execution
+          execution.wait(delay, :rate_limit_wait, operation, @sleeper)
+        else
+          @sleeper.call(delay)
+        end
       end
     end
 

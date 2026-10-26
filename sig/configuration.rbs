@@ -12,7 +12,8 @@ module Unisender
     attr_reader http_status: Integer?
     attr_reader outcome: Symbol
     attr_reader error_category: Symbol?
-    def self.new: (operation: String, attempt: Integer, duration: Float, http_status: Integer?, outcome: Symbol, error_category: Symbol?) -> RequestEvent
+    attr_reader request_id: String?
+    def self.new: (operation: String, attempt: Integer, duration: Float, http_status: Integer?, outcome: Symbol, error_category: Symbol?, request_id: String?) -> RequestEvent
   end
 
   module Observation

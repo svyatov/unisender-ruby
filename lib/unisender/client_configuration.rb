@@ -4,6 +4,17 @@ module Unisender
   # Explicit construction, immutable configuration variants, and lifetime.
   class Client
     class << self
+      def open(api_key:, **)
+        raise ArgumentError, "Client.open requires a block" unless block_given?
+
+        client = new(api_key:, **)
+        begin
+          yield client
+        ensure
+          client.close
+        end
+      end
+
       # rubocop:disable-next Metrics/ParameterLists -- Mirrors the constructor options for typed forwarding.
       def from_env(env: ENV, language: :en, transport: nil, retry_policy: nil, open_timeout: nil,
                    read_timeout: nil, write_timeout: nil, max_retries: nil, max_elapsed: nil,
@@ -21,13 +32,17 @@ module Unisender
       settings = @configuration.options_for(options)
       key = settings.delete(:api_key)
       case key
-      when String then Client.new(api_key: key, **settings)
+      when String
+        client = Client.new(api_key: key, **settings)
+        context = @execution
+        context&.own(client)
+        context ? client.execution_client(context) : client
       else raise ArgumentError, "api_key must be a string"
       end
     end
 
     def close
-      @configuration.close
+      @configuration.close unless @execution
     end
   end
 end

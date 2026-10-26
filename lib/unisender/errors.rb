@@ -13,11 +13,20 @@ module Unisender
       createEmailTemplate deleteTemplate getTemplate getTemplates listTemplates updateEmailTemplate
       createField deleteField deleteTag getFields getTags updateField getContactFieldValues
       createSubscriberNote updateSubscriberNote deleteSubscriberNote getSubscriberNote getSubscriberNotes
-      track_events
+      track_events setHook listHooks removeHook
     ].freeze
     private_constant :OPERATIONS
 
     attr_reader :operation, :next_offset, :completed_pages, :last_response
+
+    def bytes_written
+      @download_bytes_written
+    end
+
+    def with_download(bytes_written:)
+      @download_bytes_written = bytes_written
+      self
+    end
 
     def task_uuid
       @polling_task_uuid
@@ -117,17 +126,31 @@ module Unisender
   class BatchError < Error
     attr_reader :completed_responses, :failed_range, :error, :report
 
-    def initialize(completed_responses:, failed_range:, error:)
+    def initialize(completed_responses:, failed_range:, error:, report: nil)
       @completed_responses = completed_responses.dup.freeze
       @failed_range = failed_range.freeze
       @error = error
-      @report = BatchReport.new(@completed_responses, error:, failed_range:)
+      @report = report || BatchReport.new(@completed_responses, error:, failed_range:)
       super("UniSender batch failed; inspect the completed responses and failed range")
+    end
+
+    def category
+      error = @error
+      error.is_a?(Error) || error.is_a?(ValidationError) ? error.category : :unexpected
+    end
+
+    def request_id
+      error = @error
+      error.request_id if error.is_a?(Error)
     end
   end
 
   # Identifies the next unread offset when the page bound is reached.
   class PaginationError < Error
+    def category
+      :pagination_limit
+    end
+
     def initialize(operation:, next_offset:, completed_pages:)
       @operation = operation
       @next_offset = next_offset
@@ -136,10 +159,19 @@ module Unisender
     end
   end
 
-  class NotFoundError < Error; end
+  # A singular operation returned no matching record.
+  class NotFoundError < Error
+    def category
+      :not_found
+    end
+  end
 
   # The API accepted the import request but rejected some records.
   class PartialFailure < Error
+    def category
+      :partial_failure
+    end
+
     attr_reader :response
 
     def initialize(response)
@@ -150,6 +182,10 @@ module Unisender
 
   # Includes the last response for an unexpected or failed asynchronous task state.
   class TaskError < Error
+    def category
+      :task_state
+    end
+
     attr_reader :response
 
     def initialize(response)

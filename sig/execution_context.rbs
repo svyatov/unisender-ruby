@@ -1,0 +1,46 @@
+module Unisender
+  class CancellationToken
+    @cancelled: bool
+    @mutex: Mutex
+    def initialize: () -> void
+    def cancel: () -> bool
+    def cancelled?: () -> bool
+  end
+  class CancelledError < Error
+  end
+  class DeadlineExceededError < Error
+  end
+  class ExecutionEvent < Data
+    attr_reader kind: Symbol
+    attr_reader operation: String
+    attr_reader duration: Float
+    attr_reader outcome: Symbol
+    def self.new: (kind: Symbol, operation: String, duration: Float, outcome: Symbol) -> ExecutionEvent
+  end
+  class ExecutionContext
+    @clock: ^() -> Float
+    @deadline: Float?
+    @cancellation: CancellationToken?
+    @parent: ExecutionContext?
+    @instrumentation: (^(ExecutionEvent) -> void)?
+    @closed: bool
+    @owned_clients: Array[Client]
+    def initialize: (?timeout: duration?, ?cancellation: CancellationToken?, ?parent: ExecutionContext?, ?instrumentation: (^(ExecutionEvent) -> void)?, ?clock: (^() -> Float)?) -> void
+    def check!: () -> void
+    def close: () -> Array[Client]
+    def own: (Client) -> Array[Client]
+    def remaining: () -> Float?
+    def wait: (duration, Symbol, String, ^(Float) -> void) -> void
+    def measure: [Result] (Symbol, String) { () -> Result } -> Result
+    private
+    def emit: (ExecutionEvent) -> void
+  end
+  class Client
+    @execution: ExecutionContext?
+    def with_execution: [Result] (?timeout: duration?, ?cancellation: CancellationToken?, ?instrumentation: (^(ExecutionEvent) -> void)?) { (Client) -> Result } -> Result
+    def execution_wait: (duration, Symbol, String, ^(duration) -> void) -> void
+    def check_execution!: () -> void
+    def execution_context: () -> ExecutionContext?
+    def execution_client: (ExecutionContext) -> Client
+  end
+end

@@ -12,6 +12,27 @@ module Unisender
       @index = index
       super("Invalid parameter #{field}: #{code}")
     end
+
+    def with_operation(operation)
+      @operation = Error.safe_operation(operation)
+      self
+    end
+
+    def category
+      :invalid_argument
+    end
+
+    def recovery_hint
+      "Check the operation parameters."
+    end
+
+    def transient?
+      false
+    end
+
+    def safe_to_retry?
+      false
+    end
   end
 
   # Converts convenience values only on the named-operation path.
@@ -25,7 +46,7 @@ module Unisender
     DATES = %i[date_from date_to from to start_time changed_since].freeze
 
     def self.normalize(method, params)
-      result = attachment_parameters(params)
+      result = NamedInputs.normalize(method, attachment_parameters(params))
       MODES.each { |key, modes| result[key] = mode(result[key], modes, key) } if method == "subscribe"
       format = timestamp_format(method)
       return result unless format
@@ -86,6 +107,10 @@ module Unisender
     end
 
     def self.contact_fields(fields, email)
+      unless fields.nil? || fields.is_a?(Hash)
+        raise ValidationError.new(field: "fields", code: :invalid_type, operation: "subscribe")
+      end
+
       # @type var result: params
       result = fields ? fields.dup : {}
       names = result.keys.map(&:to_s)
@@ -111,6 +136,63 @@ module Unisender
       return if address.is_a?(String) && !address.empty?
 
       raise ValidationError.new(field: "fields.email", code: :required, operation: "subscribe")
+    end
+  end
+
+  # Contact selectors and filters keep their wire forms behind named inputs.
+  module ContactInputs
+    def self.contact_selector(params, operation)
+      selected = params.slice(:email, :phone).compact
+      return params.slice(:contact_type, :contact, :list_ids) if selected.empty?
+
+      validate_selector(params, selected, operation)
+      kind = selected.key?(:email) ? :email : :phone
+      { contact_type: kind.to_s, contact: selected.fetch(kind), list_ids: params[:list_ids] }
+    rescue ValidationError => e
+      raise e.with_operation(operation), cause: nil
+    end
+
+    def self.validate_selector(params, selected, operation)
+      if selected.size != 1 || params[:contact_type] || params[:contact]
+        raise ValidationError.new(field: "contact", code: :conflicting_input, operation:)
+      end
+
+      value = selected.values.fetch(0)
+      unless value.is_a?(String) && !value.empty?
+        raise ValidationError.new(field: "contact", code: :invalid_contact, operation:)
+      end
+
+      Validation.required!(params, %w[list_ids])
+    end
+
+    def self.count_filters(params, tag_id, contact_type, search)
+      validate_filters(tag_id, search)
+      if params && [tag_id, contact_type, search].any?
+        raise ValidationError.new(field: "params", code: :conflicting_input, operation: "getContactCount")
+      end
+      return params if params
+
+      type = count_contact_type(contact_type)
+      raise ValidationError.new(field: "contact_type", code: :required, operation: "getContactCount") if search && !type
+
+      { tagId: tag_id, type:, search: }.compact
+    end
+
+    def self.validate_filters(tag_id, search)
+      if !tag_id.nil? && !tag_id.is_a?(String) && !tag_id.is_a?(Integer)
+        raise ValidationError.new(field: "tag_id", code: :invalid_type, operation: "getContactCount")
+      end
+      return if search.nil? || search.is_a?(String)
+
+      raise ValidationError.new(field: "search", code: :invalid_type, operation: "getContactCount")
+    end
+
+    def self.count_contact_type(value)
+      return nil if value.nil?
+      return "address" if %w[email address].include?(value.to_s)
+      return "phone" if value.to_s == "phone"
+
+      raise ValidationError.new(field: "contact_type", code: :invalid_choice, operation: "getContactCount")
     end
   end
 end

@@ -3,9 +3,9 @@
 require "unisender"
 
 client = Unisender::Client.new(api_key: ENV.fetch("UNISENDER_API_KEY"))
-client.get_lists.result.each { |list| puts list.fetch("title") }
+client.get_lists.each { |list| puts list.title }
 list_id = client.create_list(title: "Product news").id
-client.subscribe(list_ids: [list_id], fields: { email: "person@example.com" })
+client.subscribe(list_ids: [list_id], email: "person@example.com")
 message_id = client.create_email_message(
   sender_name: "Example", sender_email: "news@example.com", list_id:,
   subject: "Product news", body: "<p>Hello</p>"

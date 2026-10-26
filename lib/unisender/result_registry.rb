@@ -28,7 +28,7 @@ module Unisender
       "getWebVersion" => [WebVersion, WebVersionResponse],
       "sendEmail" => [SendResult, SendResponse],
       "sendSms" => [SmsReceipt, SmsReceiptResponse],
-      "sendTestEmail" => [Record, ObjectResponse],
+      "sendTestEmail" => [MessageNotice, MessageNoticeResponse],
       "updateEmailMessage" => [MessageCreated, MessageCreatedResponse],
       "updateOptInEmail" => [Record, ObjectResponse],
       "getSenderDomainList" => [SenderDomainGroup, ObjectResponse],
@@ -52,18 +52,19 @@ module Unisender
       "deleteTag" => [Record, ObjectResponse],
       "getFields" => [Field, FieldResponse],
       "getTags" => [Tag, TagResponse],
-      "updateField" => [Record, ObjectResponse],
+      "updateField" => [OptionalIdentifier, OptionalIdentifierResponse],
       "getContactFieldValues" => [ContactFields, ContactFieldsResponse],
       "createSubscriberNote" => [IdentifierRecord, IdentifierRecordResponse],
       "updateSubscriberNote" => [IdentifierRecord, IdentifierRecordResponse],
       "deleteSubscriberNote" => [Record, ObjectResponse],
       "getSubscriberNote" => [Note, NoteResponse],
-      "getSubscriberNotes" => [Note, NoteResponse]
+      "getSubscriberNotes" => [Note, NoteResponse],
+      "listHooks" => [Hook, ObjectResponse]
     }
     MODELS = models.freeze
     COLLECTION_OPERATIONS = %w[getLists checkEmail getSenderDomainList getMessages listMessages
                                getCampaigns getVisitedLinks getTemplates listTemplates getFields getTags
-                               getSubscriberNotes].freeze
+                               getSubscriberNotes listHooks].freeze
     EMPTY_OPERATIONS = %w[deleteList exclude updateList unsubscribe cancelCampaign deleteMessage
                           sendTestEmail updateField updateOptInEmail deleteTemplate deleteField
                           deleteTag deleteSubscriberNote].freeze

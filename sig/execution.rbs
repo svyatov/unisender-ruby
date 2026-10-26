@@ -8,7 +8,8 @@ module Unisender
     attr_reader responses: Array[Response]
     @error: StandardError?
     @failed_range: Range[Integer]?
-    def initialize: (Array[Response], ?error: StandardError?, ?failed_range: Range[Integer]?) -> void
+    @offsets: Array[Integer]?
+    def initialize: (Array[Response], ?error: StandardError?, ?failed_range: Range[Integer]?, ?offsets: Array[Integer]?) -> void
     def each: () -> Enumerator[Response, Array[Response]]
             | () { (Response) -> void } -> Array[Response]
     def complete?: () -> bool
@@ -16,9 +17,12 @@ module Unisender
     def partial?: () -> bool
     def uncertain?: () -> bool
     def failures: () -> Array[Failure]
+    def row_warnings: () -> Array[Failure]
     def total: () -> Integer?
     def invalid: () -> Integer?
     private
+    def failed_warnings: () -> Array[Failure]
+    def warning_rows: (ImportResponse, Integer?) -> Array[Failure]
     def failed_response: () -> OutcomeResponse[Record & _Outcome]?
     def import_results: () -> Array[ImportResult]?
   end
@@ -39,7 +43,10 @@ module Unisender
     @method: String
     @params: params
     def initialize: (CollectionResponse[Item], client: Client, method: String, params: params) -> void
-    def each_page: (?max_pages: Integer) -> Enumerator[PageResponse[Item], void]
-    def auto_each: (?max_pages: Integer) -> Enumerator[Item, void]
+    def each_page: (?max_pages: Integer) ?{ (PageResponse[Item]) -> void } -> Enumerator[PageResponse[Item], void]
+    def auto_each: (?max_pages: Integer) ?{ (Item) -> void } -> Enumerator[Item, void]
+    def offset: () -> Integer
+    def limit: () -> Integer
+    def next_offset: () -> Integer
   end
 end

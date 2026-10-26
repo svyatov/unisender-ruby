@@ -9,7 +9,7 @@ module Unisender
       exchange("track_events", URI("https://event.unisender.com/v1/events/"), headers:, body:) do |http|
         parse_event_response(http)
       end
-    rescue Error => e
+    rescue Error, ValidationError => e
       raise e.with_operation("track_events"), cause: nil
     end
 

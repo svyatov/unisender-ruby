@@ -24,7 +24,28 @@ class ResultTypesTest < Minitest::Test
     end
   end
 
+  def test_invalid_inputs_do_not_satisfy_consumer_types
+    flag = parameter_type(:get_contact, :include_lists)
+    retention = parameter_type(:each_event_batch, :retention)
+
+    refute @checker.value(2, flag)
+    refute @checker.value(:discard, retention)
+    assert @checker.value(true, flag)
+  end
+
+  def test_signatures_are_discovered_by_the_gem_name
+    loader = RBS::EnvironmentLoader.new
+    loader.add(library: "unisender-ruby")
+    environment = RBS::Environment.from_loader(loader)
+
+    assert environment.class_decls.key?(RBS::TypeName.parse("::Unisender::Client"))
+  end
+
   private
+
+  def parameter_type(method, key)
+    @definition.methods.fetch(method).method_types.first.type.optional_keywords.fetch(key).type
+  end
 
   def invoke(example)
     transport = ScriptedTransport.new(ScriptedTransport.reply({ "result" => example.fetch("result") }))

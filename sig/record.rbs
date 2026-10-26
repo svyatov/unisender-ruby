@@ -4,10 +4,16 @@ module Unisender
     def initialize: (Hash[String, json]) -> void
     def self.decode: (json) -> value
     def []: (String | Symbol) -> value
-    def fetch: (String | Symbol) -> value
+    def fetch: [Fallback] (String | Symbol, *Fallback) ?{ (String | Symbol) -> Fallback } -> (value | Fallback)
+    def key?: (String | Symbol) -> bool
+    def keys: () -> Array[String]
+    def values: () -> Array[value]
     def dig: (String | Symbol, *(String | Integer)) -> value
     def to_h: () -> Hash[String, json]
     alias to_hash to_h
+    def as_json: (?json) -> Hash[String, json]
+    def to_json: (?JSON::State?) -> String
+    def self.copy: (value) -> json
     def ==: (BasicObject) -> bool
     def inspect: () -> String
     def normalize: () -> void
@@ -18,8 +24,6 @@ module Unisender
     def integer: (String) -> Integer?
     def number: (String) -> (Integer | Float)?
     def invalid!: (String) -> bot
-    private
-    def copy: (value) -> json
   end
 
   class CollectionResponse[out Item = Record] < Response[Array[Item]]
@@ -27,14 +31,19 @@ module Unisender
     def each: () -> Enumerator[Item, Array[Item]]
             | () { (Item) -> void } -> Array[Item]
     def []: (Integer) -> Item?
-    def fetch: (Integer) -> Item
+          | (Range[Integer]) -> Array[Item]?
+          | (Integer, Integer) -> Array[Item]?
+    def at: (Integer) -> Item?
+    def fetch: [Fallback] (Integer, *Fallback) ?{ (Integer) -> Fallback } -> (Item | Fallback)
     def size: () -> Integer
+    alias length size
     def empty?: () -> bool
   end
 
   class ObjectResponse[out Result < Record = Record] < Response[Result]
     def []: (String | Symbol) -> value
-    def fetch: (String | Symbol) -> value
+    def fetch: [Fallback] (String | Symbol, *Fallback) ?{ (String | Symbol) -> Fallback } -> (value | Fallback)
+    def to_h: () -> Hash[String, json]
     def dig: (String | Symbol, *(String | Integer)) -> value
   end
 

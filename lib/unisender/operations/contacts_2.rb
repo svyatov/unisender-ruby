@@ -8,7 +8,9 @@ module Unisender
     def import_contacts(field_names: nil, data: nil, records: nil, overwrite_tags: nil, overwrite_lists: nil,
                         telegram_bot_channel_id: nil)
       if records
-        raise ValidationError.new(field: "records", code: :conflicting_input) if field_names || data
+        if field_names || data
+          raise ValidationError.new(field: "records", code: :conflicting_input, operation: "importContacts")
+        end
 
         rows = RecordRows.new(records)
         data = rows.to_a
@@ -41,7 +43,7 @@ module Unisender
 
     def contact_in_lists?(email:, list_ids:, condition:)
       wire = { any: "or", all: "and" }.fetch(condition) do
-        raise ArgumentError, "condition must be any or all"
+        raise ValidationError.new(field: "condition", code: :invalid_choice, operation: "isContactInLists")
       end
       is_contact_in_lists(email:, list_ids:, condition: wire).result
     end
@@ -53,8 +55,8 @@ module Unisender
     end
 
     # https://www.unisender.com/ru/support/api/contacts/unsubscribe/
-    def unsubscribe(contact_type:, contact:, list_ids: nil)
-      params = { contact_type:, contact:, list_ids: }
+    def unsubscribe(contact_type: nil, contact: nil, email: nil, phone: nil, list_ids: nil)
+      params = ContactInputs.contact_selector({ contact_type:, contact:, email:, phone:, list_ids: }, "unsubscribe")
       invoke("unsubscribe", params, required: %w[contact_type contact], comma: %w[list_ids])
     end
   end

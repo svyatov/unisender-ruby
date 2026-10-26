@@ -16,6 +16,7 @@ module Unisender
       @language = @configuration.language
       @transport = @configuration.transport
       @retry_policy = @configuration.retry_policy
+      @execution = nil
       freeze
     end
 
@@ -31,7 +32,7 @@ module Unisender
     def invoke(method, params, required: [], comma: [])
       params = prepare(method, params, required:, comma:)
       perform_request(method, params, named: true)
-    rescue Error => e
+    rescue Error, ValidationError => e
       raise e.with_operation(method), cause: nil
     end
 
@@ -40,6 +41,12 @@ module Unisender
       params = Inputs.normalize(method, params)
       Validation.required!(params, required)
       Validation.operation!(method, params)
+      comma_parameters(params, comma)
+    rescue ValidationError => e
+      raise e.with_operation(method), cause: nil
+    end
+
+    def comma_parameters(params, comma)
       comma.each do |name|
         value = params[name.to_sym]
         params[name.to_sym] = Validation.comma_list(value) if value.is_a?(Array)

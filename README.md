@@ -1,5 +1,7 @@
 # Unisender
 
+This branch documents unreleased 0.2 development. For the published gem, use the [0.1.1 instructions](https://github.com/svyatov/unisender-ruby/blob/v0.1.1/README.md).
+
 A Ruby client for applications using the [UniSender marketing API](https://www.unisender.com/ru/support/category/api/).
 
 Ruby 3.3 or newer, no runtime gem dependencies. This client targets `api.unisender.com`, not UniSender Go.
@@ -8,12 +10,13 @@ Explicit keyword methods cover contacts, lists, messages, campaigns, statistics,
 
 ## Install
 
-Install the gem:
+The following command installs the published 0.1.1 interface. Its usage is documented in the versioned instructions above:
 
 ```sh
 gem install unisender-ruby
 ```
 
+For the development interface below, first install from a checkout using the instructions in this section.
 Save this read-only example as `quickstart.rb`. It uses the key in `UNISENDER_API_KEY`:
 
 <!-- example: examples/quickstart.rb -->
@@ -27,7 +30,7 @@ client.get_lists.each { |list| puts list.title }
 
 Run `ruby quickstart.rb`. It prints one title per list, or nothing if the account has no lists. See [Make your first request](#make-your-first-request) for key setup.
 
-For a Bundler project, add the gem to your application's Gemfile:
+After 0.2 is published, a Bundler project can use:
 
 ```ruby
 gem "unisender-ruby", "~> 0.2.0", require: "unisender"
@@ -101,7 +104,16 @@ Each example is a standalone Ruby file. Its header lists required environment va
 
 Named operations return typed responses. Collections support `each`, `map`, and other `Enumerable` methods. Object results expose documented fields directly. `result` contains the typed value; `data` preserves the full upstream JSON object. `http_status`, `headers`, and `warnings` retain response metadata. Values are deeply immutable; use `result.to_h` for a mutable object copy. See [the 0.2 migration guide](docs/migration-0.2.md).
 
+Collections also support `length`, `at`, slices, and `fetch` with a default or block.
+Records provide `key?`, `keys`, `values`, and `fetch` with the same missing-value behavior as a Ruby Hash.
+Object responses expose `to_h`. `as_json` and `to_json` serialize the result payload, without HTTP metadata or the response envelope.
+Use `contact.email_address` and `contact.phone_number` for stable address readers; omitted contact details remain `nil`.
+
 Named methods use snake_case and reject unknown keywords. Optional `nil` values are omitted, preserving server defaults. API messages default to English; use `Client.new(api_key: ..., language: :ru)` for Russian. Message-level `lang:` is a separate setting.
+
+Library-detected input failures raise `ValidationError`, an `ArgumentError` subclass with `field`, `code`, and `operation`.
+Known flags accept only booleans or 0/1. Template types and note ordering also accept documented Symbol choices.
+`send_email` requests detailed recipient acceptance by default; set `error_checking: false` for the legacy response or `nil` to omit it.
 
 Use this error handler in your application's `request.rb`:
 
@@ -142,6 +154,9 @@ Those are the default transport timeouts in seconds. TLS certificates are verifi
 
 `each_page` and `each_*` helpers return lazy Enumerators. Consume them, or supply a block to a named iterator, to make requests. Batch command methods execute immediately and return a `BatchReport`. Stopping enumeration prevents subsequent requests. A fetched page exposes `each_page` and `auto_each`; ordinary `each` only visits that page. `each_page` yields responses, accepts a supported Ruby method name, and raises `PaginationError` at `max_pages`. `wait_for_task` polls an existing job; its deadline is checked between requests. See [helper limits and recovery behavior](docs/api.md#convenience-operations) and [upstream rate limits](https://www.unisender.com/ru/support/api/common/api-limits/).
 
+All page iterators accept blocks. Fetched pages expose `offset`, `limit`, and `next_offset` for explicit checkpoints.
+Task handles provide `completed?`, `failed?`, and `pending?`. Calling `wait` on a completed handle returns it without another request.
+
 ## Low-level access and types
 
 `client.request("getLists", params: {})` accepts exact upstream names. It handles authentication, encoding, and failures, but does not perform operation-specific conversions. Comma-separated fields must already be strings; nested arrays and hashes become bracketed form fields. Credentials and JSON format cannot be overridden.
@@ -154,7 +169,7 @@ RBS signatures ship with the gem. `Response[Result]` describes a named operation
 Use `client.with(...)` to create an independent configuration variant.
 `message_defaults:` accepts only `sender_name`, `sender_email`, and `lang`; explicit call arguments take precedence.
 
-An optional `instrumentation:` callable receives operation, attempt, duration, HTTP status, outcome, and error category.
+An optional `instrumentation:` callable receives operation, attempt, duration, HTTP status, outcome, error category, and upstream request ID when available.
 It receives no request payload. Exceptions raised by the callback do not change the operation's result.
 
 Errors expose `category`, `recovery_hint`, `request_id` when supplied, `transient?`, and `safe_to_retry?`.
@@ -162,11 +177,23 @@ A transient failure does not imply that repeating a mutation is safe.
 Import and send reports expose `complete?`, `partial?`, `uncertain?`, and `failures`.
 These describe acceptance, not final message delivery.
 
+Imports expose typed `row_warnings` separately from failures and envelope warnings.
+The `records:` input accepts arrays in documented list/tag cells and Time values in subscription-time cells.
+`unsubscribe(email: ..., list_ids: [...])` and `exclude(phone: ..., list_ids: [...])` provide explicit contact selectors.
+`get_contact_count(list_id:, contact_type: :email, search:, tag_id:)` builds filters; the existing `params:` form remains available separately.
+
 See [application testing](docs/testing.md), [Rails integration](docs/rails.md), and the [migration guide](docs/migration-0.2.md).
+The [execution guide](docs/execution.md) covers lazy consumption, checkpoints, shared request budgets, cancellation, and summary retention. The [webhook guide](docs/webhooks.md) covers hook management and authenticated receivers. [Staging contract checks](docs/live-contracts.md) are explicitly opt-in.
+
+Use `client.with_execution(timeout: 30, cancellation: token) { |scoped| ... }` for one cooperative budget across related operations. `token` is a `Unisender::CancellationToken`; calling `cancel` stops work at the next boundary. In-flight IO and callbacks are not interrupted.
+For large imports, `import_contacts_in_batches(records:, retention: :summary, on_progress:)` returns counts without retaining successful response bodies. Full report retention remains the default.
 
 ## Optional workflow helpers
 
 Use connection reuse for repeated calls and close clients when their lifetime ends:
+
+`Unisender::Client.open(api_key: ..., persistent: true) { |client| ... }` closes owned resources when the block exits, including after an exception.
+It returns the block's result and never closes an injected transport.
 
 ```ruby
 client = Unisender::Client.from_env(
