@@ -37,6 +37,7 @@ module Unisender
   end
 
   class Error < StandardError
+    HINTS: Hash[Symbol, String]
     OPERATIONS: Array[String]
     @operation: String?
     attr_reader operation: String?
@@ -118,6 +119,7 @@ module Unisender
     def self.call: (Client, String | Symbol, params) -> PageResponse[Record]
     def self.validate: (String | Symbol, params) -> String
     def self.page_limit: (String | Symbol) -> Integer?
+    def self.wire_name: (String | Symbol) -> String
     def self.validate_controls: (String | Symbol, params) -> void
     def self.definition: (String | Symbol) -> [String, Array[Symbol], Array[Symbol], Integer?]
   end
@@ -130,6 +132,7 @@ module Unisender
     @params: params
     @first_page: PageResponse[Record]?
     def initialize: (Client, String | Symbol, Integer, Integer, params, ?first_page: PageResponse[Record]?) -> void
+    def initialize_params: () -> void
     def each: () -> Enumerator[PageResponse[Record], void]
     def self.snapshot: (params) -> params
     def self.copy: (parameter) -> parameter
@@ -204,6 +207,7 @@ module Unisender
     def self.encode: (params) -> String
     def self.pairs: (parameter, String?, Integer) -> Array[[String, String]]
     def self.hash_pairs: (params, String?, Integer) -> Array[[String, String]]
+    def self.key_name: (String | Symbol | Integer) -> String
     def self.scalar: (parameter, String) -> String
     def self.numeric: (parameter) -> String
     def self.text: (String) -> String
@@ -279,6 +283,7 @@ module Unisender
     def import_source: (Array[String]?, Enumerable[Array[parameter]]?, Enumerable[params]?) -> (RecordRows | Enumerable[Array[parameter]])
     def parse_event_response: (HTTPResponse) -> EventResponse
     def prepare: (String, params, ?required: Array[String], ?comma: Array[String]) -> params
+    def comma_parameters: (params, Array[String]) -> params
     public
     def invoke: [Result] (String, params, ?required: Array[String], ?comma: Array[String]) -> Result
     private

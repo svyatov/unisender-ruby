@@ -1,7 +1,12 @@
 # frozen_string_literal: true
 
 module Unisender
-  class ClientClosedError < Error; end
+  # The client has completed its resource lifetime.
+  class ClientClosedError < Error
+    def category
+      :client_closed
+    end
+  end
 
   # Mutable resource lifetime is separate from immutable client options.
   class ClientState

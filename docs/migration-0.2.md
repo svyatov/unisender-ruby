@@ -53,6 +53,11 @@ Pagination errors expose `next_offset` and `completed_pages` for recovery. Direc
 
 ## Inputs and tasks
 
+Named flags reject values outside booleans and 0/1 before networking. Known closed choices reject unsupported values.
+Library validation failures expose structured fields through `ValidationError`, while remaining rescuable as `ArgumentError`.
+`send_email` defaults `error_checking` to true. Use recipient results for IDs; explicit false retains the legacy format.
+List/tag arrays in import records become comma-separated scalar cells. Subscription-time arrays retain their list-ID order.
+
 Supply `email:` directly to `subscribe`, or continue using `fields:`.
 Subscription modes accept `:request_confirmation`, `:already_confirmed`, and `:confirm_if_needed`.
 Overwrite modes accept `:preserve`, `:replace`, and `:update`. Numeric modes retain their meanings.

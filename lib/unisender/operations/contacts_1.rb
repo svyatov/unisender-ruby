@@ -16,8 +16,8 @@ module Unisender
     end
 
     # https://www.unisender.com/ru/support/api/contacts/exclude/
-    def exclude(contact_type:, contact:, list_ids: nil)
-      params = { contact_type:, contact:, list_ids: }
+    def exclude(contact_type: nil, contact: nil, email: nil, phone: nil, list_ids: nil)
+      params = ContactInputs.contact_selector({ contact_type:, contact:, email:, phone:, list_ids: }, "exclude")
       invoke("exclude", params, required: %w[contact_type contact], comma: %w[list_ids])
     end
 
@@ -31,7 +31,8 @@ module Unisender
     end
 
     # https://www.unisender.com/ru/support/api/contacts/getcontactcount/
-    def get_contact_count(list_id:, params:)
+    def get_contact_count(list_id:, params: nil, tag_id: nil, contact_type: nil, search: nil)
+      params = ContactInputs.count_filters(params, tag_id, contact_type, search)
       params = { list_id:, params: }
       invoke("getContactCount", params, required: %w[list_id params])
     end

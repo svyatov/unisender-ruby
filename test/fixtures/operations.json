@@ -651,7 +651,8 @@
       "sender_email": "sender@example.test",
       "subject": "News",
       "body": "<p>News</p>",
-      "list_id": "123"
+      "list_id": "123",
+      "error_checking": "1"
     },
     "options": {
       "email": "user@example.test",

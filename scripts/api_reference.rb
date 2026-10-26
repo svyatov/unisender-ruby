@@ -59,7 +59,7 @@ class APIReference
     name = operation.fetch("name")
     signature = methods.fetch(name.to_sym)
     ["", "[`#{name}`](##{name})", "[`#{operation.fetch('wire')}`](#{operation.fetch('url')})", required_inputs(name),
-     names(signature.optional_keywords.keys), "`#{signature.return_type}`", ""].join(" | ").strip
+     names(signature.optional_keywords.keys), "`#{type_text(signature.return_type)}`", ""].join(" | ").strip
   end
 
   def required_inputs(name)
@@ -72,7 +72,7 @@ class APIReference
 
     rows = keywords.map do |key, parameter|
       presence = presence(name, key, signature)
-      "| `#{key}` | `#{parameter.type.to_s.gsub('|', '\\|')}` | #{presence} |"
+      "| `#{key}` | `#{type_text(parameter.type)}` | #{presence} |"
     end
     (["| Keyword | Ruby type | Presence |", "| --- | --- | --- |"] + rows).join("\n")
   end
@@ -110,5 +110,9 @@ class APIReference
 
   def names(values)
     values.empty? ? "None" : values.map { |value| "`#{value}`" }.join(", ")
+  end
+
+  def type_text(type)
+    type.to_s.gsub("|", '\\|')
   end
 end

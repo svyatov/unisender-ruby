@@ -4,6 +4,11 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Standardize input diagnostics, validate named flags and choices, and preserve wrapper failure context.
+- Normalize structured import cells and expose typed row warnings with known global indices.
+- Add scoped email/phone removal inputs and explicit contact-count filters.
+- Request detailed send acceptance by default; retain explicit legacy and omission options.
+
 - Accept blocks on page iterators and expose page checkpoint offsets.
 - Add Array-style collection access, Hash-style record lookup, and payload JSON serialization.
 - Add stable contact address readers, optional contact details, note metadata, and mutation result readers.

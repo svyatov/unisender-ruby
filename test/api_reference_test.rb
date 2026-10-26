@@ -30,6 +30,12 @@ class APIReferenceTest < Minitest::Test
     end
   end
 
+  def test_union_types_do_not_add_markdown_columns
+    rows = APIReference.new(File.expand_path("..", __dir__)).operation_table.lines
+
+    assert(rows.all? { |row| row.scan(/(?<!\\)\|/).size == 6 })
+  end
+
   private
 
   def documented_keywords(reference, name)

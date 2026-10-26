@@ -1,6 +1,10 @@
 module Unisender
   type id = String | Integer
   type flag = bool | 0 | 1
+  type contact_type = :email | :phone | "email" | "phone"
+  type template_type = :user | :system | "user" | "system"
+  type note_order = :asc | :desc | "ASC" | "DESC" | "asc" | "desc"
+  type note_field = :created_at | :updated_at | :pinned_at | "created_at" | "updated_at" | "pinned_at"
   type list = List
   type list_created = IdentifierRecord
   type subscription = Subscription
@@ -21,9 +25,9 @@ module Unisender
   class Client
     def create_list: (title: String, ?before_subscribe_url: String | nil, ?after_subscribe_url: String | nil, ?sub_user_rights: params | nil) -> IdentifierRecordResponse
     def delete_list: (list_id: id) -> ObjectResponse[Record]
-    def exclude: (contact_type: String, contact: String, ?list_ids: String | Array[id] | nil) -> ObjectResponse[Record]
+    def exclude: (?contact_type: contact_type?, ?contact: String?, ?email: String?, ?phone: String?, ?list_ids: String | Array[id] | nil) -> ObjectResponse[Record]
     def export_contacts: (?notify_url: String | nil, ?list_id: id | nil, ?field_names: Array[String] | nil, ?email: String | nil, ?phone: String | nil, ?tag: String | nil, ?email_status: String | nil, ?phone_status: String | nil, ?contact_status: String | nil) -> TaskResponse
-    def get_contact_count: (list_id: id, params: params) -> ContactCountResponse
+    def get_contact_count: (list_id: id, ?params: params?, ?tag_id: id?, ?contact_type: contact_type | "address" | nil, ?search: String?) -> ContactCountResponse
     def get_lists: () -> CollectionResponse[List]
     def get_total_contacts_count: (login: String) -> TotalContactsResponse
     def import_contacts: (?field_names: Array[String]?, ?data: Array[Array[parameter]]?, ?records: Enumerable[params]?, ?overwrite_tags: flag | nil, ?overwrite_lists: flag | nil, ?telegram_bot_channel_id: String | nil) -> ImportResponse
@@ -31,7 +35,7 @@ module Unisender
     def update_list: (list_id: id, title: String, ?before_subscribe_url: String | nil, ?after_subscribe_url: String | nil, ?sub_user_rights: params | nil) -> ObjectResponse[Record]
     def is_contact_in_lists: (email: String, list_ids: String | Array[id], condition: String) -> Response[bool]
     def get_contact: (email: String, ?include_lists: flag | nil, ?include_fields: flag | nil, ?include_details: flag | nil) -> ContactResponse
-    def unsubscribe: (contact_type: String, contact: String, ?list_ids: String | Array[id] | nil) -> ObjectResponse[Record]
+    def unsubscribe: (?contact_type: contact_type?, ?contact: String?, ?email: String?, ?phone: String?, ?list_ids: String | Array[id] | nil) -> ObjectResponse[Record]
     def cancel_campaign: (campaign_id: id) -> ObjectResponse[Record]
     def check_email: (email_id: String | Array[id]) -> CollectionResponse[EmailDelivery]
     def check_sms: (sms_id: id) -> StatusResponse
@@ -59,8 +63,8 @@ module Unisender
     def create_email_template: (title: String, subject: String, body: String, ?description: String | nil, ?text_body: String | nil, ?lang: String | nil) -> IdentifierRecordResponse
     def delete_template: (template_id: id) -> ObjectResponse[Record]
     def get_template: (?template_id: id | nil, ?system_template_id: id | nil) -> TemplateResponse
-    def get_templates: (?type: String | nil, ?date_from: String | Time | nil, ?date_to: String | Time | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> PageResponse[Template]
-    def list_templates: (?type: String | nil, ?date_from: String | Time | nil, ?date_to: String | Time | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> PageResponse[Template]
+    def get_templates: (?type: template_type | nil, ?date_from: String | Time | nil, ?date_to: String | Time | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> PageResponse[Template]
+    def list_templates: (?type: template_type | nil, ?date_from: String | Time | nil, ?date_to: String | Time | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> PageResponse[Template]
     def update_email_template: (template_id: id, ?title: String | nil, ?description: String | nil, ?subject: String | nil, ?body: String | nil, ?text_body: String | nil, ?lang: String | nil) -> IdentifierRecordResponse
     def create_field: (name: String, type: String, ?public_name: String | nil) -> IdentifierRecordResponse
     def delete_field: (id: id) -> ObjectResponse[Record]
@@ -73,6 +77,6 @@ module Unisender
     def update_subscriber_note: (id: id, content: String) -> IdentifierRecordResponse
     def delete_subscriber_note: (id: id) -> ObjectResponse[Record]
     def get_subscriber_note: (id: id) -> NoteResponse
-    def get_subscriber_notes: (subscriber_id: id, ?limit: Integer | nil, ?offset: Integer | nil, ?order_type: String | nil, ?order_by: String | nil, ?is_pinned: flag | nil) -> PageResponse[Note]
+    def get_subscriber_notes: (subscriber_id: id, ?limit: Integer | nil, ?offset: Integer | nil, ?order_type: note_order | nil, ?order_by: note_field | nil, ?is_pinned: flag | nil) -> PageResponse[Note]
   end
 end

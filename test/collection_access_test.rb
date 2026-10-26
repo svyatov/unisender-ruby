@@ -33,6 +33,12 @@ class CollectionAccessTest < Minitest::Test
     assert_raises(ArgumentError) { @list.fetch(9, 1, 2) }
   end
 
+  def test_slice_argument_coercion_matches_array
+    assert_raises(TypeError) { @list[0, nil] }
+    assert_raises(ArgumentError) { @list[0, 1, 2] }
+    assert_equal [1], @list[0.0, 1].map(&:id)
+  end
+
   def test_record_lookup_distinguishes_missing_and_nil
     assert @record.key?(:nil)
     refute @record.key?(:missing)

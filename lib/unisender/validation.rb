@@ -19,20 +19,19 @@ module Unisender
     def self.campaign!(params)
       return unless params[:contacts] && params[:contacts_url]
 
-      raise ArgumentError,
-            "contacts and contacts_url are mutually exclusive"
+      raise ValidationError.new(field: "contacts", code: :conflicting_input)
     end
 
     def self.template!(params)
       return unless params[:template_id].nil? && params[:system_template_id].nil?
 
-      raise ArgumentError, "Provide template_id or system_template_id"
+      raise ValidationError.new(field: "template_id", code: :required_alternative)
     end
 
     def self.import!(params)
       fields = params[:field_names]
       unless fields.is_a?(Array) && fields.all?(String) && fields.include?("email") && fields.uniq == fields
-        raise ArgumentError, "field_names must contain unique column names including email"
+        raise ValidationError.new(field: "field_names", code: :invalid_columns)
       end
 
       rows!(params[:data], fields.size)
@@ -42,14 +41,14 @@ module Unisender
       unless rows.is_a?(Array) && (1..500).cover?(rows.size) && rows.all? do |row|
         row.is_a?(Array) && row.size == width
       end
-        raise ArgumentError, "data must contain 1 to 500 rows matching field_names"
+        raise ValidationError.new(field: "data", code: :invalid_rows)
       end
     end
 
     def self.required!(params, names)
       names.each do |name|
         value = params[name.to_sym]
-        raise ArgumentError, "Missing required parameter: #{name}" if missing?(value)
+        raise ValidationError.new(field: name, code: :required) if missing?(value)
       end
     end
 
@@ -63,7 +62,7 @@ module Unisender
 
     def self.comma_list(value)
       unless value.all? { |item| item.is_a?(String) || item.is_a?(Integer) }
-        raise ArgumentError, "Comma-separated lists require strings or integers"
+        raise ValidationError.new(field: "parameters", code: :invalid_list)
       end
 
       value.join(",")

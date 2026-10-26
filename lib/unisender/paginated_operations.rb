@@ -29,11 +29,18 @@ module Unisender
       validate_controls(method, params)
       response = client.invoke(wire, params) # : CollectionResponse[Record]
       PageResponse.new(response, client:, method: method.to_s, params:)
+    rescue ValidationError => e
+      raise e.with_operation(wire_name(method)), cause: nil
     end
 
     def self.validate(method, params)
       wire, required, allowed, = definition(method)
-      raise ArgumentError, "Unknown operation parameter" unless params.keys.all? { |key| allowed.include?(key) }
+      unless params.keys.all? do |key|
+        allowed.include?(key)
+      end
+        raise ValidationError.new(field: "parameters", code: :unknown_keyword,
+                                  operation: wire)
+      end
 
       Validation.required!(params, required.map(&:to_s))
       Validation.operation!(wire, params)
@@ -44,15 +51,19 @@ module Unisender
       definition(method).last
     end
 
+    def self.wire_name(method)
+      definition(method).first
+    end
+
     def self.validate_controls(method, params)
       limit = params.fetch(:limit, 100)
       maximum = page_limit(method)
       unless limit.is_a?(Integer) && limit.positive? && (!maximum || limit <= maximum)
-        raise ArgumentError, "Invalid pagination limit"
+        raise ValidationError.new(field: "limit", code: :out_of_range)
       end
 
       offset = params.fetch(:offset, 0)
-      raise ArgumentError, "offset must be nonnegative" unless offset.is_a?(Integer) && offset >= 0
+      raise ValidationError.new(field: "offset", code: :out_of_range) unless offset.is_a?(Integer) && offset >= 0
     end
 
     def self.definition(method)

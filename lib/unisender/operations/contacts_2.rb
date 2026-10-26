@@ -53,8 +53,8 @@ module Unisender
     end
 
     # https://www.unisender.com/ru/support/api/contacts/unsubscribe/
-    def unsubscribe(contact_type:, contact:, list_ids: nil)
-      params = { contact_type:, contact:, list_ids: }
+    def unsubscribe(contact_type: nil, contact: nil, email: nil, phone: nil, list_ids: nil)
+      params = ContactInputs.contact_selector({ contact_type:, contact:, email:, phone:, list_ids: }, "unsubscribe")
       invoke("unsubscribe", params, required: %w[contact_type contact], comma: %w[list_ids])
     end
   end

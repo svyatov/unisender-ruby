@@ -137,16 +137,16 @@ module Unisender
       result.each(&block)
     end
 
-    def [](index, length = nil)
-      if length
-        raise TypeError, "A slice offset must be an Integer" unless index.is_a?(Integer)
+    # Track omission separately because Array rejects an explicitly nil length.
+    def [](index, length = begin
+      omitted = true
+      nil
+    end)
+      return index.is_a?(Range) ? result[index] : result.at(index) if omitted
 
-        result[index, length]
-      elsif index.is_a?(Integer)
-        result.at(index)
-      else
-        result[index]
-      end
+      raise TypeError, "Invalid slice arguments" if index.is_a?(Range) || length.nil?
+
+      result[index, length]
     end
 
     def at(index)

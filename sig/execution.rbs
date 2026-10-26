@@ -16,9 +16,12 @@ module Unisender
     def partial?: () -> bool
     def uncertain?: () -> bool
     def failures: () -> Array[Failure]
+    def row_warnings: () -> Array[Failure]
     def total: () -> Integer?
     def invalid: () -> Integer?
     private
+    def failed_warnings: () -> Array[Failure]
+    def warning_rows: (ImportResponse, Integer?) -> Array[Failure]
     def failed_response: () -> OutcomeResponse[Record & _Outcome]?
     def import_results: () -> Array[ImportResult]?
   end

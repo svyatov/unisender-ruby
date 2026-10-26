@@ -111,6 +111,10 @@ Use `contact.email_address` and `contact.phone_number` for stable address reader
 
 Named methods use snake_case and reject unknown keywords. Optional `nil` values are omitted, preserving server defaults. API messages default to English; use `Client.new(api_key: ..., language: :ru)` for Russian. Message-level `lang:` is a separate setting.
 
+Library-detected input failures raise `ValidationError`, an `ArgumentError` subclass with `field`, `code`, and `operation`.
+Known flags accept only booleans or 0/1. Template types and note ordering also accept documented Symbol choices.
+`send_email` requests detailed recipient acceptance by default; set `error_checking: false` for the legacy response or `nil` to omit it.
+
 Use this error handler in your application's `request.rb`:
 
 ```ruby
@@ -172,6 +176,11 @@ Errors expose `category`, `recovery_hint`, `request_id` when supplied, `transien
 A transient failure does not imply that repeating a mutation is safe.
 Import and send reports expose `complete?`, `partial?`, `uncertain?`, and `failures`.
 These describe acceptance, not final message delivery.
+
+Imports expose typed `row_warnings` separately from failures and envelope warnings.
+The `records:` input accepts arrays in documented list/tag cells and Time values in subscription-time cells.
+`unsubscribe(email: ..., list_ids: [...])` and `exclude(phone: ..., list_ids: [...])` provide explicit contact selectors.
+`get_contact_count(list_id:, contact_type: :email, search:, tag_id:)` builds filters; the existing `params:` form remains available separately.
 
 See [application testing](docs/testing.md), [Rails integration](docs/rails.md), and the [migration guide](docs/migration-0.2.md).
 

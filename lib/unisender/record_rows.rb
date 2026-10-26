@@ -31,7 +31,8 @@ module Unisender
       names = object.keys.map(&:to_s)
       validate_columns(names, index)
       normalized = object.transform_keys(&:to_s)
-      @field_names.map { |name| normalized.fetch(name) }
+      ImportCells.validate_times(normalized, index)
+      @field_names.map { |name| ImportCells.convert(name, normalized.fetch(name), index) }
     end
 
     def record_object(record, index)

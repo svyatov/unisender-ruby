@@ -1,10 +1,23 @@
 module Unisender
+  module NamedInputs
+    EMPTY_ENUMS: Hash[Symbol, Array[String]]
+    FLAGS: Hash[String, Array[Symbol]]
+    ENUMS: Hash[String, Hash[Symbol, Array[String]]]
+    def self.normalize: (String, params) -> params
+    def self.flag!: (Symbol, parameter, String) -> void
+    def self.choice: (parameter, Symbol, Array[String], String) -> String
+  end
   class ValidationError < ArgumentError
     attr_reader field: String
     attr_reader code: Symbol
     attr_reader operation: String?
     attr_reader index: Integer?
     def initialize: (field: String, code: Symbol, ?operation: String?, ?index: Integer?) -> void
+    def with_operation: (String) -> self
+    def category: () -> Symbol
+    def recovery_hint: () -> String
+    def transient?: () -> bool
+    def safe_to_retry?: () -> bool
   end
 
   module Inputs
@@ -24,6 +37,13 @@ module Unisender
     def self.validate_email: (params) -> void
   end
 
+  module ContactInputs
+    def self.contact_selector: (params, String) -> params
+    def self.validate_selector: (params, params, String) -> void
+    def self.count_filters: (params?, id?, contact_type | "address" | nil, String?) -> params
+    def self.count_contact_type: (parameter) -> String?
+  end
+
   class RecordRows
     include Enumerable[Array[parameter]]
     @records: Enumerable[params]
@@ -35,5 +55,15 @@ module Unisender
     def row: (parameter, Integer) -> Array[parameter]
     def record_object: (parameter, Integer) -> params
     def validate_columns: (Array[String], Integer) -> void
+  end
+  module ImportCells
+    LISTS: Array[String]
+    TIMES: Array[String]
+    def self.convert: (String, parameter, Integer) -> parameter
+    def self.array: (String, Array[parameter], Integer) -> String
+    def self.list: (Array[parameter], Integer) -> String
+    def self.times: (Array[parameter] | Time, Integer) -> String
+    def self.validate_times: (Hash[String, parameter], Integer) -> void
+    def self.invalid!: (Integer) -> bot
   end
 end

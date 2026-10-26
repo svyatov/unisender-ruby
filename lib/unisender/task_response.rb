@@ -42,8 +42,19 @@ module Unisender
     end
   end
 
-  class TaskFailedError < TaskError; end
-  class UnknownTaskStateError < TaskError; end
+  # A task reached the failed terminal state.
+  class TaskFailedError < TaskError
+    def category
+      :task_failed
+    end
+  end
+
+  # A task returned a state not documented by the protocol.
+  class UnknownTaskStateError < TaskError
+    def category
+      :unknown_task_state
+    end
+  end
 
   # A polling deadline retains the last known task state.
   class TaskTimeoutError < TimeoutError

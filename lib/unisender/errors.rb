@@ -124,10 +124,24 @@ module Unisender
       @report = BatchReport.new(@completed_responses, error:, failed_range:)
       super("UniSender batch failed; inspect the completed responses and failed range")
     end
+
+    def category
+      error = @error
+      error.is_a?(Error) || error.is_a?(ValidationError) ? error.category : :unexpected
+    end
+
+    def request_id
+      error = @error
+      error.request_id if error.is_a?(Error)
+    end
   end
 
   # Identifies the next unread offset when the page bound is reached.
   class PaginationError < Error
+    def category
+      :pagination_limit
+    end
+
     def initialize(operation:, next_offset:, completed_pages:)
       @operation = operation
       @next_offset = next_offset
@@ -136,10 +150,19 @@ module Unisender
     end
   end
 
-  class NotFoundError < Error; end
+  # A singular operation returned no matching record.
+  class NotFoundError < Error
+    def category
+      :not_found
+    end
+  end
 
   # The API accepted the import request but rejected some records.
   class PartialFailure < Error
+    def category
+      :partial_failure
+    end
+
     attr_reader :response
 
     def initialize(response)
@@ -150,6 +173,10 @@ module Unisender
 
   # Includes the last response for an unexpected or failed asynchronous task state.
   class TaskError < Error
+    def category
+      :task_state
+    end
+
     attr_reader :response
 
     def initialize(response)

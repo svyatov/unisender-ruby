@@ -10,6 +10,10 @@ module Unisender
   class DownloadError < Error
     attr_reader :reason, :bytes_written, :http_status
 
+    def category
+      :download
+    end
+
     def initialize(reason:, bytes_written: 0, http_status: nil)
       @reason = reason
       @bytes_written = bytes_written

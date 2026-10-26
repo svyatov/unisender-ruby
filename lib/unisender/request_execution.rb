@@ -18,7 +18,7 @@ module Unisender
           decode_response(http, method, params, named)
         end
       end
-    rescue Error => e
+    rescue Error, ValidationError => e
       raise e.with_operation(method), cause: nil
     end
 

@@ -17,6 +17,18 @@ send_email:
   requires: "`email`, `subject`, `body`, `list_id`; sender defaults"
   sender_name: Required unless configured as a default
   sender_email: Required unless configured as a default
+  error_checking: Optional, defaults to true; nil omits the field
+exclude: &selector
+  requires: "`email` or `phone` with `list_ids`, or `contact_type` with `contact`"
+  email: Alternative contact selector; requires list_ids
+  phone: Alternative contact selector; requires list_ids
+  contact_type: Required with contact
+  contact: Required with contact_type
+unsubscribe: *selector
+get_contact_count:
+  requires: "`list_id` and (`params` or explicit filters)"
+  params: Alternative to explicit filters
+  contact_type: Required when search is supplied
 get_template:
   requires: "`template_id` or `system_template_id`"
 get_messages: &page

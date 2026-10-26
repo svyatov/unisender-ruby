@@ -18,3 +18,18 @@ The identifiers refer to the approved five-stage audit. Verification uses offlin
 
 Each completed stage passed the CI task with full line, branch, and typed-call coverage.
 Final acceptance also requires the supported Ruby matrix, isolated gem installation, and host-only review.
+
+## Follow-up audit implementation
+
+This work implements the [2026-10-26 audit](dx-audit-2026-10-26.md) in the approved sequence.
+
+| Phase | Audit items | Status |
+| --- | --- | --- |
+| P1: reference and installation | DX01, DX02, DX28 | Implemented; generated reference checks pass |
+| P2: response ergonomics | DX03, DX09-DX15, DX18, DX20 | Implemented; independent public-interface QA passed |
+| P3: validation and outcomes | DX04-DX08, DX16, DX17, DX19 | Implemented; full validation passes |
+| P4: consumer support | DX21, DX22, DX26, DX29-DX32 | Pending |
+| P5: execution and retention | DX23-DX25 | Pending |
+| P6: webhooks | DX27, DX32 | Pending |
+
+Publishing and live account operations require separate authorization. Offline evidence does not establish live compatibility.

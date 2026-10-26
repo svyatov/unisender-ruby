@@ -6,11 +6,11 @@ module Unisender
     def self.encode(params)
       URI.encode_www_form(pairs(params, nil, 0))
     rescue EncodingError
-      raise ArgumentError, "Parameters must contain valid UTF-8 text", cause: nil
+      raise ValidationError.new(field: "parameters", code: :invalid_encoding), cause: nil
     end
 
     def self.pairs(value, prefix, depth)
-      raise ArgumentError, "Parameters are nested too deeply" if depth > 32
+      raise ValidationError.new(field: "parameters", code: :too_deep) if depth > 32
 
       case value
       when Hash
@@ -24,15 +24,21 @@ module Unisender
 
     def self.hash_pairs(value, prefix, depth)
       keys = value.keys.map(&:to_s)
-      raise ArgumentError, "Duplicate parameter names" unless keys.uniq.size == keys.size
+      raise ValidationError.new(field: "parameters", code: :duplicate_key) unless keys.uniq.size == keys.size
 
       value.flat_map do |key, item|
-        name = key.to_s.encode(Encoding::UTF_8)
-        raise ArgumentError, "Parameter names cannot contain brackets" if name.match?(/[\[\]]/)
+        name = key_name(key)
         next [] if item.nil?
 
         pairs(item, prefix ? "#{prefix}[#{name}]" : name, depth + 1)
       end
+    end
+
+    def self.key_name(key)
+      name = key.to_s.encode(Encoding::UTF_8)
+      raise ValidationError.new(field: "parameters", code: :invalid_key) if name.match?(/[\[\]]/)
+
+      name
     end
 
     def self.scalar(value, name)
@@ -47,7 +53,7 @@ module Unisender
     end
 
     def self.text(value)
-      raise ArgumentError, "Parameters must contain valid UTF-8 text" unless value.valid_encoding?
+      raise ValidationError.new(field: "parameters", code: :invalid_encoding) unless value.valid_encoding?
 
       value.encode(Encoding::UTF_8)
     end
@@ -56,11 +62,11 @@ module Unisender
       case value
       when Integer then value.to_s
       when Float
-        raise ArgumentError, "Numeric parameters must be finite" unless value.finite?
+        raise ValidationError.new(field: "parameters", code: :invalid_number) unless value.finite?
 
         value.to_s
       else
-        raise ArgumentError, "Unsupported parameter type"
+        raise ValidationError.new(field: "parameters", code: :invalid_type)
       end
     end
   end
