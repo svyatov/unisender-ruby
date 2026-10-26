@@ -1,0 +1,51 @@
+module Unisender
+  class Record
+    @values: Hash[String, value]
+    def initialize: (Hash[String, json]) -> void
+    def self.decode: (json) -> value
+    def []: (String | Symbol) -> value
+    def fetch: (String | Symbol) -> value
+    def dig: (String | Symbol, *(String | Integer)) -> value
+    def to_h: () -> Hash[String, json]
+    alias to_hash to_h
+    def ==: (BasicObject) -> bool
+    def inspect: () -> String
+    def normalize: () -> void
+    def text: (String) -> String?
+    def text!: (String) -> String
+    def identifier!: (String) -> id
+    def integer!: (String) -> Integer
+    def invalid!: (String) -> bot
+    private
+    def copy: (value) -> json
+  end
+
+  class CollectionResponse[out Item = Record] < Response[Array[Item]]
+    include Enumerable[Item]
+    def each: () -> Enumerator[Item, Array[Item]]
+            | () { (Item) -> void } -> Array[Item]
+    def []: (Integer) -> Item?
+    def fetch: (Integer) -> Item
+    def size: () -> Integer
+    def empty?: () -> bool
+  end
+
+  class ObjectResponse[out Result < Record = Record] < Response[Result]
+    def []: (String | Symbol) -> value
+    def fetch: (String | Symbol) -> value
+    def dig: (String | Symbol, *(String | Integer)) -> value
+  end
+
+  module Results
+    MODELS: Hash[String, [singleton(Record), singleton(ObjectResponse)]]
+    EMPTY_OPERATIONS: Array[String]
+    def self.build: (String, Response[json]) -> Response
+    def self.object: (singleton(Record), json) -> Record
+    def self.normalize: (String, json) -> json
+    def self.single_message: (json) -> json
+    def self.wrap: (json, singleton(Record), singleton(ObjectResponse), Response[json]) -> Response
+    def self.rows: (json) -> Array[Hash[String, json]]
+    def self.field_names: (Array[json]) -> Array[String]
+    def self.row_object: (Array[String], json) -> Hash[String, json]
+  end
+end

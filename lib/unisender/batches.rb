@@ -20,7 +20,7 @@ module Unisender
     def self.execute(batch, offset, completed)
       response = yield batch
       result = response.result
-      raise PartialFailure, response if result.is_a?(Hash) && result.fetch("invalid", 0).to_s.to_i.positive?
+      raise PartialFailure, response if result.is_a?(Record) && result["invalid"].to_s.to_i.positive?
 
       response
     rescue Error, ArgumentError => e

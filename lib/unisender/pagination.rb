@@ -56,9 +56,8 @@ module Unisender
       return result.size unless @method == "get_sender_domain_list"
 
       result.sum do |group|
-        raise InvalidResponseError, "Expected sender domain groups" unless group.is_a?(Hash)
-
-        domains = group["domains"]
+        record = group # : Record
+        domains = record["domains"]
         raise InvalidResponseError, "Expected sender domain groups" unless domains.is_a?(Array)
 
         domains.size

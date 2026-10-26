@@ -75,7 +75,7 @@ Expand an operation below for its accepted Ruby types and result shape. `id` mea
 
 Named methods accept Arrays for the documented comma-separated fields and join them before encoding. Other nested arrays and hashes retain bracket indices. An empty String/Array/Hash is rejected for a required value. Method-specific constraints beyond the structural checks are validated by the service; refer to the linked official page for account permissions, current limits, and additional response fields.
 
-All result descriptions refer to `response.result`, not the enclosing response. Unknown fields remain in `response.data`, even when a result type lists only its guaranteed fields. API errors raise `APIError`, HTTP errors raise `HTTPError`, malformed successful responses raise `InvalidResponseError`, and connection failures raise `TransportError`; none should be interpreted as an empty success. Import and send operations can also return per-record failures inside a successful result.
+Named-operation results are immutable typed records or collections. The wire shapes below describe `response.data`; records expose documented fields and string-key lookup. HTTP metadata uses `response.http_status`. See [the migration guide](migration-0.2.md). Unknown fields remain in `response.data`, even when a result type lists only its guaranteed fields. API errors raise `APIError`, HTTP errors raise `HTTPError`, malformed successful responses raise `InvalidResponseError`, and connection failures raise `TransportError`; none should be interpreted as an empty success. Import and send operations can also return per-record failures inside a successful result.
 
 ## Operation contracts
 

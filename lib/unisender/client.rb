@@ -45,7 +45,7 @@ module Unisender
     end
 
     # The wire response stays JSON; each named operation declares the documented result type.
-    # @type method invoke: (String, params, ?required: Array[String], ?comma: Array[String]) -> Response[json]
+    # @type method invoke: (String, params, ?required: Array[String], ?comma: Array[String]) -> Response
     def invoke(method, params, required: [], comma: [])
       Validation.required!(params, required)
       Validation.operation!(method, params)
@@ -53,7 +53,7 @@ module Unisender
         value = params[name.to_sym]
         params[name.to_sym] = Validation.comma_list(value) if value.is_a?(Array)
       end
-      request(method, params:)
+      Results.build(method, request(method, params:))
     end
   end
 end

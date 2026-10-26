@@ -60,7 +60,7 @@ module Unisender
     def transient?(error)
       case error
       when APIError then TRANSIENT_CODES.include?(error.code)
-      when HTTPError then [429, 502, 503, 504].include?(error.response.status)
+      when HTTPError then [429, 502, 503, 504].include?(error.response.http_status)
       when TimeoutError then true
       when TransportError then error.retryable?
       else false

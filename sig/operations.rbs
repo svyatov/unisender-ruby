@@ -1,78 +1,78 @@
 module Unisender
   type id = String | Integer
   type flag = bool | 0 | 1
-  type list = { "id" => id, "title" => String }
-  type list_created = { "id" => id }
-  type subscription = { "person_id" => id }
-  type message_created = { "message_id" => id }
-  type campaign_created = { "campaign_id" => id, "status" => String }
-  type task_created = { "task_uuid" => String }
-  type task_completed = { "status" => String, "file_to_download" => String }
+  type list = List
+  type list_created = IdentifierRecord
+  type subscription = Subscription
+  type message_created = MessageCreated
+  type campaign_created = CampaignCreated
+  type task_created = TaskResult
+  type task_completed = TaskResult
 
-  type object = Hash[String, json]
-  type objects = Array[object]
-  type contact_count = { "count" => String }
-  type total_contacts = { "total" => Integer }
-  type delivery_status = { "status" => String }
-  type message_version = { "message_id" => id, "actual_version_id" => id }
-  type note = { "id" => id, "content" => String }
-  type event_accepted = { "success" => true }
+  type object = Record
+  type objects = Array[Record]
+  type contact_count = ContactCount
+  type total_contacts = TotalContacts
+  type delivery_status = Status
+  type message_version = MessageVersion
+  type note = Note
+  type event_accepted = Record
 
   class Client
-    def create_list: (title: String, ?before_subscribe_url: String | nil, ?after_subscribe_url: String | nil, ?sub_user_rights: params | nil) -> Response[list_created]
-    def delete_list: (list_id: id) -> Response[object | objects]
-    def exclude: (contact_type: String, contact: String, ?list_ids: String | Array[id] | nil) -> Response[object | objects]
-    def export_contacts: (?notify_url: String | nil, ?list_id: id | nil, ?field_names: Array[String] | nil, ?email: String | nil, ?phone: String | nil, ?tag: String | nil, ?email_status: String | nil, ?phone_status: String | nil, ?contact_status: String | nil) -> Response[task_created]
-    def get_contact_count: (list_id: id, params: params) -> Response[contact_count]
-    def get_lists: () -> Response[Array[list]]
-    def get_total_contacts_count: (login: String) -> Response[total_contacts]
-    def import_contacts: (field_names: Array[String], data: Array[Array[parameter]], ?overwrite_tags: flag | nil, ?overwrite_lists: flag | nil, ?telegram_bot_channel_id: String | nil) -> Response[object]
-    def subscribe: (list_ids: String | Array[id], fields: params, ?tags: String | Array[id] | nil, ?double_optin: Integer | nil, ?overwrite: Integer | nil) -> Response[subscription]
-    def update_list: (list_id: id, title: String, ?before_subscribe_url: String | nil, ?after_subscribe_url: String | nil, ?sub_user_rights: params | nil) -> Response[object | objects]
+    def create_list: (title: String, ?before_subscribe_url: String | nil, ?after_subscribe_url: String | nil, ?sub_user_rights: params | nil) -> IdentifierRecordResponse
+    def delete_list: (list_id: id) -> ObjectResponse[Record]
+    def exclude: (contact_type: String, contact: String, ?list_ids: String | Array[id] | nil) -> ObjectResponse[Record]
+    def export_contacts: (?notify_url: String | nil, ?list_id: id | nil, ?field_names: Array[String] | nil, ?email: String | nil, ?phone: String | nil, ?tag: String | nil, ?email_status: String | nil, ?phone_status: String | nil, ?contact_status: String | nil) -> TaskResultResponse
+    def get_contact_count: (list_id: id, params: params) -> ContactCountResponse
+    def get_lists: () -> CollectionResponse[List]
+    def get_total_contacts_count: (login: String) -> TotalContactsResponse
+    def import_contacts: (field_names: Array[String], data: Array[Array[parameter]], ?overwrite_tags: flag | nil, ?overwrite_lists: flag | nil, ?telegram_bot_channel_id: String | nil) -> ObjectResponse[Record]
+    def subscribe: (list_ids: String | Array[id], fields: params, ?tags: String | Array[id] | nil, ?double_optin: Integer | nil, ?overwrite: Integer | nil) -> SubscriptionResponse
+    def update_list: (list_id: id, title: String, ?before_subscribe_url: String | nil, ?after_subscribe_url: String | nil, ?sub_user_rights: params | nil) -> ObjectResponse[Record]
     def is_contact_in_lists: (email: String, list_ids: String | Array[id], condition: String) -> Response[bool]
-    def get_contact: (email: String, ?include_lists: flag | nil, ?include_fields: flag | nil, ?include_details: flag | nil) -> Response[object]
-    def unsubscribe: (contact_type: String, contact: String, ?list_ids: String | Array[id] | nil) -> Response[object | objects]
-    def cancel_campaign: (campaign_id: id) -> Response[objects]
-    def check_email: (email_id: String | Array[id]) -> Response[objects]
-    def check_sms: (sms_id: id) -> Response[delivery_status]
-    def create_campaign: (message_id: id, ?start_time: String | nil, ?timezone: String | nil, ?track_read: flag | nil, ?track_links: flag | nil, ?contacts: String | Array[id] | nil, ?contacts_url: String | nil, ?track_ga: flag | nil, ?payment_limit: Integer | Float | nil, ?payment_currency: String | nil, ?ga_medium: String | nil, ?ga_source: String | nil, ?ga_campaign: String | nil, ?ga_content: String | nil, ?ga_term: String | nil) -> Response[campaign_created]
-    def create_email_message: (sender_name: String, sender_email: String, list_id: id, ?subject: String | nil, ?body: String | nil, ?text_body: String | nil, ?generate_text: flag | nil, ?tag: String | nil, ?attachments: Hash[String, String] | nil, ?lang: String | nil, ?template_id: id | nil, ?system_template_id: id | nil, ?wrap_type: String | nil, ?categories: String | Array[id] | nil) -> Response[message_created]
-    def create_sms_message: (sender: String, body: String, list_id: id, ?tag: String | nil) -> Response[message_created]
-    def delete_message: (message_id: id) -> Response[object | objects]
-    def get_actual_message_version: (message_id: id) -> Response[message_version]
-    def get_web_version: (campaign_id: id) -> Response[object]
-    def send_email: (email: String, sender_name: String, sender_email: String, subject: String, body: String, list_id: id, ?attachments: Hash[String, String] | nil, ?lang: String | nil, ?track_read: flag | nil, ?track_links: flag | nil, ?cc: String | nil, ?headers: String | params | nil, ?images_as: String | nil, ?ref_key: String | nil, ?error_checking: flag | nil, ?metadata: params | nil) -> Response[object | objects]
-    def send_sms: (phone: String, sender: String, text: String) -> Response[object]
-    def send_test_email: (email: String | Array[id], id: id) -> Response[object | objects]
-    def update_email_message: (id: id, ?sender_name: String | nil, ?sender_email: String | nil, ?subject: String | nil, ?body: String | nil, ?list_id: id | nil, ?text_body: String | nil, ?lang: String | nil, ?categories: String | Array[id] | nil) -> Response[message_created]
-    def update_opt_in_email: (sender_name: String, sender_email: String, subject: String, body: String, list_id: id) -> Response[object | objects]
-    def get_sender_domain_list: (username: String, ?domain: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> Response[objects]
-    def get_campaign_common_stats: (campaign_id: id) -> Response[object]
-    def get_campaign_delivery_stats: (campaign_id: id, ?notify_url: String | nil, ?changed_since: String | nil, ?field_ids: Array[id] | nil) -> Response[task_created]
-    def get_campaign_status: (campaign_id: id) -> Response[delivery_status]
-    def get_messages: (date_from: String, date_to: String, ?limit: Integer | nil, ?offset: Integer | nil) -> Response[objects]
-    def get_visited_links: (campaign_id: id, ?group: flag | nil) -> Response[object]
-    def list_messages: (date_from: String, date_to: String, ?limit: Integer | nil, ?offset: Integer | nil) -> Response[objects]
-    def get_campaigns: (from: String, ?to: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> Response[objects]
-    def get_message: (id: id) -> Response[objects]
-    def get_task_result: (task_uuid: String) -> Response[object]
-    def create_email_template: (title: String, subject: String, body: String, ?description: String | nil, ?text_body: String | nil, ?lang: String | nil) -> Response[list_created]
-    def delete_template: (template_id: id) -> Response[object | objects]
-    def get_template: (?template_id: id | nil, ?system_template_id: id | nil) -> Response[object]
-    def get_templates: (?type: String | nil, ?date_from: String | nil, ?date_to: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> Response[objects]
-    def list_templates: (?type: String | nil, ?date_from: String | nil, ?date_to: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> Response[objects]
-    def update_email_template: (template_id: id, ?title: String | nil, ?description: String | nil, ?subject: String | nil, ?body: String | nil, ?text_body: String | nil, ?lang: String | nil) -> Response[list_created]
-    def create_field: (name: String, type: String, ?public_name: String | nil) -> Response[list_created]
-    def delete_field: (id: id) -> Response[object | objects]
-    def delete_tag: (id: id) -> Response[object | objects]
-    def get_fields: () -> Response[objects]
-    def get_tags: () -> Response[objects]
-    def update_field: (id: id, name: String, ?public_name: String | nil) -> Response[object | objects]
-    def get_contact_field_values: (email: String, field_ids: String | Array[id]) -> Response[object]
-    def create_subscriber_note: (subscriber_id: id, content: String) -> Response[list_created]
-    def update_subscriber_note: (id: id, content: String) -> Response[list_created]
-    def delete_subscriber_note: (id: id) -> Response[object | objects]
-    def get_subscriber_note: (id: id) -> Response[note]
-    def get_subscriber_notes: (subscriber_id: id, ?limit: Integer | nil, ?offset: Integer | nil, ?order_type: String | nil, ?order_by: String | nil, ?is_pinned: flag | nil) -> Response[objects]
+    def get_contact: (email: String, ?include_lists: flag | nil, ?include_fields: flag | nil, ?include_details: flag | nil) -> ObjectResponse[Record]
+    def unsubscribe: (contact_type: String, contact: String, ?list_ids: String | Array[id] | nil) -> ObjectResponse[Record]
+    def cancel_campaign: (campaign_id: id) -> ObjectResponse[Record]
+    def check_email: (email_id: String | Array[id]) -> CollectionResponse[Record]
+    def check_sms: (sms_id: id) -> StatusResponse
+    def create_campaign: (message_id: id, ?start_time: String | nil, ?timezone: String | nil, ?track_read: flag | nil, ?track_links: flag | nil, ?contacts: String | Array[id] | nil, ?contacts_url: String | nil, ?track_ga: flag | nil, ?payment_limit: Integer | Float | nil, ?payment_currency: String | nil, ?ga_medium: String | nil, ?ga_source: String | nil, ?ga_campaign: String | nil, ?ga_content: String | nil, ?ga_term: String | nil) -> CampaignCreatedResponse
+    def create_email_message: (sender_name: String, sender_email: String, list_id: id, ?subject: String | nil, ?body: String | nil, ?text_body: String | nil, ?generate_text: flag | nil, ?tag: String | nil, ?attachments: Hash[String, String] | nil, ?lang: String | nil, ?template_id: id | nil, ?system_template_id: id | nil, ?wrap_type: String | nil, ?categories: String | Array[id] | nil) -> MessageCreatedResponse
+    def create_sms_message: (sender: String, body: String, list_id: id, ?tag: String | nil) -> MessageCreatedResponse
+    def delete_message: (message_id: id) -> ObjectResponse[Record]
+    def get_actual_message_version: (message_id: id) -> MessageVersionResponse
+    def get_web_version: (campaign_id: id) -> WebVersionResponse
+    def send_email: (email: String, sender_name: String, sender_email: String, subject: String, body: String, list_id: id, ?attachments: Hash[String, String] | nil, ?lang: String | nil, ?track_read: flag | nil, ?track_links: flag | nil, ?cc: String | nil, ?headers: String | params | nil, ?images_as: String | nil, ?ref_key: String | nil, ?error_checking: flag | nil, ?metadata: params | nil) -> CollectionResponse[Record]
+    def send_sms: (phone: String, sender: String, text: String) -> ObjectResponse[Record]
+    def send_test_email: (email: String | Array[id], id: id) -> ObjectResponse[Record]
+    def update_email_message: (id: id, ?sender_name: String | nil, ?sender_email: String | nil, ?subject: String | nil, ?body: String | nil, ?list_id: id | nil, ?text_body: String | nil, ?lang: String | nil, ?categories: String | Array[id] | nil) -> MessageCreatedResponse
+    def update_opt_in_email: (sender_name: String, sender_email: String, subject: String, body: String, list_id: id) -> ObjectResponse[Record]
+    def get_sender_domain_list: (username: String, ?domain: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> CollectionResponse[Record]
+    def get_campaign_common_stats: (campaign_id: id) -> ObjectResponse[Record]
+    def get_campaign_delivery_stats: (campaign_id: id, ?notify_url: String | nil, ?changed_since: String | nil, ?field_ids: Array[id] | nil) -> TaskResultResponse
+    def get_campaign_status: (campaign_id: id) -> StatusResponse
+    def get_messages: (date_from: String, date_to: String, ?limit: Integer | nil, ?offset: Integer | nil) -> CollectionResponse[Message]
+    def get_visited_links: (campaign_id: id, ?group: flag | nil) -> CollectionResponse[Record]
+    def list_messages: (date_from: String, date_to: String, ?limit: Integer | nil, ?offset: Integer | nil) -> CollectionResponse[Message]
+    def get_campaigns: (from: String, ?to: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> CollectionResponse[Campaign]
+    def get_message: (id: id) -> MessageResponse
+    def get_task_result: (task_uuid: String) -> TaskResultResponse
+    def create_email_template: (title: String, subject: String, body: String, ?description: String | nil, ?text_body: String | nil, ?lang: String | nil) -> IdentifierRecordResponse
+    def delete_template: (template_id: id) -> ObjectResponse[Record]
+    def get_template: (?template_id: id | nil, ?system_template_id: id | nil) -> TemplateResponse
+    def get_templates: (?type: String | nil, ?date_from: String | nil, ?date_to: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> CollectionResponse[Template]
+    def list_templates: (?type: String | nil, ?date_from: String | nil, ?date_to: String | nil, ?limit: Integer | nil, ?offset: Integer | nil) -> CollectionResponse[Template]
+    def update_email_template: (template_id: id, ?title: String | nil, ?description: String | nil, ?subject: String | nil, ?body: String | nil, ?text_body: String | nil, ?lang: String | nil) -> IdentifierRecordResponse
+    def create_field: (name: String, type: String, ?public_name: String | nil) -> IdentifierRecordResponse
+    def delete_field: (id: id) -> ObjectResponse[Record]
+    def delete_tag: (id: id) -> ObjectResponse[Record]
+    def get_fields: () -> CollectionResponse[Field]
+    def get_tags: () -> CollectionResponse[Tag]
+    def update_field: (id: id, name: String, ?public_name: String | nil) -> ObjectResponse[Record]
+    def get_contact_field_values: (email: String, field_ids: String | Array[id]) -> ObjectResponse[Record]
+    def create_subscriber_note: (subscriber_id: id, content: String) -> IdentifierRecordResponse
+    def update_subscriber_note: (id: id, content: String) -> IdentifierRecordResponse
+    def delete_subscriber_note: (id: id) -> ObjectResponse[Record]
+    def get_subscriber_note: (id: id) -> NoteResponse
+    def get_subscriber_notes: (subscriber_id: id, ?limit: Integer | nil, ?offset: Integer | nil, ?order_type: String | nil, ?order_by: String | nil, ?is_pinned: flag | nil) -> CollectionResponse[Note]
   end
 end

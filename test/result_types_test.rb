@@ -3,6 +3,7 @@
 require "test_helper"
 require "rbs"
 require "rbs/test"
+require_relative "support/scripted_transport"
 
 class ResultTypesTest < Minitest::Test
   def setup
@@ -17,14 +18,22 @@ class ResultTypesTest < Minitest::Test
     examples.each do |example|
       type = result_type(example.fetch("name"))
 
-      assert @checker.value(example.fetch("result"), type), "#{example.fetch('name')} does not match #{type}"
+      response = invoke(example)
+
+      assert @checker.value(response, type), "#{example.fetch('name')} does not match #{type}"
     end
   end
 
   private
 
+  def invoke(example)
+    transport = ScriptedTransport.new(ScriptedTransport.reply({ "result" => example.fetch("result") }))
+    client = Unisender::Client.new(api_key: "test-key", transport:)
+    client.public_send(example.fetch("name"), **example.fetch("args").transform_keys(&:to_sym))
+  end
+
   def result_type(name)
-    @definition.methods.fetch(name.to_sym).method_types.first.type.return_type.args.first
+    @definition.methods.fetch(name.to_sym).method_types.first.type.return_type
   end
 
   def definition_builder

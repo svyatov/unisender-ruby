@@ -17,10 +17,10 @@ class RetryTest < Minitest::Test
   def test_retries_transient_reads_with_exponential_backoff
     transport = ScriptedTransport.new(ScriptedTransport.reply({}, status: 503),
                                       ScriptedTransport.reply({ "error" => "busy", "code" => "retry_later" }),
-                                      ScriptedTransport.reply({ "result" => [1] }))
+                                      ScriptedTransport.reply({ "result" => [{ "id" => 1, "title" => "News" }] }))
     client = Unisender::Client.new(api_key: "test-key", transport:, retry_policy: @policy)
 
-    assert_equal [1], client.get_lists.result
+    assert_equal [1], client.get_lists.map(&:id)
     assert_equal [1.0, 2.0], @sleeps
     assert_equal 3, transport.requests.size
   end

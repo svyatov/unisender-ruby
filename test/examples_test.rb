@@ -45,7 +45,7 @@ class ExamplesTest < Minitest::Test
   end
 
   def test_export_polls_without_downloading_or_printing_the_private_link
-    transport, output, = run_example("export", { "result" => { "task_uuid" => "task" } },
+    transport, output, = run_example("export", { "result" => { "task_uuid" => "task", "status" => "new" } },
                                      { "result" => { "status" => "completed",
                                                      "file_to_download" => "https://example.test/secret" } })
 

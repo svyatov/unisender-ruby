@@ -27,7 +27,7 @@ module Unisender
 
       Validation.required!(params, required.map(&:to_s))
       Validation.operation!(wire, params)
-      client.request(wire, params:) # : Response[objects]
+      Results.build(wire, client.request(wire, params:)) # : CollectionResponse[Record]
     end
 
     def self.page_limit(method)

@@ -4,6 +4,10 @@ Unreleased collects changes for the next version. Dated sections list user-visib
 
 ## Unreleased
 
+- Return typed immutable records and enumerable collections from named operations.
+- Add direct field access, a boolean membership predicate, and singular message results.
+- Rename response HTTP metadata to `http_status`; preserve upstream JSON through `data`.
+
 ## 0.1.1 - 2026-10-25
 
 - Clarify installation, example destinations, contribution guidance, and maintainer policies.

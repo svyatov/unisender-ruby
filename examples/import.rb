@@ -7,7 +7,7 @@ client = Unisender::Client.new(api_key: ENV.fetch("UNISENDER_API_KEY"))
 begin
   client.import_contacts_in_batches(
     field_names: %w[email Name], data: [[ENV.fetch("UNISENDER_CONTACT_EMAIL"), "Example"]]
-  ).each { |response| puts "Imported batch: HTTP #{response.status}" }
+  ).each { |response| puts "Imported batch: HTTP #{response.http_status}" }
 rescue Unisender::BatchError => e
   warn "Completed batches: #{e.completed_responses.size}; review rows #{e.failed_range}"
   if e.error.is_a?(Unisender::PartialFailure)

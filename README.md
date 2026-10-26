@@ -21,7 +21,7 @@ Save this read-only example as `quickstart.rb`. It uses the key in `UNISENDER_AP
 require "unisender"
 
 client = Unisender::Client.new(api_key: ENV.fetch("UNISENDER_API_KEY"))
-client.get_lists.result.each { |list| puts list.fetch("title") }
+client.get_lists.each { |list| puts list.title }
 # Example output for a list named News: News
 ```
 
@@ -99,7 +99,7 @@ Each example is a standalone Ruby file. Its header lists required environment va
 
 ## Responses and failures
 
-Every operation returns `Unisender::Response`: `result`, `warnings`, `data` (the full JSON object), `status`, and `headers`. Values are deeply immutable. JSON keys are strings; numbers are not coerced. Read or copy the data explicitly when your application needs to change it.
+Named operations return typed responses. Collections support `each`, `map`, and other `Enumerable` methods. Object results expose documented fields directly. `result` contains the typed value; `data` preserves the full upstream JSON object. `http_status`, `headers`, and `warnings` retain response metadata. Values are deeply immutable; use `result.to_h` for a mutable object copy. See [the 0.2 migration guide](docs/migration-0.2.md).
 
 Named methods use snake_case and reject unknown keywords. Optional `nil` values are omitted, preserving server defaults. API messages default to English; use `Client.new(api_key: ..., language: :ru)` for Russian. Message-level `lang:` is a separate setting.
 
@@ -113,7 +113,7 @@ rescue Unisender::APIError => error
   # Fix credentials, permissions, or parameters using error.code.
 rescue Unisender::HTTPError => error
   warn error.message
-  # Check error.response.status and error.response.headers.
+  # Check error.response.http_status and error.response.headers.
 rescue Unisender::TransportError, Unisender::InvalidResponseError => error
   warn error.message
   # Check service availability before deciding whether to repeat the operation.

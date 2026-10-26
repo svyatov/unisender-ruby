@@ -1,0 +1,152 @@
+module Unisender
+  class IdentifierRecord < Record
+    def id: () -> id
+    def normalize: () -> void
+  end
+  class IdentifierRecordResponse < ObjectResponse[IdentifierRecord]
+    def id: () -> id
+  end
+  class List < IdentifierRecord
+    def title: () -> String
+    def normalize: () -> void
+  end
+  class ListResponse < ObjectResponse[List]
+    def id: () -> id
+    def title: () -> String
+  end
+  class Message < IdentifierRecord
+    def subject: () -> String?
+    def body: () -> String?
+    def sender_name: () -> String?
+    def sender_email: () -> String?
+    def normalize: () -> void
+  end
+  class MessageResponse < ObjectResponse[Message]
+    def id: () -> id
+    def subject: () -> String?
+    def body: () -> String?
+    def sender_name: () -> String?
+    def sender_email: () -> String?
+  end
+  class Campaign < IdentifierRecord
+    def status: () -> String?
+    def subject: () -> String?
+    def normalize: () -> void
+  end
+  class CampaignResponse < ObjectResponse[Campaign]
+    def id: () -> id
+    def status: () -> String?
+    def subject: () -> String?
+  end
+  class Template < IdentifierRecord
+    def title: () -> String?
+    def subject: () -> String?
+    def body: () -> String?
+    def normalize: () -> void
+  end
+  class TemplateResponse < ObjectResponse[Template]
+    def id: () -> id
+    def title: () -> String?
+    def subject: () -> String?
+    def body: () -> String?
+  end
+  class Field < IdentifierRecord
+    def name: () -> String
+    def type: () -> String
+    def normalize: () -> void
+  end
+  class FieldResponse < ObjectResponse[Field]
+    def id: () -> id
+    def name: () -> String
+    def type: () -> String
+  end
+  class Tag < IdentifierRecord
+    def name: () -> String
+    def normalize: () -> void
+  end
+  class TagResponse < ObjectResponse[Tag]
+    def id: () -> id
+    def name: () -> String
+  end
+  class Note < IdentifierRecord
+    def content: () -> String
+    def normalize: () -> void
+  end
+  class NoteResponse < ObjectResponse[Note]
+    def id: () -> id
+    def content: () -> String
+  end
+  class MessageCreated < Record
+    def message_id: () -> id
+    def normalize: () -> void
+  end
+  class MessageCreatedResponse < ObjectResponse[MessageCreated]
+    def message_id: () -> id
+  end
+  class Subscription < Record
+    def person_id: () -> id
+    def normalize: () -> void
+  end
+  class SubscriptionResponse < ObjectResponse[Subscription]
+    def person_id: () -> id
+  end
+  class CampaignCreated < Record
+    def campaign_id: () -> id
+    def status: () -> String
+    def normalize: () -> void
+  end
+  class CampaignCreatedResponse < ObjectResponse[CampaignCreated]
+    def campaign_id: () -> id
+    def status: () -> String
+  end
+  class Status < Record
+    def status: () -> String
+    def normalize: () -> void
+  end
+  class StatusResponse < ObjectResponse[Status]
+    def status: () -> String
+  end
+  class ContactCount < Record
+    def count: () -> Integer
+    def normalize: () -> void
+  end
+  class ContactCountResponse < ObjectResponse[ContactCount]
+    def count: () -> Integer
+  end
+  class TotalContacts < Record
+    def total: () -> Integer
+    def normalize: () -> void
+  end
+  class TotalContactsResponse < ObjectResponse[TotalContacts]
+    def total: () -> Integer
+  end
+  class MessageVersion < Record
+    def message_id: () -> id
+    def actual_version_id: () -> id
+    def normalize: () -> void
+  end
+  class MessageVersionResponse < ObjectResponse[MessageVersion]
+    def message_id: () -> id
+    def actual_version_id: () -> id
+  end
+  class WebVersion < Record
+    def letter_id: () -> id
+    def web_letter_link: () -> String
+    def normalize: () -> void
+  end
+  class WebVersionResponse < ObjectResponse[WebVersion]
+    def letter_id: () -> id
+    def web_letter_link: () -> String
+  end
+  class TaskResult < Record
+    def task_uuid: () -> String?
+    def status: () -> String
+    def file_to_download: () -> String?
+    def normalize: () -> void
+  end
+  class TaskResultResponse < ObjectResponse[TaskResult]
+    def task_uuid: () -> String?
+    def status: () -> String
+    def file_to_download: () -> String?
+  end
+end

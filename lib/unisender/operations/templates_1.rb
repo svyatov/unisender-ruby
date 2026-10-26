@@ -25,13 +25,13 @@ module Unisender
     # https://www.unisender.com/ru/support/api/templates/gettemplates/
     def get_templates(type: nil, date_from: nil, date_to: nil, limit: nil, offset: nil)
       params = { type:, date_from:, date_to:, limit:, offset: }
-      PaginatedOperations.call(self, :get_templates, params)
+      PaginatedOperations.call(self, :get_templates, params) # : CollectionResponse[Template]
     end
 
     # https://www.unisender.com/ru/support/api/templates/listtemplates/
     def list_templates(type: nil, date_from: nil, date_to: nil, limit: nil, offset: nil)
       params = { type:, date_from:, date_to:, limit:, offset: }
-      PaginatedOperations.call(self, :list_templates, params)
+      PaginatedOperations.call(self, :list_templates, params) # : CollectionResponse[Template]
     end
 
     # https://www.unisender.com/ru/support/api/templates/updateemailtemplate/

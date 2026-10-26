@@ -34,7 +34,7 @@ module Unisender
 
     def complete?(response)
       result = response.result
-      raise TaskError, response unless result.is_a?(Hash)
+      raise TaskError, response unless result.is_a?(Record)
       return true if result["status"] == "completed"
       raise TaskError, response unless PENDING.include?(result["status"])
 

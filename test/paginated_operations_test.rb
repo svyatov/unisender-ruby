@@ -104,7 +104,8 @@ class PaginatedOperationsTest < Minitest::Test
   end
 
   def assert_response_equal(direct, paginated)
-    assert_equal [direct.data, direct.status, direct.headers], [paginated.data, paginated.status, paginated.headers]
+    assert_equal [direct.data, direct.http_status, direct.headers],
+                 [paginated.data, paginated.http_status, paginated.headers]
   end
 
   def assert_rejected(name, params)

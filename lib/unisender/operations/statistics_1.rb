@@ -24,7 +24,7 @@ module Unisender
     # https://www.unisender.com/ru/support/api/statistics/getmessages/
     def get_messages(date_from:, date_to:, limit: nil, offset: nil)
       params = { date_from:, date_to:, limit:, offset: }
-      PaginatedOperations.call(self, :get_messages, params)
+      PaginatedOperations.call(self, :get_messages, params) # : CollectionResponse[Message]
     end
 
     # https://www.unisender.com/ru/support/api/statistics/getvisitedlinks/
@@ -36,13 +36,13 @@ module Unisender
     # https://www.unisender.com/ru/support/api/statistics/listmessages/
     def list_messages(date_from:, date_to:, limit: nil, offset: nil)
       params = { date_from:, date_to:, limit:, offset: }
-      PaginatedOperations.call(self, :list_messages, params)
+      PaginatedOperations.call(self, :list_messages, params) # : CollectionResponse[Message]
     end
 
     # https://www.unisender.com/ru/support/api/statistics/getcampaigns/
     def get_campaigns(from:, to: nil, limit: nil, offset: nil)
       params = { from:, to:, limit:, offset: }
-      PaginatedOperations.call(self, :get_campaigns, params)
+      PaginatedOperations.call(self, :get_campaigns, params) # : CollectionResponse[Campaign]
     end
   end
 end

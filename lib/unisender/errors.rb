@@ -58,7 +58,7 @@ module Unisender
 
     def initialize(response)
       @response = response
-      super("HTTP #{response.status}")
+      super("HTTP #{response.http_status}")
     end
   end
 
@@ -89,7 +89,7 @@ module Unisender
     end
 
     def possibly_partially_accepted?
-      response.status == 400
+      response.http_status == 400
     end
   end
 
@@ -106,6 +106,8 @@ module Unisender
   end
 
   class PaginationError < Error; end
+
+  class NotFoundError < Error; end
 
   # The API accepted the import request but rejected some records.
   class PartialFailure < Error

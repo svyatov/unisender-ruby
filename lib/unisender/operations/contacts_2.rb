@@ -29,6 +29,13 @@ module Unisender
       invoke("isContactInLists", params, required: %w[email list_ids condition], comma: %w[list_ids])
     end
 
+    def contact_in_lists?(email:, list_ids:, condition:)
+      wire = { any: "or", all: "and" }.fetch(condition) do
+        raise ArgumentError, "condition must be any or all"
+      end
+      is_contact_in_lists(email:, list_ids:, condition: wire).result
+    end
+
     # https://www.unisender.com/ru/support/api/contacts/getcontact/
     def get_contact(email:, include_lists: nil, include_fields: nil, include_details: nil)
       params = { email:, include_lists:, include_fields:, include_details: }

@@ -6,7 +6,7 @@ module Unisender
     # https://www.unisender.com/ru/support/api/messages/getsenderdomainlist/
     def get_sender_domain_list(username:, domain: nil, limit: nil, offset: nil)
       params = { username:, domain:, limit:, offset: }
-      PaginatedOperations.call(self, :get_sender_domain_list, params)
+      PaginatedOperations.call(self, :get_sender_domain_list, params) # : CollectionResponse[Record]
     end
   end
 end
